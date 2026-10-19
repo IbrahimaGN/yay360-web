@@ -1,0 +1,220 @@
+<div class="pro-fade-in prenatal">
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Espace familial</span>
+      <h2 class="pro-header__title">Suivi maternel partagé</h2>
+      <p class="pro-header__desc">Retrouvez les étapes de grossesse, les rendez-vous, consultations et alertes du dossier familial.</p>
+    </div>
+    @if (grossesseActive()) {
+      <nav class="prenatal__quick-actions" aria-label="Actions rapides">
+        <button type="button" class="prenatal__quick-action" (click)="ouvrirAction('rendez-vous')">
+          <yay360-icon name="calendar" [size]="17" />
+          <span>Demander un RV</span>
+        </button>
+        <button type="button" class="prenatal__quick-action prenatal__quick-action--alert" (click)="ouvrirAction('alerte')">
+          <yay360-icon name="bell" [size]="17" />
+          <span>Alerter</span>
+        </button>
+        <button type="button" class="prenatal__quick-action prenatal__quick-action--medical" (click)="ouvrirAction('dossier-medical')">
+          <yay360-icon name="clipboard" [size]="17" />
+          <span>Mon dossier médical</span>
+        </button>
+      </nav>
+    }
+  </header>
+
+  @if (erreur()) { <div class="notice notice--error" role="alert">{{ erreur() }}</div> }
+  @if (message()) { <div class="notice notice--success" role="status">{{ message() }}</div> }
+  @if (chargement()) {
+    <section class="pro-card prenatal__empty" aria-live="polite">Chargement du dossier familial…</section>
+  } @else {
+    @if (grossesseActive(); as grossesse) {
+      <section class="pro-card prenatal__hero">
+        <div>
+          <span class="prenatal__eyebrow">Grossesse en cours · {{ grossesse.trimestre }}</span>
+          <h3>Semaine {{ grossesse.semaineActuelle }}</h3>
+          <p>Terme prévu le {{ grossesse.datePrevueAccouchement | date:'d MMMM y' }} · {{ grossesse.joursRestants }} jours restants</p>
+        </div>
+        <div class="prenatal__week" aria-label="Semaine de grossesse">
+          <strong>{{ grossesse.semaineActuelle }}</strong><span>/ 40 semaines</span>
+        </div>
+      </section>
+
+      <div class="prenatal__grid">
+        <section class="pro-card prenatal__section prenatal__week-content">
+          <div class="prenatal__section-head">
+            <div><span class="prenatal__eyebrow">Cette semaine</span><h3>Votre accompagnement</h3></div>
+            @if (grossesse.grossesseARisque) { <span class="prenatal__risk">Suivi renforcé</span> }
+          </div>
+          @if (suivi(); as conseils) {
+            <p class="prenatal__lead">{{ conseils.developpementBebe || 'Votre suivi hebdomadaire est à jour.' }}</p>
+            @if (conseils.changementsMere) { <p><strong>Pour vous</strong><br>{{ conseils.changementsMere }}</p> }
+            @if (conseils.objectifsSante) { <p><strong>Objectifs santé</strong><br>{{ conseils.objectifsSante }}</p> }
+            @if (conseils.examensRecommandes) { <p><strong>Examens recommandés</strong><br>{{ conseils.examensRecommandes }}</p> }
+            @if (conseils.signesAlerte) { <p class="prenatal__warning"><strong>Signes à surveiller</strong><br>{{ conseils.signesAlerte }}</p> }
+            @if (conseils.avertissement) { <small>{{ conseils.avertissement }}</small> }
+          } @else { <p>Les conseils personnalisés ne sont pas disponibles pour le moment.</p> }
+        </section>
+
+        <section class="pro-card prenatal__section prenatal__calendar">
+          <div class="prenatal__calendar-head">
+            <div><span class="prenatal__eyebrow">Calendrier</span><h3>{{ titreMoisCalendrier() | titlecase }}</h3></div>
+            <div class="prenatal__calendar-nav" aria-label="Navigation du calendrier">
+              <button type="button" aria-label="Mois précédent" (click)="changerMois(-1)">‹</button>
+              <button type="button" aria-label="Mois suivant" (click)="changerMois(1)">›</button>
+            </div>
+          </div>
+          <div class="prenatal__calendar-grid" role="grid" aria-label="Calendrier mensuel des rendez-vous">
+            @for (jour of joursSemaine; track jour) {
+              <span class="prenatal__calendar-weekday" role="columnheader">{{ jour }}</span>
+            }
+            @for (jour of joursCalendrier(); track jour.date.getTime()) {
+              <div class="prenatal__calendar-day"
+                   role="gridcell"
+                   [class.prenatal__calendar-day--outside]="!jour.dansMois"
+                   [class.prenatal__calendar-day--today]="jour.estAujourdhui"
+                   [class.prenatal__calendar-day--event]="jour.rendezVous.length > 0"
+                   [attr.aria-label]="(jour.date | date:'EEEE d MMMM') + (jour.rendezVous.length ? ', ' + jour.rendezVous.length + ' rendez-vous' : '')">
+                <span>{{ jour.date | date:'d' }}</span>
+                @if (jour.rendezVous.length) {
+                  <i class="prenatal__calendar-dot" aria-hidden="true"></i>
+                }
+              </div>
+            }
+          </div>
+          <div class="prenatal__calendar-legend"><i class="prenatal__calendar-dot"></i> Rendez-vous programmé</div>
+          <div class="prenatal__calendar-upcoming">
+            @if (prochainsRendezVous()[0]; as prochainRendezVous) {
+              <p>Prochain rendez-vous : {{ prochainRendezVous.dateHeure | date:'d MMMM y à HH:mm' }} — {{ prochainRendezVous.type | lowercase | titlecase }}@if (semaineGrossesseAuRendezVous(prochainRendezVous.dateHeure); as semainePrevue) { · Semaine {{ semainePrevue }} de grossesse }</p>
+            } @else {
+              <p>Prochain rendez-vous : aucun rendez-vous prévu.</p>
+            }
+          </div>
+        </section>
+      </div>
+    } @else {
+      <section class="pro-card prenatal__section prenatal__declare">
+        <span class="prenatal__eyebrow">Commencer le suivi</span>
+        <h3>Déclarer une grossesse</h3>
+        <p>La déclaration sera ajoutée au dossier maternel partagé par la femme enceinte et son conjoint associé.</p>
+        <form [formGroup]="formGrossesse" (ngSubmit)="declarerGrossesse()" class="prenatal__form">
+          <label>Date des dernières règles
+            <input type="date" formControlName="dateDernieresRegles" />
+          </label>
+          <label>Grossesses précédentes
+            <input type="number" min="0" max="20" formControlName="nombreGrossessesPrecedentes" />
+          </label>
+          <label class="prenatal__wide">Antécédents médicaux (facultatif)
+            <textarea rows="3" formControlName="antecedents"></textarea>
+          </label>
+          <button class="prenatal__button" type="submit" [disabled]="envoiGrossesse()">
+            {{ envoiGrossesse() ? 'Enregistrement…' : 'Déclarer la grossesse' }}
+          </button>
+        </form>
+      </section>
+    }
+
+    @if (grossesseActive()) {
+      <div class="prenatal__grid prenatal__grid--lower">
+        <section id="demander-rendez-vous" class="pro-card prenatal__section" tabindex="-1">
+          <h4>Rendez-vous du dossier</h4>
+          @if (rendezVous().length) {
+            <ul class="prenatal__list">
+              @for (rendezVousItem of rendezVous(); track rendezVousItem.id) {
+                <li><strong>{{ rendezVousItem.type | lowercase | titlecase }}</strong><span>{{ rendezVousItem.dateHeure | date:'d MMM y, HH:mm' }} · {{ rendezVousItem.statut }}</span></li>
+              }
+            </ul>
+          } @else { <p>Aucun rendez-vous enregistré.</p> }
+        </section>
+
+        <section id="alerter" class="pro-card prenatal__section" tabindex="-1">
+          <span class="prenatal__eyebrow">Vigilance santé</span><h3>Signalements récents</h3>
+          <p>En cas d’urgence, contactez immédiatement un professionnel de santé ou les services d’urgence locaux.</p>
+          @if (alertes().length) {
+            <ul class="prenatal__list">
+              @for (alerte of alertes(); track alerte.id) {
+                <li><strong>{{ alerte.typeSymptome | lowercase | titlecase }}</strong><span>{{ alerte.dateDeclaration | date:'d MMM y, HH:mm' }} · {{ alerte.statut }}</span></li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+
+    }
+  }
+
+  @if (actionOuverte(); as action) {
+    <div class="prenatal__modal-backdrop" (click)="fermerAction()">
+      <section class="prenatal__modal pro-card" role="dialog" aria-modal="true"
+               [attr.aria-labelledby]="'modal-title-' + action" (click)="$event.stopPropagation()">
+        <header class="prenatal__modal-head">
+          <div>
+            <span class="prenatal__eyebrow">Suivi maternel</span>
+            @if (action === 'rendez-vous') { <h2 id="modal-title-rendez-vous">Demander un rendez-vous</h2> }
+            @if (action === 'alerte') { <h2 id="modal-title-alerte">Signaler un symptôme</h2> }
+            @if (action === 'dossier-medical') { <h2 id="modal-title-dossier-medical">Mon dossier médical</h2> }
+          </div>
+          <button type="button" class="prenatal__modal-close" aria-label="Fermer" (click)="fermerAction()">×</button>
+        </header>
+
+        @if (action === 'rendez-vous') {
+          <form [formGroup]="formRendezVous" (ngSubmit)="prendreRendezVous()" class="prenatal__form">
+            <label>Date et heure<input type="datetime-local" formControlName="dateHeure" /></label>
+            <label>Type de rendez-vous
+              <select formControlName="type">
+                <option value="CONSULTATION_PRENATALE">Consultation prénatale</option>
+                <option value="ECHOGRAPHIE">Échographie</option>
+                <option value="VACCINATION">Vaccination</option>
+                <option value="EXAMEN_LABORATOIRE">Examen de laboratoire</option>
+                <option value="AUTRE">Autre</option>
+              </select>
+            </label>
+            <label class="prenatal__wide">Motif (facultatif)<input type="text" formControlName="motif" /></label>
+            <button class="prenatal__button" type="submit" [disabled]="envoiRendezVous()">
+              {{ envoiRendezVous() ? 'Envoi…' : 'Demander le rendez-vous' }}
+            </button>
+          </form>
+        }
+
+        @if (action === 'alerte') {
+          <p>En cas d’urgence, contactez immédiatement un professionnel de santé ou les services d’urgence locaux.</p>
+          <form [formGroup]="formAlerte" (ngSubmit)="declarerSymptome()" class="prenatal__form">
+            <label class="prenatal__wide">Symptôme
+              <select formControlName="typeSymptome">
+                <option value="">Choisir un symptôme</option>
+                <option value="SAIGNEMENTS">Saignements</option>
+                <option value="DOULEURS_ABDOMINALES">Douleurs abdominales</option>
+                <option value="PERTE_LIQUIDE">Perte de liquide</option>
+                <option value="DIMINUTION_MOUVEMENTS_BEBE">Diminution des mouvements du bébé</option>
+                <option value="FIEVRE_ELEVEE">Forte fièvre</option>
+                <option value="MAUX_DE_TETE_INTENSES">Maux de tête intenses</option>
+                <option value="OEDEMES_SOUDAINS">Œdèmes soudains</option>
+                <option value="VOMISSEMENTS_SEVERES">Vomissements sévères</option>
+                <option value="AUTRE">Autre symptôme</option>
+              </select>
+            </label>
+            <label class="prenatal__wide">Précisions (facultatif)<textarea rows="3" formControlName="description"></textarea></label>
+            <button class="prenatal__button prenatal__button--alert" type="submit" [disabled]="envoiAlerte()">
+              {{ envoiAlerte() ? 'Transmission…' : 'Transmettre le signalement' }}
+            </button>
+          </form>
+        }
+
+        @if (action === 'dossier-medical') {
+          @if (consultations().length) {
+            <ul class="prenatal__list">
+              @for (consultation of consultations(); track consultation.id) {
+                <li>
+                  <strong>{{ consultation.dateConsultation | date:'d MMMM y' }} · {{ consultation.professionnelNomComplet }}</strong>
+                  <span>{{ consultation.etablissementNom || 'Établissement non précisé' }}</span>
+                  @if (consultation.observations) { <p>{{ consultation.observations }}</p> }
+                  @if (consultation.prescriptions) { <p><strong>Prescriptions :</strong> {{ consultation.prescriptions }}</p> }
+                </li>
+              }
+            </ul>
+          } @else { <p>Aucune consultation enregistrée pour le moment.</p> }
+        }
+      </section>
+    </div>
+  }
+</div>

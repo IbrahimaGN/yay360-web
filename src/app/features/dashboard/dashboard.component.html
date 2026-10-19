@@ -1,0 +1,228 @@
+<div class="pro-fade-in dashboard-page">
+
+  @if (chargement()) {
+    <div class="dash-loading">
+      <div class="pro-spinner"></div>
+      <p>Synchronisation des indicateurs cliniques…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="dash-error pro-card">
+      <div class="dash-error__content">
+        <h3>Connexion au serveur interrompue</h3>
+        <p>{{ erreur() }}</p>
+      </div>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">
+        <span>Réessayer</span>
+      </button>
+    </div>
+  } @else if (data(); as d) {
+
+    <!-- En-tête de page -->
+    <header class="pro-header dash-header">
+      <div class="pro-header__left">
+        <span class="pro-header__tag">Indicateurs Cliniques & Activité</span>
+        <h1 class="pro-header__title">Suivi de la santé maternelle</h1>
+        <p class="pro-header__desc">Indicateurs des grossesses en cours, des consultations et des rendez-vous.</p>
+      </div>
+      <div class="pro-header__actions">
+        <a class="pro-btn pro-btn--secondary" routerLink="/grossesses">
+          Ouvrir le suivi des grossesses
+        </a>
+        <button type="button" class="pro-btn pro-btn--secondary" (click)="charger()">
+          <span>Actualiser</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid">
+      <yay360-stat-card
+        label="Patientes enregistrées"
+        [valeur]="d.nombreFemmesEnceintes"
+        icon="users"
+        iconBg="var(--c-primary-soft)"
+        iconColor="var(--c-primary)"
+      />
+      <yay360-stat-card
+        label="Grossesses actives"
+        [valeur]="d.nombreGrossessesActives"
+        icon="ring"
+        iconBg="rgba(15, 23, 42, 0.08)"
+        iconColor="var(--c-navy)"
+      />
+      <yay360-stat-card
+        label="Consultations réalisées"
+        [valeur]="d.nombreConsultations"
+        icon="clipboard"
+        iconBg="var(--c-primary-soft)"
+        iconColor="var(--c-primary)"
+      />
+      <yay360-stat-card
+        label="Rendez-vous programmés"
+        [valeur]="d.nombreRendezVous"
+        icon="calendar"
+        iconBg="rgba(15, 23, 42, 0.08)"
+        iconColor="var(--c-navy)"
+      />
+    </div>
+
+    <!-- Grille Principale -->
+    <div class="dashboard-grid">
+
+      <!-- Répartition par trimestre -->
+      <section class="pro-card dash-panel">
+        <div class="dash-panel__header">
+          <div>
+            <h2 class="dash-panel__title">Grossesses par trimestre</h2>
+            <p class="dash-panel__subtitle">Répartition de la cohorte selon l'âge gestationnel</p>
+          </div>
+          <span class="pro-badge pro-badge--primary dash-cohort-badge">Cohorte {{ d.nombreGrossessesActives }}</span>
+        </div>
+
+        <div class="dash-panel__ring-wrap">
+          <yay360-ring-chart [data]="segmentsTrimestre()" [size]="170" centerLabel="Actives" />
+          <ul class="trimestre-legend">
+            @for (segment of segmentsTrimestre(); track segment.label) {
+              <li class="trimestre-legend__item">
+                <span class="trimestre-legend__dot" [style.background]="segment.color"></span>
+                <span class="trimestre-legend__name">{{ segment.label }}</span>
+                <strong class="trimestre-legend__val">{{ segment.value }}</strong>
+              </li>
+            }
+          </ul>
+        </div>
+      </section>
+
+      <!-- Vigilance & Grossesses à Risque -->
+      <section class="pro-card dash-panel">
+        <div class="dash-panel__header">
+          <div>
+            <h2 class="dash-panel__title">Vigilance clinique</h2>
+            <p class="dash-panel__subtitle">Surveillance obstétricale et statuts des dossiers</p>
+          </div>
+        </div>
+
+        <div class="risk-callout" [class.risk-callout--alert]="d.nombreGrossessesARisque > 0">
+          <div class="risk-callout__number">{{ d.nombreGrossessesARisque }}</div>
+          <div class="risk-callout__text">
+            <strong>Grossesses à haut risque médical</strong>
+            <p>Nécessitent un suivi rapproché et une prise en charge prioritaire.</p>
+          </div>
+        </div>
+
+        <div class="status-summary">
+          <div class="status-summary__item">
+            <span class="status-summary__label">Grossesses en cours</span>
+            <span class="status-summary__badge pro-badge pro-badge--primary">{{ d.nombreGrossessesActives }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progression Rendez-vous -->
+      <section class="pro-card dash-panel">
+        <div class="dash-panel__header">
+          <div>
+            <h2 class="dash-panel__title">Flux des rendez-vous</h2>
+            <p class="dash-panel__subtitle">Répartition par état de planification clinique</p>
+          </div>
+        </div>
+
+        <div class="bar-chart-list">
+          @for (barre of barresRendezVous(); track barre.label) {
+            <div class="bar-chart-item">
+              <span class="bar-chart-item__label">{{ barre.label }}</span>
+              <div class="bar-chart-item__track">
+                <div class="bar-chart-item__fill"
+                     [style.width]="largeurBarre(barre.valeur)"
+                     [style.background]="barre.couleur"></div>
+              </div>
+              <strong class="bar-chart-item__val">{{ barre.valeur }}</strong>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Alertes Médicales Triage -->
+      <section class="pro-card dash-panel">
+        <div class="dash-panel__header">
+          <div>
+            <h2 class="dash-panel__title">Alertes & Triage</h2>
+            <p class="dash-panel__subtitle">Signalements maternels par niveau d'urgence</p>
+          </div>
+        </div>
+
+        <div class="alert-matrix">
+          <div class="alert-box alert-box--urgent">
+            <span class="alert-box__count">{{ d.nombreAlertesUrgentes }}</span>
+            <span class="alert-box__title">Alertes urgentes</span>
+          </div>
+          <div class="alert-box alert-box--new">
+            <span class="alert-box__count">{{ d.nombreAlertesNouvelles }}</span>
+            <span class="alert-box__title">En attente</span>
+          </div>
+          <div class="alert-box alert-box--ongoing">
+            <span class="alert-box__count">{{ d.nombreAlertesPrisesEnCharge }}</span>
+            <span class="alert-box__title">En cours</span>
+          </div>
+          <div class="alert-box alert-box--resolved">
+            <span class="alert-box__count">{{ d.nombreAlertesResolues }}</span>
+            <span class="alert-box__title">Résolues</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activité des établissements -->
+      <section class="pro-card dash-panel dash-panel--wide">
+        <div class="dash-panel__header">
+          <div>
+            <h2 class="dash-panel__title">Activité des centres de santé</h2>
+            <p class="dash-panel__subtitle">Rendez-vous par structure partenaire</p>
+          </div>
+          <span class="pro-badge">{{ d.nombreEtablissementsActifs }} structures actives</span>
+        </div>
+
+        @if (etablissementsTries().length === 0) {
+          <div class="dash-empty">
+            <p>Aucun établissement enregistré pour le moment.</p>
+          </div>
+        } @else {
+          <div class="pro-table-wrapper">
+            <table class="pro-table">
+              <thead>
+                <tr>
+                  <th>Centre de santé</th>
+                  <th>Localité / Ville</th>
+                  <th style="text-align: right;">Rendez-vous cumulés</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (etab of etablissementsTries(); track etab.etablissementId) {
+                  <tr>
+                    <td>
+                      <div class="etab-cell">
+                        <span class="etab-cell__dot"></span>
+                        <strong>{{ etab.nom }}</strong>
+                      </div>
+                    </td>
+                    <td>{{ etab.ville || '—' }}</td>
+                    <td style="text-align: right;">
+                      <span class="pro-badge pro-badge--primary">{{ etab.nombreRendezVous }} RDV</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+    </div>
+
+    <!-- Pied de page discret -->
+    <footer class="dash-footer">
+      <span>Dernière synchronisation : {{ d.dateGeneration | date: 'dd/MM/yyyy à HH:mm' }}</span>
+    </footer>
+
+  }
+
+</div>

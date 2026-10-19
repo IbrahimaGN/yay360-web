@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="glowCorail" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E8636B" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#E8636B" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowAmbre" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E0A63A" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#E0A63A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowSahel" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4C8C6B" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#4C8C6B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Halos de lumière évoquant les trois trimestres -->
+  <circle cx="620" cy="230" r="260" fill="url(#glowCorail)"/>
+  <circle cx="160" cy="560" r="220" fill="url(#glowAmbre)"/>
+  <circle cx="520" cy="820" r="240" fill="url(#glowSahel)"/>
+
+  <!-- Grand anneau de progression, en écho au motif signature -->
+  <circle cx="400" cy="500" r="330" fill="none" stroke="#F7F1E6" stroke-opacity="0.12" stroke-width="2"/>
+  <circle cx="400" cy="500" r="260" fill="none" stroke="#F7F1E6" stroke-opacity="0.10" stroke-width="1.5"/>
+  <path d="M400 170 A330 330 0 0 1 730 500" fill="none" stroke="#E8636B" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+  <path d="M730 500 A330 330 0 0 1 560 790" fill="none" stroke="#E0A63A" stroke-opacity="0.5" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Semis d'étoiles douces -->
+  <g fill="#F7F1E6" fill-opacity="0.35">
+    <circle cx="120" cy="140" r="3"/>
+    <circle cx="220" cy="90" r="2"/>
+    <circle cx="90" cy="320" r="2.5"/>
+    <circle cx="680" cy="120" r="2"/>
+    <circle cx="740" cy="380" r="3"/>
+    <circle cx="60" cy="700" r="2.5"/>
+    <circle cx="300" cy="920" r="2"/>
+    <circle cx="650" cy="900" r="3"/>
+    <circle cx="720" cy="700" r="2"/>
+    <circle cx="200" cy="640" r="2"/>
+    <circle cx="470" cy="60" r="2.5"/>
+    <circle cx="40" cy="480" r="2"/>
+  </g>
+</svg>

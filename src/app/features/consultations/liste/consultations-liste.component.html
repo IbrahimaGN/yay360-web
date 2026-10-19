@@ -1,0 +1,74 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Dossiers Médicaux</span>
+      <h1 class="pro-header__title">Historique des Consultations</h1>
+      <p class="pro-header__desc">Relevé des examens cliniques, constantes vitales et diagnostics obstétricaux.</p>
+    </div>
+  </header>
+
+  @if (chargement()) {
+    <div class="consult-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement des consultations…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="consult-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (consultations().length === 0) {
+    <div class="consult-empty pro-card">
+      <div class="consult-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucune consultation</h3>
+      <p>Aucune consultation clinique n'est enregistrée pour le moment.</p>
+    </div>
+  } @else {
+    <div class="pro-table-wrapper">
+      <table class="pro-table">
+        <thead>
+          <tr>
+            <th>Patiente</th>
+            <th>Date & Heure</th>
+            <th>Tension</th>
+            <th>Poids</th>
+            <th>Diagnostic</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of consultations(); track c.id) {
+            <tr [routerLink]="['/consultations', c.id]" class="consult-row">
+              <td>
+                <div class="patient-cell">
+                  <span class="patient-avatar">{{ c.femmeEnceinteNomComplet.charAt(0) }}</span>
+                  <strong>{{ c.femmeEnceinteNomComplet }}</strong>
+                </div>
+              </td>
+              <td>
+                <span class="consult-date">{{ c.dateConsultation | date: 'dd/MM/yyyy à HH:mm' }}</span>
+              </td>
+              <td>
+                <span class="pro-badge">{{ c.tensionArterielle || '—' }}</span>
+              </td>
+              <td>
+                <span class="weight-cell">{{ c.poidsKg ? (c.poidsKg + ' kg') : '—' }}</span>
+              </td>
+              <td>
+                <span class="diag-truncate">{{ c.diagnostic || '—' }}</span>
+              </td>
+              <td style="text-align: right;">
+                <span class="row-arrow">Consulter →</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

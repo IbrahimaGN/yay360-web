@@ -1,0 +1,310 @@
+<div class="pro-fade-in">
+
+  <!-- Retour -->
+  <div class="detail-nav">
+    <a routerLink="/grossesses" class="back-btn">
+      <span>← Retour au suivi des grossesses</span>
+    </a>
+  </div>
+
+  @if (chargement()) {
+    <div class="detail-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement du dossier obstétrical…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="detail-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (grossesse(); as g) {
+
+    <!-- Carte Profil Patiente -->
+    <header class="patient-hero pro-card">
+      <div class="patient-hero__left">
+        <span class="patient-hero__avatar">{{ g.femmeEnceinteNomComplet.charAt(0) }}</span>
+        <div class="patient-hero__meta">
+          <div class="patient-hero__tags">
+            @if (g.statut === 'EN_COURS') {
+              <span class="pro-badge pro-badge--primary">Semaine {{ g.semaineActuelle }} / {{ dureeGrossesseSemaines }}</span>
+            } @else {
+              <span class="pro-badge pro-badge--primary">Grossesse clôturée</span>
+            }
+            @if (g.grossesseARisque) {
+              <span class="pro-badge pro-badge--primary">Vigilance : À risque</span>
+            } @else {
+              <span class="pro-badge">Normale</span>
+            }
+            <span class="pro-badge pro-badge--subtle">{{ g.statut }}</span>
+          </div>
+          <h1 class="patient-hero__title">{{ g.femmeEnceinteNomComplet }}</h1>
+          <p class="patient-hero__sub">
+            @if (g.statut !== 'EN_COURS') {
+              Grossesse clôturée le {{ g.dateAccouchementReelle ? (g.dateAccouchementReelle | date: 'dd MMMM yyyy') : '—' }}
+            } @else {
+              Dossier ouvert le {{ g.dateCreation | date: 'dd MMMM yyyy' }}
+            }
+          </p>
+        </div>
+      </div>
+
+      @if (g.statut === 'EN_COURS') {
+        <div class="patient-hero__ring">
+          <yay360-ring-chart [data]="segmentsProgression()" [size]="130" [centerLabel]="'/ ' + dureeGrossesseSemaines + ' sem.'" />
+        </div>
+      }
+
+      @if (g.statut === 'EN_COURS') {
+      <div class="patient-hero__metrics">
+        <div class="metric-item">
+          <span class="metric-item__label">Trimestre</span>
+          <strong class="metric-item__value">{{ g.trimestre }}</strong>
+        </div>
+        <div class="metric-item">
+          <span class="metric-item__label">Terme prévu (DPA)</span>
+          <strong class="metric-item__value">{{ g.datePrevueAccouchement | date: 'dd/MM/yyyy' }}</strong>
+        </div>
+        <div class="metric-item">
+          <span class="metric-item__label">Jours restants</span>
+          <strong class="metric-item__value">{{ g.joursRestants }} j</strong>
+        </div>
+      </div>
+      }
+    </header>
+
+    <!-- Actions médicales -->
+    @if (peutGererRisque() || peutTerminer()) {
+      <section class="actions-card pro-card">
+        <div class="actions-card__header">
+          <div>
+            <h3>Actions cliniques</h3>
+            <p>Interventions médicales directes sur ce dossier de grossesse</p>
+          </div>
+        </div>
+
+        @if (messageAction()) {
+          <div class="action-alert">
+            <p>{{ messageAction() }}</p>
+          </div>
+        }
+
+        <div class="actions-card__buttons">
+          @if (peutEnregistrerConsultation() && g.statut === 'EN_COURS') {
+            <a class="pro-btn pro-btn--primary" [routerLink]="['/consultations/nouvelle']" [queryParams]="{ grossesseId: g.id }">
+              + Nouvelle consultation
+            </a>
+          }
+          @if (peutGererRisque() && g.statut === 'EN_COURS') {
+            @if (!g.grossesseARisque) {
+              <button type="button" class="pro-btn pro-btn--secondary" (click)="ouvrirFormulaireRisque()">
+                Déclarer à risque
+              </button>
+            } @else {
+              <button type="button" class="pro-btn pro-btn--secondary" (click)="retirerRisque()" [disabled]="actionEnCours()">
+                Retirer le statut à risque
+              </button>
+            }
+          }
+          @if (peutTerminer() && g.statut === 'EN_COURS') {
+            <button type="button" class="pro-btn pro-btn--ghost" (click)="ouvrirFormulaireTerminer()">
+              Clôturer le dossier (Accouchement)
+            </button>
+          }
+        </div>
+
+        <!-- Formulaire Déclarer à risque -->
+        @if (formulaireRisqueOuvert()) {
+          <div class="inline-action-form">
+            <label for="motif">Motif clinique de la vigilance :</label>
+            <textarea id="motif" rows="2" placeholder="Précisez la complication ou le facteur de risque..."
+                      [value]="motifRisque()" (input)="motifRisque.set($any($event.target).value)"></textarea>
+            <div class="form-btn-row">
+              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
+                      [disabled]="actionEnCours() || !motifRisque().trim()" (click)="confirmerRisque()">
+                Confirmer la mise sous vigilance
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireRisqueOuvert.set(false)">
+                Annuler
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Formulaire Terminer -->
+        @if (formulaireTerminerOuvert()) {
+          <div class="inline-action-form">
+            <label for="statutFinal">Issue de la grossesse :</label>
+            <select id="statutFinal" [value]="statutFinal()" (change)="statutFinal.set($any($event.target).value)">
+              <option value="TERMINEE">Accouchement (dossier mené à terme)</option>
+              <option value="INTERROMPUE">Interruption médicale ou spontanée</option>
+            </select>
+            @if (statutFinal() === 'TERMINEE') {
+              <label for="dateAccouchement">Date réelle de l'accouchement :</label>
+              <input id="dateAccouchement" type="date" class="field-input"
+                     [value]="dateAccouchementReelle()"
+                     (input)="dateAccouchementReelle.set($any($event.target).value)" />
+            }
+            <div class="form-btn-row">
+              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
+                      [disabled]="actionEnCours()" (click)="confirmerTerminer()">
+                Valider la clôture
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireTerminerOuvert.set(false)">
+                Annuler
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Calendrier gestationnel -->
+    @if (g.statut === 'EN_COURS' && calendrier(); as c) {
+      <section class="timeline-card pro-card">
+        <div class="timeline-card__header">
+          <h3>Progression obstétricale — {{ dureeGrossesseSemaines }} semaines</h3>
+          <div class="timeline-legend">
+            <span><i class="dot dot--t1"></i> T1</span>
+            <span><i class="dot dot--t2"></i> T2</span>
+            <span><i class="dot dot--t3"></i> T3</span>
+          </div>
+        </div>
+
+        <div class="timeline-track">
+          @for (semaine of c.semaines; track semaine.semaine) {
+            <span
+              class="timeline-step"
+              [class.timeline-step--active]="semaine.statutSemaine === 'ACTUELLE'"
+              [class.timeline-step--past]="semaine.statutSemaine === 'PASSEE'"
+              [attr.data-t]="semaine.trimestre"
+              [title]="'Semaine ' + semaine.semaine + ' — ' + semaine.trimestre"
+            ></span>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Grille historique -->
+    <div class="history-grid">
+
+      <!-- Consultations -->
+      <section class="pro-card history-panel">
+        <div class="history-panel__header">
+          <h3>Consultations cliniques</h3>
+          <span class="pro-badge">{{ consultations().length }} enregistrées</span>
+        </div>
+
+        @if (consultations().length === 0) {
+          <p class="history-empty">Aucune consultation enregistrée.</p>
+        } @else {
+          <ul class="history-items">
+            @for (c of consultations().slice(0, 5); track c.id) {
+              <li>
+                <a [routerLink]="['/consultations', c.id]" class="history-row">
+                  <div>
+                    <strong>{{ c.dateConsultation | date: 'dd MMMM yyyy' }}</strong>
+                    <small>{{ c.professionnelNomComplet }}</small>
+                  </div>
+                  <span class="row-arrow">Détail →</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Rendez-vous -->
+      <section class="pro-card history-panel">
+        <div class="history-panel__header">
+          <h3>Rendez-vous programmés</h3>
+          <span class="pro-badge">{{ rendezVous().length }} prévus</span>
+        </div>
+
+        @if (rendezVous().length === 0) {
+          <p class="history-empty">Aucun rendez-vous enregistré.</p>
+        } @else {
+          <ul class="history-items">
+            @for (r of rendezVous().slice(0, 5); track r.id) {
+              <li>
+                <div class="history-row">
+                  <div>
+                    <strong>{{ r.dateHeure | date: 'dd/MM/yyyy à HH:mm' }}</strong>
+                    <small>{{ r.motif || 'Visite de suivi' }}</small>
+                  </div>
+                  <span class="pro-badge pro-badge--primary">{{ r.statut }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+    </div>
+
+    <!-- Suivi hebdomadaire intelligent -->
+    @if (g.statut === 'EN_COURS' && suivi(); as s) {
+      <section class="pro-card suivi-section">
+        <div class="suivi-section__header">
+          <div>
+            <h3>Fiche clinique — Semaine {{ s.semaineActuelle }}</h3>
+            <p>Recommandations cliniques automatisées pour ce stade gestationnel</p>
+          </div>
+        </div>
+
+        <div class="suivi-blocks-grid">
+          <div class="suivi-tile">
+            <span class="suivi-tile__tag">Bébé</span>
+            <h4>Développement fœtal</h4>
+            <p>{{ s.developpementBebe || '—' }}</p>
+          </div>
+          <div class="suivi-tile">
+            <span class="suivi-tile__tag">Mère</span>
+            <h4>Changements maternels</h4>
+            <p>{{ s.changementsMere || '—' }}</p>
+          </div>
+          <div class="suivi-tile">
+            <span class="suivi-tile__tag">Objectifs</span>
+            <h4>Objectifs de santé</h4>
+            <p>{{ s.objectifsSante || '—' }}</p>
+          </div>
+          <div class="suivi-tile">
+            <span class="suivi-tile__tag">Examens</span>
+            <h4>Examens recommandés</h4>
+            <p>{{ s.examensRecommandes || '—' }}</p>
+          </div>
+          <div class="suivi-tile">
+            <span class="suivi-tile__tag">Hygiène de vie</span>
+            <h4>Alimentation & Sommeil</h4>
+            <p>{{ s.conseilsAlimentation || '' }} {{ s.conseilsSommeil || '' }}</p>
+          </div>
+          <div class="suivi-tile suivi-tile--alert">
+            <span class="suivi-tile__tag">Urgence</span>
+            <h4>Signes d'alerte</h4>
+            <p>{{ s.signesAlerte || '—' }}</p>
+          </div>
+        </div>
+
+        @if (s.conseilsPersonnalises.length > 0) {
+          <div class="conseils-feed">
+            <h4>Conseils personnalisés</h4>
+            <div class="conseils-feed__cards">
+              @for (conseil of s.conseilsPersonnalises; track conseil.id) {
+                <div class="feed-card">
+                  <span class="feed-card__category">{{ conseil.categorie }}</span>
+                  <h5>{{ conseil.titre }}</h5>
+                  <p>{{ conseil.contenu }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <footer class="suivi-disclaimer">
+          <p>{{ s.avertissement }}</p>
+        </footer>
+      </section>
+    }
+
+  }
+
+</div>

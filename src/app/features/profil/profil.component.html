@@ -1,0 +1,120 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Compte & Accès</span>
+      <h1 class="pro-header__title">Mon Profil</h1>
+      <p class="pro-header__desc">Gérez vos coordonnées professionnelles et la sécurité de vos identifiants d'accès.</p>
+    </div>
+  </header>
+
+  @if (chargement()) {
+    <div class="profil-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement des données du compte…</p>
+    </div>
+  } @else if (profil(); as p) {
+    <div class="profil-layout">
+
+      <!-- Section Informations Générales -->
+      <section class="pro-card profil-card">
+        <div class="profil-card__header">
+          <div class="profil-avatar">
+            <span class="profil-avatar__text">{{ p.prenom.charAt(0) }}{{ p.nom.charAt(0) }}</span>
+          </div>
+          <div class="profil-meta">
+            <h2 class="profil-meta__name">{{ p.prenom }} {{ p.nom }}</h2>
+            <div class="profil-meta__badges">
+              <span class="pro-badge pro-badge--primary">{{ p.role }}</span>
+              <span class="profil-meta__date">Membre depuis {{ p.dateCreation | date: 'MMMM yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <form [formGroup]="formProfil" (ngSubmit)="soumettreProfil()" class="profil-form" novalidate>
+          <div class="form-grid">
+            <div class="field-item">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" type="text" formControlName="prenom" />
+            </div>
+
+            <div class="field-item">
+              <label for="nom">Nom de famille</label>
+              <input id="nom" type="text" formControlName="nom" />
+            </div>
+
+            <div class="field-item field-item--full">
+              <label for="email">Adresse email (identifiant permanent)</label>
+              <input id="email" type="email" [value]="p.email" disabled class="input-disabled" />
+              <span class="field-hint">L'identifiant email est rattaché à votre compte et ne peut être modifié directement.</span>
+            </div>
+
+            <div class="field-item field-item--full">
+              <label for="telephone">Numéro de téléphone de contact</label>
+              <input id="telephone" type="text" formControlName="telephone" />
+            </div>
+          </div>
+
+          @if (messageProfil()) {
+            <div class="alert-banner alert-banner--success">
+              <span>✓</span> {{ messageProfil() }}
+            </div>
+          }
+
+          <div class="form-actions">
+            <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementProfil()">
+              {{ enregistrementProfil() ? 'Mise à jour…' : 'Enregistrer les modifications' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Section Sécurité & Mot de Passe -->
+      <section class="pro-card profil-card">
+        <div class="profil-card__header">
+          <div class="security-icon">
+            <span>🔒</span>
+          </div>
+          <div class="profil-meta">
+            <h3 class="profil-meta__name">Sécurité du Compte</h3>
+            <span class="profil-meta__date">Mettez à jour votre mot de passe pour garantir la confidentialité clinique.</span>
+          </div>
+        </div>
+
+        <form [formGroup]="formMotDePasse" (ngSubmit)="soumettreMotDePasse()" class="profil-form" novalidate>
+          <div class="form-grid">
+            <div class="field-item field-item--full">
+              <label for="ancienMotDePasse">Mot de passe actuel</label>
+              <input id="ancienMotDePasse" type="password" formControlName="ancienMotDePasse" placeholder="Saisissez votre mot de passe actuel" />
+            </div>
+
+            <div class="field-item field-item--full">
+              <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+              <input id="nouveauMotDePasse" type="password" formControlName="nouveauMotDePasse" placeholder="6 caractères minimum" />
+            </div>
+          </div>
+
+          @if (erreurMotDePasse()) {
+            <div class="alert-banner alert-banner--error" role="alert">
+              <span>⚠️</span> {{ erreurMotDePasse() }}
+            </div>
+          }
+          @if (messageMotDePasse()) {
+            <div class="alert-banner alert-banner--success">
+              <span>✓</span> {{ messageMotDePasse() }}
+            </div>
+          }
+
+          <div class="form-actions">
+            <button type="submit" class="pro-btn pro-btn--secondary" [disabled]="enregistrementMotDePasse()">
+              {{ enregistrementMotDePasse() ? 'Modification…' : 'Modifier le mot de passe' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+  }
+
+</div>

@@ -1,0 +1,212 @@
+.prenatal {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.prenatal__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .55rem;
+}
+
+.prenatal__quick-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 40px;
+  padding: .55rem .8rem;
+  border: 1px solid var(--border-light, #dfe3ea);
+  border-radius: 9px;
+  background: var(--c-surface);
+  color: var(--c-navy);
+  font-size: .82rem;
+  font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.prenatal__quick-action:hover {
+  transform: translateY(-1px);
+  border-color: var(--c-primary);
+  background: color-mix(in srgb, var(--c-primary) 7%, var(--c-surface));
+}
+
+.prenatal__quick-action--alert { color: var(--c-coral, #d94d58); }
+.prenatal__quick-action--medical { color: #276b63; }
+
+.prenatal__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(115deg, var(--c-navy), #344a70);
+  color: #fff;
+}
+
+.prenatal__hero h3 {
+  margin: .3rem 0;
+  font: 600 1.65rem/1.2 var(--font-display, inherit);
+}
+
+.prenatal__hero p { margin: 0; color: #e2eaf6; }
+.prenatal__eyebrow { color: var(--c-primary); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.prenatal__hero .prenatal__eyebrow { color: #a9e2ec; }
+
+.prenatal__week {
+  display: grid;
+  place-items: center;
+  flex: 0 0 112px;
+  width: 112px;
+  height: 112px;
+  border: 1px solid #ffffff66;
+  border-radius: 50%;
+  align-content: center;
+}
+
+.prenatal__week strong { font-size: 2rem; line-height: 1; }
+.prenatal__week span { margin-top: .35rem; font-size: .68rem; }
+.prenatal__grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 1.25rem; }
+.prenatal__grid--lower { align-items: start; }
+.prenatal__section { padding: 1.35rem; }
+.prenatal__section h3 { margin: .35rem 0 1rem; color: var(--c-navy); font-size: 1.25rem; }
+.prenatal__section h4 { margin: 1.4rem 0 .65rem; color: var(--c-navy); }
+.prenatal__section p { color: var(--text-secondary, #667085); line-height: 1.6; }
+.prenatal__section small { color: var(--text-secondary, #667085); }
+.prenatal__section-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.prenatal__risk { padding: .35rem .65rem; border-radius: 99px; color: #8d4c00; background: #fff0d2; font-size: .75rem; font-weight: 700; }
+.prenatal__lead { color: var(--c-navy) !important; font-weight: 600; }
+.prenatal__warning { padding: .8rem; border-left: 3px solid var(--c-coral, #e8636b); background: #fff5f4; }
+.prenatal__timeline, .prenatal__list { display: grid; gap: .7rem; margin: 0; padding: 0; list-style: none; }
+.prenatal__timeline li, .prenatal__list li { display: grid; gap: .25rem; padding: .75rem .85rem; border-left: 2px solid var(--border-light, #e6e8ee); background: var(--c-surface-soft, #f8f9fb); }
+.prenatal__timeline li span, .prenatal__list li span { color: var(--text-secondary, #667085); font-size: .85rem; }
+.prenatal__timeline-current { border-left-color: var(--c-primary) !important; background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface)) !important; }
+.prenatal__calendar { align-self: start; }
+.prenatal__calendar-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.prenatal__calendar-head h3 { margin-bottom: .75rem; text-transform: capitalize; }
+.prenatal__calendar-nav { display: flex; gap: .35rem; }
+.prenatal__calendar-nav button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-light, #dfe3ea);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-navy);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.prenatal__calendar-nav button:hover { border-color: var(--c-primary); background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface)); }
+.prenatal__calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.prenatal__calendar-weekday {
+  padding: .55rem 0;
+  color: var(--text-secondary, #667085);
+  font-size: .7rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+.prenatal__calendar-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  border-top: 1px solid var(--border-light, #edf0f4);
+  color: var(--text-primary, #263248);
+  font-size: .82rem;
+}
+.prenatal__calendar-day--outside { color: var(--text-secondary, #a0a7b4); opacity: .55; }
+.prenatal__calendar-day--today > span {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  color: #fff;
+  font-weight: 700;
+}
+.prenatal__calendar-dot { position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; border-radius: 50%; background: var(--c-coral, #e8636b); transform: translateX(-50%); }
+.prenatal__calendar-legend { display: flex; align-items: center; gap: .45rem; margin-top: .65rem; color: var(--text-secondary, #667085); font-size: .75rem; }
+.prenatal__calendar-legend .prenatal__calendar-dot { position: static; display: inline-block; flex: 0 0 6px; width: 6px; height: 6px; transform: none; }
+.prenatal__calendar-upcoming { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--border-light, #edf0f4); }
+.prenatal__calendar-upcoming h4 { margin: 0 0 .55rem; color: var(--c-navy); font-size: .9rem; }
+.prenatal__calendar-upcoming p { margin: .35rem 0; font-size: .82rem; }
+.prenatal__list p { margin: .3rem 0 0; }
+.prenatal__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; margin-top: 1rem; }
+.prenatal__form label { display: grid; gap: .4rem; color: var(--c-navy); font-size: .85rem; font-weight: 600; }
+.prenatal__form input, .prenatal__form select, .prenatal__form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: .65rem .75rem;
+  border: 1px solid var(--border-light, #dfe3ea);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--text-primary, #263248);
+  font: inherit;
+}
+.prenatal__wide { grid-column: 1 / -1; }
+.prenatal__button { justify-self: start; padding: .7rem 1rem; border: 0; border-radius: 8px; background: var(--c-primary); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.prenatal__button:disabled { opacity: .6; cursor: wait; }
+.prenatal__button--alert { background: var(--c-coral, #e8636b); }
+.prenatal__declare { max-width: 760px; }
+.prenatal__empty { padding: 1.5rem; }
+.prenatal__modal-backdrop {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding: clamp(1rem, 6vh, 3.5rem) 1rem 1rem;
+  background: rgb(18 28 45 / 55%);
+}
+.prenatal__modal {
+  width: min(100%, 620px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+}
+.prenatal__modal-head { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.prenatal__modal-head h2 { margin: .35rem 0 0; color: var(--c-navy); font-size: 1.3rem; }
+.prenatal__modal-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-light, #dfe3ea);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-navy);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.prenatal__modal > p { color: var(--text-secondary, #667085); line-height: 1.55; }
+.prenatal__modal .prenatal__form { margin-top: 0; }
+.prenatal__modal .prenatal__list { max-height: 60vh; overflow-y: auto; }
+
+@media (max-width: 800px) {
+  .prenatal__grid { grid-template-columns: 1fr; }
+  .prenatal__quick-actions { justify-content: flex-start; }
+}
+
+@media (max-width: 540px) {
+  .prenatal__quick-actions { display: grid; grid-template-columns: 1fr; }
+  .prenatal__quick-action { justify-content: flex-start; }
+  .prenatal__hero { align-items: start; padding: 1.2rem; }
+  .prenatal__modal { padding: 1.1rem; }
+  .prenatal__week { flex-basis: 82px; width: 82px; height: 82px; }
+  .prenatal__week strong { font-size: 1.5rem; }
+  .prenatal__form { grid-template-columns: 1fr; }
+  .prenatal__wide { grid-column: auto; }
+}

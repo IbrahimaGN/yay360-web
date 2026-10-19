@@ -1,0 +1,100 @@
+﻿<div class="pro-fade-in">
+
+  <!-- Retour -->
+  <div class="detail-nav">
+    <a routerLink="/consultations" class="back-btn">
+      <span>← Retour aux consultations</span>
+    </a>
+  </div>
+
+  @if (chargement()) {
+    <div class="consult-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement du compte-rendu clinique…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="consult-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (consultation(); as c) {
+
+    <!-- En-tête Consultation -->
+    <header class="consult-hero pro-card">
+      <div class="consult-hero__avatar">{{ c.femmeEnceinteNomComplet.charAt(0) }}</div>
+      <div class="consult-hero__meta">
+        <div class="consult-hero__tags">
+          <span class="pro-badge pro-badge--primary">Examen Médical</span>
+          @if (c.etablissementNom) {
+            <span class="pro-badge">{{ c.etablissementNom }}</span>
+          }
+        </div>
+        <h1 class="consult-hero__title">{{ c.femmeEnceinteNomComplet }}</h1>
+        <p class="consult-hero__sub">
+          Consultation effectuée le {{ c.dateConsultation | date: 'dd MMMM yyyy à HH:mm' }}
+          · par <strong>{{ c.professionnelNomComplet }}</strong>
+        </p>
+      </div>
+    </header>
+
+    <!-- Constantes Médicales -->
+    <section class="constants-card pro-card">
+      <div class="constants-card__header">
+        <h3>Constantes & Signes Vitaux</h3>
+        <span class="pro-badge pro-badge--subtle">Mesures enregistrées</span>
+      </div>
+
+      <div class="constants-grid">
+        <div class="constant-tile">
+          <span class="constant-tile__label">Poids</span>
+          <strong class="constant-tile__value">{{ c.poidsKg ? (c.poidsKg + ' kg') : '—' }}</strong>
+        </div>
+        <div class="constant-tile">
+          <span class="constant-tile__label">Tension Artérielle</span>
+          <strong class="constant-tile__value">{{ c.tensionArterielle || '—' }}</strong>
+        </div>
+        <div class="constant-tile">
+          <span class="constant-tile__label">Température</span>
+          <strong class="constant-tile__value">{{ c.temperatureC ? (c.temperatureC + ' °C') : '—' }}</strong>
+        </div>
+        <div class="constant-tile">
+          <span class="constant-tile__label">Hauteur Utérine</span>
+          <strong class="constant-tile__value">{{ c.hauteurUterineCm ? (c.hauteurUterineCm + ' cm') : '—' }}</strong>
+        </div>
+        <div class="constant-tile">
+          <span class="constant-tile__label">Rythme Cardiaque Fœtal (BCF)</span>
+          <strong class="constant-tile__value">{{ c.battementsCoeurFoetal ? (c.battementsCoeurFoetal + ' bpm') : '—' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Observations & Diagnostic -->
+    <div class="notes-grid">
+      <div class="pro-card note-card">
+        <span class="note-card__tag">Évaluation Clinique</span>
+        <h4>Observations</h4>
+        <p>{{ c.observations || 'Aucune observation consignée.' }}</p>
+      </div>
+
+      <div class="pro-card note-card">
+        <span class="note-card__tag">Avis Médical</span>
+        <h4>Diagnostic</h4>
+        <p>{{ c.diagnostic || 'Aucun diagnostic spécifique enregistré.' }}</p>
+      </div>
+
+      <div class="pro-card note-card">
+        <span class="note-card__tag">Protocole</span>
+        <h4>Traitement</h4>
+        <p>{{ c.traitement || 'Aucun traitement prescrit.' }}</p>
+      </div>
+
+      <div class="pro-card note-card">
+        <span class="note-card__tag">Ordonnance</span>
+        <h4>Prescriptions & Recommandations</h4>
+        <p>{{ c.prescriptions || 'Aucune prescription rédigée.' }}</p>
+      </div>
+    </div>
+
+  }
+
+</div>

@@ -1,0 +1,98 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Santé maternelle</span>
+      <h1 class="pro-header__title">Suivi des grossesses</h1>
+      <p class="pro-header__desc">Suivi de la santé des femmes enceintes et de l’évolution de leur grossesse.</p>
+    </div>
+  </header>
+
+  <!-- Recherche des grossesses en cours -->
+  <div class="filter-bar pro-card">
+    <div class="search-box">
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Rechercher par nom de patiente…"
+        [value]="recherche()"
+        (input)="recherche.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <!-- État de chargement -->
+  @if (chargement()) {
+    <div class="list-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement des grossesses…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="list-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (grossessesFiltrees().length === 0) {
+    <div class="list-empty pro-card">
+      <div class="list-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucune grossesse trouvée</h3>
+      <p>Aucune grossesse en cours ne correspond à cette recherche.</p>
+    </div>
+  } @else {
+    <div class="pro-table-wrapper">
+      <table class="pro-table">
+        <thead>
+          <tr>
+            <th>Patiente</th>
+            <th>Avancement</th>
+            <th>Terme prévu</th>
+            <th>Statut</th>
+            <th>Vigilance</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of grossessesFiltrees(); track g.id) {
+            <tr [routerLink]="['/grossesses', g.id]" class="patient-row">
+              <td>
+                <div class="patient-identity">
+                  <span class="patient-avatar">{{ g.femmeEnceinteNomComplet.charAt(0) }}</span>
+                  <div class="patient-identity__names">
+                    <strong>{{ g.femmeEnceinteNomComplet }}</strong>
+                    <small>Dossier #{{ g.id }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="gestation-pill">
+                  <strong>Semaine {{ g.semaineActuelle }} · {{ g.trimestre }}</strong>
+                  <span>{{ g.joursRestants }} jours restants</span>
+                </div>
+              </td>
+              <td>
+                <div class="gestation-pill">
+                  <strong>DPA {{ g.datePrevueAccouchement | date: 'dd MMM yyyy' }}</strong>
+                </div>
+              </td>
+              <td>
+                <span class="pro-badge pro-badge--primary">En cours</span>
+              </td>
+              <td>
+                <span class="pro-badge" [class.pro-badge--primary]="g.grossesseARisque">
+                  {{ g.grossesseARisque ? 'À risque' : 'Sans risque déclaré' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <span class="row-arrow">Dossier →</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,76 @@
+<div class="login-shell">
+  <section class="brand-panel">
+    <div class="brand-panel__bg"></div>
+    <div class="brand-panel__content">
+      <div class="brand-logo">
+        <img src="yay360-logo.png" class="brand-logo__image" alt="Logo YAY360">
+      </div>
+      <h1 class="brand-name">YaY°360</h1>
+      <p class="brand-sub">Un suivi maternel partagé pendant la grossesse.</p>
+    </div>
+  </section>
+
+  <section class="form-panel">
+    <div class="form-panel__inner">
+      <div class="form-top">
+        <button type="button" class="theme-btn" (click)="themeService.toggle()"
+                [attr.aria-label]="themeService.isDark() ? 'Mode clair' : 'Mode sombre'">
+          @if (themeService.isDark()) {
+            <yay360-icon name="sun" [size]="16" />
+          } @else {
+            <yay360-icon name="moon" [size]="16" />
+          }
+        </button>
+      </div>
+      <div class="form-box">
+        <div class="form-box__header">
+          <h2>Rejoindre le dossier familial</h2>
+          <p>Créez votre compte conjoint personnel pour accéder au dossier partagé.</p>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+          <div class="field">
+            <label for="token">Code d’invitation</label>
+            <input id="token" formControlName="token" autocomplete="one-time-code" />
+          </div>
+          <div class="field">
+            <label for="email">Email invité</label>
+            <input id="email" type="email" formControlName="email" autocomplete="email" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" formControlName="prenom" autocomplete="given-name" />
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input id="nom" formControlName="nom" autocomplete="family-name" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Mot de passe</label>
+            <input id="password" type="password" formControlName="password" autocomplete="new-password"
+                   placeholder="Au moins 6 caractères, une lettre et un chiffre" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="telephone">Téléphone</label>
+              <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" />
+            </div>
+            <div class="field">
+              <label for="dateNaissance">Date de naissance</label>
+              <input id="dateNaissance" type="date" formControlName="dateNaissance" autocomplete="bday" />
+            </div>
+          </div>
+          @if (erreur()) {
+            <div class="form-err" role="alert">{{ erreur() }}</div>
+          }
+          <button type="submit" class="submit-btn" [disabled]="chargement()">
+            @if (chargement()) { <span class="btn-spinner"></span><span>Création du compte…</span> }
+            @else { <span>Créer mon compte</span> }
+          </button>
+        </form>
+      </div>
+      <p class="privacy-note">Le compte est personnel et ne donne accès qu’au dossier familial associé à l’invitation.</p>
+    </div>
+  </section>
+</div>

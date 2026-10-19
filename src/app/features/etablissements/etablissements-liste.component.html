@@ -1,0 +1,135 @@
+<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Réseau Sanitaire</span>
+      <h1 class="pro-header__title">Établissements de Santé</h1>
+      <p class="pro-header__desc">Gestion des hôpitaux, centres de santé et maternités partenaires.</p>
+    </div>
+    <div class="pro-header__actions">
+      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreation()">
+        + Ajouter un établissement
+      </button>
+    </div>
+  </header>
+
+  <!-- Formulaire d'édition / création -->
+  @if (formulaireOuvert()) {
+    <div class="pro-card form-box">
+      <h3 class="form-box__title">{{ idEnEdition() ? 'Modifier le centre médical' : 'Nouvel établissement de santé' }}</h3>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+        <div class="form-grid">
+          <div class="field-item">
+            <label for="nom">Nom de la structure</label>
+            <input id="nom" type="text" formControlName="nom" placeholder="ex. Centre Médical de Dakar" />
+          </div>
+          <div class="field-item">
+            <label for="type">Type d'établissement</label>
+            <select id="type" formControlName="type">
+              @for (t of types; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="field-item field-item--full">
+            <label for="adresse">Adresse géographique</label>
+            <input id="adresse" type="text" formControlName="adresse" placeholder="Quartier, Avenue..." />
+          </div>
+          <div class="field-item">
+            <label for="ville">Ville</label>
+            <input id="ville" type="text" formControlName="ville" placeholder="Dakar, Thiès..." />
+          </div>
+          <div class="field-item">
+            <label for="telephone">Numéro de téléphone</label>
+            <input id="telephone" type="text" placeholder="+221XXXXXXXXX" formControlName="telephone" />
+          </div>
+          <div class="field-item">
+            <label for="email">Email professionnel</label>
+            <input id="email" type="email" formControlName="email" placeholder="contact@structure.sn" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
+            {{ enregistrement() ? 'Enregistrement…' : 'Enregistrer la structure' }}
+          </button>
+          <button type="button" class="pro-btn pro-btn--ghost" (click)="fermerFormulaire()">Annuler</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="etab-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement des structures sanitaires…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="etab-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (etablissements().length === 0) {
+    <div class="etab-empty pro-card">
+      <div class="etab-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucun établissement</h3>
+      <p>Aucun établissement de santé n'est enregistré pour le moment.</p>
+    </div>
+  } @else {
+    <div class="etab-cards-grid">
+      @for (etab of etablissements(); track etab.id) {
+        <div class="etab-card pro-card" [class.etab-card--inactive]="!etab.actif">
+          <div class="etab-card__header">
+            <div>
+              <span class="pro-badge">{{ etab.type }}</span>
+              <h3 class="etab-card__name">{{ etab.nom }}</h3>
+            </div>
+            <span class="pro-badge" [class.pro-badge--primary]="etab.actif">
+              {{ etab.actif ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+
+          <div class="etab-card__info-list">
+            @if (etab.adresse || etab.ville) {
+              <div class="info-row">
+                <span class="info-label">Localité :</span>
+                <span>{{ etab.adresse }} {{ etab.ville ? '(' + etab.ville + ')' : '' }}</span>
+              </div>
+            }
+            @if (etab.telephone) {
+              <div class="info-row">
+                <span class="info-label">Contact :</span>
+                <span>{{ etab.telephone }}</span>
+              </div>
+            }
+            @if (etab.email) {
+              <div class="info-row">
+                <span class="info-label">Email :</span>
+                <span>{{ etab.email }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="etab-card__actions">
+            <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="ouvrirEdition(etab)">
+              Modifier
+            </button>
+            @if (etab.actif) {
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="desactiver(etab)">
+                Désactiver
+              </button>
+            }
+            <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm btn-delete" (click)="supprimer(etab)">
+              Supprimer
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>

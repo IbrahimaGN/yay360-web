@@ -1,0 +1,45 @@
+<div class="pro-fade-in">
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Espace familial</span>
+      <h2 class="pro-header__title">Un dossier, un accompagnement partagé</h2>
+      <p class="pro-header__desc">
+        Le conjoint dispose de son propre compte et accède uniquement au dossier maternel auquel il est associé.
+      </p>
+    </div>
+  </header>
+
+  <section class="family-card pro-card">
+    <div class="family-card__mark" aria-hidden="true">360°</div>
+    <div class="family-card__body">
+      @if (estFemme()) {
+        <h3>Inviter votre conjoint</h3>
+        <p>Saisissez son adresse e-mail. Il pourra créer son compte personnel à partir du code d’invitation.</p>
+        <form [formGroup]="form" (ngSubmit)="inviter()" novalidate>
+          <div class="field">
+            <label for="emailConjoint">Adresse e-mail du conjoint</label>
+            <input id="emailConjoint" type="email" formControlName="email"
+                   placeholder="conjoint@exemple.com" autocomplete="email" />
+          </div>
+          @if (erreur()) { <div class="notice notice--error" role="alert">{{ erreur() }}</div> }
+          @if (message()) { <div class="notice notice--success" role="status">{{ message() }}</div> }
+          <button class="family-button" type="submit" [disabled]="chargement()">
+            {{ chargement() ? 'Création de l’invitation…' : 'Créer une invitation' }}
+          </button>
+        </form>
+        <p class="family-card__footnote">
+          L’envoi e-mail est en attente de configuration. Le code d’acceptation est actuellement communiqué par le backend.
+        </p>
+      } @else {
+        <h3>Votre accès au dossier partagé</h3>
+        <p>
+          Votre compte conjoint est lié au dossier de la femme qui vous a invité. Les consultations, rendez-vous,
+          alertes et informations de grossesse consultées ici concernent uniquement ce dossier.
+        </p>
+        <p class="family-card__footnote">
+          Pour protéger les informations de santé, le lien entre les comptes est géré par l’invitation et ne peut pas être modifié ici.
+        </p>
+      }
+    </div>
+  </section>
+</div>

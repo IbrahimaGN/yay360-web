@@ -1,0 +1,109 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Organisation des soins maternels</span>
+      <h1 class="pro-header__title">Rendez-vous & Visites</h1>
+      <p class="pro-header__desc">Consultez et gérez les rendez-vous liés au suivi de grossesse.</p>
+    </div>
+  </header>
+
+  <!-- Filtres par statut -->
+  <div class="filter-bar pro-card">
+    <div class="filter-tabs">
+      @for (onglet of onglets(); track onglet.cle) {
+        <button type="button"
+                class="filter-tab"
+                [class.filter-tab--active]="ongletActif() === onglet.cle"
+                (click)="changerOnglet(onglet.cle)">
+          <span>{{ onglet.label }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (chargement()) {
+    <div class="rdv-loading">
+      <div class="pro-spinner"></div>
+      <p>Chargement des rendez-vous…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="rdv-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (rendezVousGrossesse().length === 0) {
+    <div class="rdv-empty pro-card">
+      <div class="rdv-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucun rendez-vous</h3>
+      <p>Aucun rendez-vous enregistré pour cette catégorie.</p>
+    </div>
+  } @else {
+    <div class="rdv-cards-grid">
+      @for (rdv of rendezVousGrossesse(); track rdv.id) {
+        <div class="rdv-card pro-card">
+          <div class="rdv-card__top">
+            <div class="date-badge">
+              <span class="date-badge__day">{{ rdv.dateHeure | date: 'dd' }}</span>
+              <span class="date-badge__month">{{ rdv.dateHeure | date: 'MMM' }}</span>
+            </div>
+            <div class="rdv-card__patient">
+              <strong>{{ rdv.femmeEnceinteNomComplet }}</strong>
+              <span class="rdv-card__type">{{ rdv.type }} · {{ rdv.dateHeure | date: 'HH:mm' }}</span>
+            </div>
+            <div class="rdv-card__badge">
+              <span class="pro-badge" [class.pro-badge--primary]="rdv.statut === 'CONFIRME'">{{ rdv.statut }}</span>
+            </div>
+          </div>
+
+          <div class="rdv-card__details">
+            @if (rdv.etablissementNom) {
+              <div class="rdv-card__detail-line">
+                <span class="detail-label">Lieu :</span>
+                <span>{{ rdv.etablissementNom }}</span>
+              </div>
+            }
+            @if (rdv.motif) {
+              <div class="rdv-card__detail-line">
+                <span class="detail-label">Motif :</span>
+                <span>{{ rdv.motif }}</span>
+              </div>
+            }
+          </div>
+
+          @if (rdv.statut === 'PLANIFIE' || rdv.statut === 'CONFIRME') {
+            <div class="rdv-card__actions">
+              @if (rdv.statut === 'PLANIFIE') {
+                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
+                        [disabled]="idEnAction() === rdv.id" (click)="confirmer(rdv)">
+                  Confirmer
+                </button>
+              }
+              @if (rdv.statut === 'CONFIRME') {
+                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
+                        [disabled]="idEnAction() === rdv.id" (click)="marquerTermine(rdv)">
+                  Terminé
+                </button>
+                <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm"
+                        [disabled]="idEnAction() === rdv.id" (click)="marquerAbsent(rdv)">
+                  Absente
+                </button>
+              }
+              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm" (click)="enregistrerConsultation(rdv)">
+                Fiche consultation
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm"
+                      [disabled]="idEnAction() === rdv.id" (click)="annuler(rdv)">
+                Annuler
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

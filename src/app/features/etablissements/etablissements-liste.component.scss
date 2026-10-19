@@ -1,0 +1,170 @@
+﻿:host {
+  display: block;
+}
+
+.form-box {
+  padding: 2rem;
+  margin-bottom: 2rem;
+
+  &__title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &--full {
+    grid-column: span 2;
+
+    @media (max-width: 640px) {
+      grid-column: span 1;
+    }
+  }
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  input, select {
+    padding: 0.75rem 1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-light);
+    background: var(--c-surface-subtle);
+    color: var(--text-main);
+    outline: none;
+    transition: all var(--trans-fast);
+
+    &:focus {
+      border-color: var(--c-primary);
+      background: var(--c-surface);
+      box-shadow: 0 0 0 3px var(--c-primary-soft);
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Grille de cartes structures */
+.etab-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.etab-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &--inactive {
+    opacity: 0.65;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  &__name {
+    font-size: 1.15rem;
+    color: var(--text-main);
+    margin-top: 0.35rem;
+  }
+
+  &__info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem;
+    background: var(--c-surface-subtle);
+    border-radius: var(--r-md);
+    font-size: 0.825rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-light);
+  }
+}
+
+.info-row {
+  display: flex;
+  gap: 0.5rem;
+
+  .info-label {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+}
+
+.etab-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 0;
+  color: var(--text-muted);
+}
+
+.etab-error {
+  padding: 1.5rem 2rem;
+  border-left: 4px solid var(--c-primary);
+}
+
+.etab-empty {
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__circle {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-pill);
+    background: var(--c-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.35rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+}

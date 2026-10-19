@@ -1,0 +1,65 @@
+<div class="pro-fade-in">
+
+  <!-- Héro Médical Exécutif -->
+  <section class="hero pro-card">
+    <img class="hero__bg" src="illustrations/hero-medical.svg" alt="" aria-hidden="true" />
+    <div class="hero__overlay"></div>
+
+    <div class="hero__content">
+      <div class="hero__tag-wrap">
+        <span class="hero__tag">Espace de Santé Maternelle YAY360</span>
+        <span class="hero__role-badge">{{ libelleRole() }}</span>
+      </div>
+
+      <h1 class="hero__title">{{ salutation() }}, {{ premierPrenom() }}</h1>
+
+      <p class="hero__subtitle">
+        Plateforme intelligente dédiée au suivi de la santé maternelle des femmes enceintes.
+      </p>
+
+      <div class="hero__highlights">
+        <div class="hero__highlight-item">
+          <span class="highlight-dot"></span>
+          <span>Suivi de grossesse personnalisé et continu</span>
+        </div>
+        <div class="hero__highlight-item">
+          <span class="highlight-dot"></span>
+          <span>Prévention et détection des risques maternels</span>
+        </div>
+        <div class="hero__highlight-item">
+          <span class="highlight-dot"></span>
+          <span>Dossier Clinique & Familial Partagé</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Accès Rapides -->
+  <div class="quick-section">
+    <div class="pro-header">
+      <div class="pro-header__left">
+        <span class="pro-header__tag">Navigation Rapide</span>
+        <h2 class="pro-header__title">Modules & Outils Cliniques</h2>
+        <p class="pro-header__desc">Accédez en un clic à vos espaces de travail selon vos privilèges.</p>
+      </div>
+    </div>
+
+    <div class="quick-grid">
+      @for (lien of accesRapides(); track lien.path) {
+        <a class="quick-card pro-card" [routerLink]="lien.path">
+          <div class="quick-card__icon-box">
+            <yay360-icon [name]="lien.icon" [size]="22" />
+          </div>
+          <div class="quick-card__body">
+            <strong class="quick-card__title">{{ lien.label }}</strong>
+            <span class="quick-card__desc">{{ lien.description }}</span>
+          </div>
+          <div class="quick-card__arrow">
+            →
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+
+</div>

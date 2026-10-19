@@ -1,0 +1,118 @@
+﻿<div class="shell" [class.shell--collapsed]="sidebarCollapsed()">
+  <yay360-assistant-ia />
+
+  <!-- Overlay mobile -->
+  @if (sidebarOuverte()) {
+    <div class="sidebar-overlay" (click)="fermerSidebar()"></div>
+  }
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside class="sidebar" [class.sidebar--open]="sidebarOuverte()">
+
+    <div class="sidebar__header">
+      <div class="sidebar__brand">
+        <img src="yay360-logo.png" class="sidebar__logo" alt="Logo YAY360">
+        <span class="sidebar__brand-name">YaY°360</span>
+      </div>
+      <button class="sidebar__collapse-btn" (click)="toggleCollapse()"
+              [attr.aria-label]="sidebarCollapsed() ? 'Développer le menu' : 'Réduire le menu'">
+        <yay360-icon [name]="sidebarCollapsed() ? 'chevron-right' : 'chevron-left'" [size]="16" />
+      </button>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Navigation principale">
+      @for (item of navItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="sidebar__link--active"
+          class="sidebar__link"
+          (click)="fermerSidebar()"
+          [attr.data-tooltip]="item.label"
+          [attr.aria-label]="item.label"
+        >
+          <span class="sidebar__link-icon">
+            <yay360-icon [name]="item.icon" [size]="19" />
+          </span>
+          <span class="sidebar__link-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user-preview">
+        <div class="sidebar__avatar">{{ initiales() }}</div>
+        <div class="sidebar__user-text">
+          <strong>{{ nomComplet() }}</strong>
+          <small>{{ libelleRole() }}</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <div class="shell__main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar__burger" (click)="toggleSidebar()" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="topbar__left">
+        <h1 class="topbar__title">{{ titrePage() }}</h1>
+      </div>
+
+      <div class="topbar__actions">
+        <!-- Toggle thème -->
+        <button class="topbar__icon-btn"
+                (click)="themeService.toggle()"
+                [attr.aria-label]="themeService.isDark() ? 'Passer en mode clair' : 'Passer en mode sombre'">
+          @if (themeService.isDark()) {
+            <yay360-icon name="sun" [size]="18" />
+          } @else {
+            <yay360-icon name="moon" [size]="18" />
+          }
+        </button>
+
+        <!-- Notifications -->
+        <button class="topbar__icon-btn" routerLink="/notifications" aria-label="Notifications">
+          <yay360-icon name="bell" [size]="18" />
+        </button>
+
+        <!-- Menu utilisateur -->
+        <div class="topbar__user">
+          <button class="topbar__user-trigger" (click)="toggleMenuUtilisateur()"
+                  [attr.aria-expanded]="menuUtilisateurOuvert()">
+            <span class="topbar__avatar">{{ initiales() }}</span>
+            <span class="topbar__user-info">
+              <strong>Mon compte</strong>
+              <small>{{ libelleRole() }}</small>
+            </span>
+            <span class="topbar__chevron" [class.topbar__chevron--open]="menuUtilisateurOuvert()">
+              <yay360-icon name="chevron-down" [size]="14" />
+            </span>
+          </button>
+
+          @if (menuUtilisateurOuvert()) {
+            <div class="topbar__dropdown" role="menu">
+              <a routerLink="/profil" (click)="toggleMenuUtilisateur()" role="menuitem" class="topbar__dropdown-item">
+                <yay360-icon name="user" [size]="15" />
+                <span>Mon profil</span>
+              </a>
+              <hr class="topbar__dropdown-divider" />
+              <button type="button" (click)="deconnexion()" role="menuitem" class="topbar__dropdown-item topbar__dropdown-item--danger">
+                <yay360-icon name="logout" [size]="15" />
+                <span>Déconnexion</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenu -->
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

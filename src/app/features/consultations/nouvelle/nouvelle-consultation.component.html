@@ -1,0 +1,95 @@
+<div class="pro-fade-in">
+
+  <!-- Retour -->
+  <div class="detail-nav">
+    <a routerLink="/rendez-vous" class="back-btn">
+      <span>← Retour aux rendez-vous</span>
+    </a>
+  </div>
+
+  <div class="form-container pro-card">
+    <header class="form-header">
+      <span class="pro-header__tag">Pratique Clinique</span>
+      <h1 class="form-title">Enregistrement d'une Consultation</h1>
+      <p class="form-desc">Saisissez les constantes médicales, diagnostics et ordonnances pour le dossier obstétrical.</p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="form-body">
+
+      <!-- Dossier Grossesse -->
+      <div class="form-section">
+        <h3 class="form-section__title">1. Référence de la Grossesse</h3>
+        <div class="field-item">
+          <label for="grossesseId">Numéro de dossier grossesse (ID)</label>
+          <input id="grossesseId" type="number" formControlName="grossesseId" placeholder="ex. 12" />
+          <span class="field-hint">Rempli automatiquement si initié depuis un rendez-vous planifié.</span>
+        </div>
+      </div>
+
+      <!-- Constantes Vitales -->
+      <div class="form-section">
+        <h3 class="form-section__title">2. Constantes Vitales & Biomécaniques</h3>
+        <div class="fields-grid-3">
+          <div class="field-item">
+            <label for="poidsKg">Poids actuel (kg)</label>
+            <input id="poidsKg" type="number" step="0.1" formControlName="poidsKg" placeholder="ex. 64.5" />
+          </div>
+          <div class="field-item">
+            <label for="tensionArterielle">Tension artérielle</label>
+            <input id="tensionArterielle" type="text" formControlName="tensionArterielle" placeholder="ex. 12/8" />
+          </div>
+          <div class="field-item">
+            <label for="temperatureC">Température (°C)</label>
+            <input id="temperatureC" type="number" step="0.1" formControlName="temperatureC" placeholder="ex. 37.1" />
+          </div>
+          <div class="field-item">
+            <label for="hauteurUterineCm">Hauteur utérine (cm)</label>
+            <input id="hauteurUterineCm" type="number" step="0.1" formControlName="hauteurUterineCm" placeholder="ex. 28" />
+          </div>
+          <div class="field-item">
+            <label for="battementsCoeurFoetal">BCF (bpm fœtus)</label>
+            <input id="battementsCoeurFoetal" type="number" formControlName="battementsCoeurFoetal" placeholder="ex. 140" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Examen Médical & Prescription -->
+      <div class="form-section">
+        <h3 class="form-section__title">3. Examen Clinique & Ordonnance</h3>
+        <div class="field-item">
+          <label for="observations">Observations cliniques</label>
+          <textarea id="observations" rows="3" formControlName="observations" placeholder="État général, examen obstétrical, œdèmes..."></textarea>
+        </div>
+
+        <div class="field-item">
+          <label for="diagnostic">Diagnostic obstétrical</label>
+          <textarea id="diagnostic" rows="2" formControlName="diagnostic" placeholder="Conclusion clinique de la visite..."></textarea>
+        </div>
+
+        <div class="field-item">
+          <label for="traitement">Traitement administré ou préconisé</label>
+          <textarea id="traitement" rows="2" formControlName="traitement" placeholder="Suppléments en fer, acide folique, repos..."></textarea>
+        </div>
+
+        <div class="field-item">
+          <label for="prescriptions">Prescriptions d'examens complémentaires</label>
+          <textarea id="prescriptions" rows="2" formControlName="prescriptions" placeholder="Échographie morphologique, NFS, glycémie..."></textarea>
+        </div>
+      </div>
+
+      @if (erreur()) {
+        <div class="form-alert">
+          <p>{{ erreur() }}</p>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
+          <span>{{ enregistrement() ? 'Enregistrement en cours…' : 'Valider et Enregistrer la Consultation' }}</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

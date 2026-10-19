@@ -1,0 +1,259 @@
+<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Éducation thérapeutique</span>
+      <h1 class="pro-header__title">Conseils & étapes de la grossesse</h1>
+      <p class="pro-header__desc">Référentiel pour accompagner la santé de la femme enceinte tout au long de sa grossesse.</p>
+    </div>
+  </header>
+
+  <!-- Navigation par onglets -->
+  <div class="filter-bar pro-card">
+    <div class="filter-tabs">
+      <button type="button"
+              class="filter-tab"
+              [class.filter-tab--active]="vue() === 'ETAPES'"
+              (click)="changerVue('ETAPES')">
+        <span>Parcours gestationnel (1 → {{ dureeGrossesseSemaines }} semaines)</span>
+      </button>
+      <button type="button"
+              class="filter-tab"
+              [class.filter-tab--active]="vue() === 'CONSEILS'"
+              (click)="changerVue('CONSEILS')">
+        <span>Bibliothèque de Conseils</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== VUE ÉTAPES ==================== -->
+  @if (vue() === 'ETAPES') {
+    @if (chargementEtapes()) {
+      <div class="conseils-loading">
+        <div class="pro-spinner"></div>
+        <p>Chargement des étapes de la grossesse…</p>
+      </div>
+    } @else {
+      <!-- Légende des trimestres -->
+      <div class="trimesters-legend pro-card">
+        <div class="legend-item">
+          <span class="legend-indicator legend-indicator--t1"></span>
+          <span class="legend-text"><strong>1<sup>er</sup> Trimestre</strong> (Semaines 1 à 13)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-indicator legend-indicator--t2"></span>
+          <span class="legend-text"><strong>2<sup>e</sup> Trimestre</strong> (Semaines 14 à 27)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-indicator legend-indicator--t3"></span>
+          <span class="legend-text"><strong>3<sup>e</sup> Trimestre</strong> (Semaines 28 à {{ dureeGrossesseSemaines }})</span>
+        </div>
+      </div>
+
+      <!-- Grille des semaines de suivi prénatal -->
+      <div class="semaines-grid">
+        @for (etape of etapes(); track etape.id) {
+          <button type="button"
+                  class="semaine-chip"
+                  [attr.data-t]="etape.trimestre"
+                  [class.semaine-chip--active]="semaineOuverte() === etape.semaine"
+                  (click)="ouvrirSemaine(etape)">
+            <span class="semaine-chip__label">SA</span>
+            <span class="semaine-chip__num">{{ etape.semaine }}</span>
+            <span class="semaine-chip__trimestre">{{ etape.trimestre }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Panneau d'édition de la semaine sélectionnée -->
+      @if (etapeActive(); as etape) {
+        <div class="semaine-modal" role="presentation" (click)="fermerSemaine()">
+        <section class="semaine-panel pro-card" role="dialog" aria-modal="true"
+                 [attr.aria-labelledby]="'titre-semaine-' + etape.semaine"
+                 tabindex="-1" (click)="$event.stopPropagation()">
+          <div class="semaine-panel__header">
+            <div class="semaine-panel__title-wrap">
+              <h2 class="pro-badge pro-badge--primary" [id]="'titre-semaine-' + etape.semaine">Semaine {{ etape.semaine }} SA</h2>
+              <span class="semaine-panel__trimestre-badge">{{ etape.trimestre }} ({{ etape.semaine <= 13 ? '1er Trimestre' : (etape.semaine <= 27 ? '2e Trimestre' : '3e Trimestre') }})</span>
+            </div>
+            <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" autofocus (click)="fermerSemaine()">
+              ✕ Fermer
+            </button>
+          </div>
+
+          <form [formGroup]="formEtape" (ngSubmit)="enregistrerEtape(etape)" novalidate>
+            <div class="field-grid">
+              <div class="field-group">
+                <label class="field-label">Développement fœtal & anatomie</label>
+                <textarea rows="3" class="field-input" formControlName="developpementBebe" placeholder="Taille estimée, organogenèse, mouvements fœtaux..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Changements physiologiques maternels</label>
+                <textarea rows="3" class="field-input" formControlName="changementsMere" placeholder="Symptômes, modifications hormonales, utérus..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Objectifs cliniques & santé</label>
+                <textarea rows="2" class="field-input" formControlName="objectifsSante" placeholder="Prise de poids attendue, suivi tensionnel..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Examens & bilans recommandés</label>
+                <textarea rows="2" class="field-input" formControlName="examensRecommandes" placeholder="Échographies, sérologies, dépistages..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Conseils nutritionnels</label>
+                <textarea rows="2" class="field-input" formControlName="conseilsAlimentation" placeholder="Fer, folates, vitamines, aliments à éviter..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Hydratation & hygiène de vie</label>
+                <textarea rows="2" class="field-input" formControlName="conseilsHydratation" placeholder="Apport hydrique recommandé, repos..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Activité physique adaptée</label>
+                <textarea rows="2" class="field-input" formControlName="exercicesPhysiques" placeholder="Marche, gymnastique prénatale, étirements..."></textarea>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Sommeil & récupération</label>
+                <textarea rows="2" class="field-input" formControlName="conseilsSommeil" placeholder="Positions conseillées, siestes réparatrices..."></textarea>
+              </div>
+
+              <div class="field-group field-group--full">
+                <label class="field-label">Précautions & contre-indications</label>
+                <textarea rows="2" class="field-input" formControlName="precautions" placeholder="Traitements proscrits, efforts violents, postures..."></textarea>
+              </div>
+
+              <div class="field-group field-group--full field-group--alert">
+                <label class="field-label alert-label">⚠️ Signes de gravité nécessitant une consultation d'urgence</label>
+                <textarea rows="2" class="field-input field-input--alert" formControlName="signesAlerte" placeholder="Métrorragies, contractions douloureuses, céphalées persistantes, diminution des mouvements fœtaux..."></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementEtape()">
+                {{ enregistrementEtape() ? 'Enregistrement…' : 'Enregistrer les protocoles' }}
+              </button>
+              <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerSemaine()">
+                Annuler
+              </button>
+            </div>
+          </form>
+        </section>
+        </div>
+      }
+    }
+  }
+
+  <!-- ==================== VUE CONSEILS ==================== -->
+  @if (vue() === 'CONSEILS') {
+    <div class="toolbar-box pro-card">
+      <div class="toolbar-box__info">
+        <h3>Bibliothèque Médicale de Conseils</h3>
+        <p>Conseils ciblés proposés automatiquement aux patientes selon leur terme d'aménorrhée.</p>
+      </div>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreationConseil()">
+        + Nouveau conseil
+      </button>
+    </div>
+
+    @if (formulaireConseilOuvert()) {
+      <div class="pro-card form-panel">
+        <div class="form-panel__header">
+          <h3 class="form-panel__title">{{ idConseilEnEdition() ? 'Modifier la recommandation' : 'Nouvelle recommandation médicale' }}</h3>
+          <span class="pro-badge pro-badge--primary">{{ idConseilEnEdition() ? 'Édition' : 'Création' }}</span>
+        </div>
+
+        <form [formGroup]="formConseil" (ngSubmit)="soumettreConseil()" novalidate>
+          <div class="field-grid field-grid--conseil">
+            <div class="field-group">
+              <label class="field-label">Semaine début (SA)</label>
+              <input type="number" min="1" [max]="dureeGrossesseSemaines" class="field-input" formControlName="semaineDebut" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Semaine fin (SA)</label>
+              <input type="number" min="1" [max]="dureeGrossesseSemaines" class="field-input" formControlName="semaineFin" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Catégorie thématique</label>
+              <select class="field-input" formControlName="categorie">
+                @for (c of categories; track c.value) {
+                  <option [value]="c.value">{{ c.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field-group field-group--full">
+              <label class="field-label">Titre du conseil</label>
+              <input type="text" class="field-input" formControlName="titre" placeholder="ex. Alimentation équilibrée riche en folates" />
+            </div>
+            <div class="field-group field-group--full">
+              <label class="field-label">Recommandation détaillée</label>
+              <textarea rows="4" class="field-input" formControlName="contenu" placeholder="Détaillez le conseil à destination de la patiente..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementConseil()">
+              {{ enregistrementConseil() ? 'Enregistrement en cours…' : 'Enregistrer le conseil' }}
+            </button>
+            <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerFormulaireConseil()">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (chargementConseils()) {
+      <div class="conseils-loading">
+        <div class="pro-spinner"></div>
+        <p>Chargement des conseils médicaux…</p>
+      </div>
+    } @else if (conseils().length === 0) {
+      <div class="conseils-empty pro-card">
+        <div class="conseils-empty__circle">
+          <span>0</span>
+        </div>
+        <h3>Aucun conseil répertorié</h3>
+        <p>La base de conseils est actuellement vide. Créez votre première recommandation.</p>
+      </div>
+    } @else {
+      <div class="conseils-grid">
+        @for (c of conseils(); track c.id) {
+          <div class="conseil-card pro-card" [class.conseil-card--inactif]="!c.actif">
+            <div class="conseil-card__header">
+              <div class="conseil-card__badges">
+                <span class="category-pill">{{ libelleCategorie(c.categorie) }}</span>
+                <span class="range-pill">SA {{ c.semaineDebut }} → {{ c.semaineFin }}</span>
+              </div>
+              <span class="pro-badge" [class.pro-badge--primary]="c.actif" [class.pro-badge--subtle]="!c.actif">
+                {{ c.actif ? 'Actif' : 'Inactif' }}
+              </span>
+            </div>
+
+            <h4 class="conseil-card__title">{{ c.titre }}</h4>
+            <p class="conseil-card__content">{{ c.contenu }}</p>
+
+            <div class="conseil-card__actions">
+              <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="ouvrirEditionConseil(c)">
+                Modifier
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="basculerActivation(c)">
+                {{ c.actif ? 'Désactiver' : 'Activer' }}
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm btn-delete" (click)="supprimerConseil(c)">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

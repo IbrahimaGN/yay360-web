@@ -1,0 +1,106 @@
+﻿<div class="login-shell">
+
+  <!-- Panneau gauche -->
+  <section class="brand-panel">
+    <div class="brand-panel__bg"></div>
+    <div class="brand-panel__content">
+      <div class="brand-logo">
+        <img src="yay360-logo.png" class="brand-logo__image" alt="Logo YAY360">
+      </div>
+      <h1 class="brand-name">YaY°360</h1>
+      <p class="brand-sub">Plateforme intelligente de suivi de la santé maternelle destinée aux femmes enceintes.</p>
+
+      <div class="brand-stats">
+        <div class="stat">
+          <span class="stat__num">40</span>
+          <span class="stat__label">Semaines</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat__num">360°</span>
+          <span class="stat__label">Santé maternelle</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat__num">24/7</span>
+          <span class="stat__label">Alertes</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panneau formulaire -->
+  <section class="form-panel">
+    <div class="form-panel__inner">
+
+      <div class="form-top">
+        <button type="button" class="theme-btn" (click)="themeService.toggle()"
+                [attr.aria-label]="themeService.isDark() ? 'Mode clair' : 'Mode sombre'">
+          @if (themeService.isDark()) {
+            <yay360-icon name="sun" [size]="16" />
+          } @else {
+            <yay360-icon name="moon" [size]="16" />
+          }
+        </button>
+      </div>
+
+      <div class="form-box">
+        <div class="form-box__header">
+          <h2>Connexion</h2>
+          <p>Espace réservé à l’administration, aux médecins et aux sages-femmes</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email"
+                   placeholder="nom@yay360.sn"
+                   autocomplete="email"
+                   [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched" />
+            @if (form.controls.email.invalid && form.controls.email.touched) {
+              <span class="field-err">Email invalide</span>
+            }
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label for="password">Mot de passe</label>
+              <a routerLink="/mot-de-passe-oublie" class="forgot-link">Oublié ?</a>
+            </div>
+            <div class="field__input-wrap">
+              <input id="password"
+                     [type]="motDePasseVisible() ? 'text' : 'password'"
+                     formControlName="password"
+                     placeholder="••••••••"
+                     autocomplete="current-password"
+                     [class.is-invalid]="form.controls.password.invalid && form.controls.password.touched" />
+              <button type="button" class="eye-btn" (click)="basculerVisibiliteMotDePasse()">
+                <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="16" />
+              </button>
+            </div>
+            @if (form.controls.password.invalid && form.controls.password.touched) {
+              <span class="field-err">Champ requis</span>
+            }
+          </div>
+
+          @if (erreur()) {
+            <div class="form-err" role="alert">{{ erreur() }}</div>
+          }
+
+          <button type="submit" class="submit-btn" [disabled]="chargement()">
+            @if (chargement()) {
+              <span class="btn-spinner"></span>
+              <span>Connexion…</span>
+            } @else {
+              <span>Se connecter</span>
+            }
+          </button>
+
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+</div>

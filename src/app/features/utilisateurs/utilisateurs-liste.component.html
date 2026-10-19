@@ -1,0 +1,199 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Administration Système</span>
+      <h1 class="pro-header__title">Comptes & Utilisateurs</h1>
+      <p class="pro-header__desc">Gestion des profils d'accès pour les médecins, sages-femmes, patientes et administrateurs.</p>
+    </div>
+    <div class="pro-header__actions">
+      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreation()">
+        + Nouveau compte
+      </button>
+    </div>
+  </header>
+
+  <!-- Formulaire de création d'utilisateur -->
+  @if (formulaireOuvert()) {
+    <div class="pro-card form-box">
+      <div class="form-box__header">
+        <h3 class="form-box__title">Créer un nouveau compte utilisateur</h3>
+        <span class="pro-badge pro-badge--primary">Formulaire d'inscription</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+        <div class="form-grid">
+          <div class="field-item">
+            <label for="prenom">Prénom</label>
+            <input id="prenom" type="text" formControlName="prenom" placeholder="ex. Fatou" />
+          </div>
+
+          <div class="field-item">
+            <label for="nom">Nom de famille</label>
+            <input id="nom" type="text" formControlName="nom" placeholder="ex. Ndiaye" />
+          </div>
+
+          <div class="field-item">
+            <label for="email">Adresse email professionnelle / personnelle</label>
+            <input id="email" type="email" formControlName="email" placeholder="utilisateur@domaine.sn" />
+          </div>
+
+          <div class="field-item">
+            <label for="password">Mot de passe temporaire</label>
+            <input id="password" type="password" formControlName="password" placeholder="Minimum 6 caractères" />
+          </div>
+
+          <div class="field-item">
+            <label for="telephone">Numéro de téléphone</label>
+            <input id="telephone" type="text" placeholder="+221 77 000 00 00" formControlName="telephone" />
+          </div>
+
+          <div class="field-item">
+            <label for="dateNaissance">Date de naissance</label>
+            <input id="dateNaissance" type="date" formControlName="dateNaissance" />
+          </div>
+
+          <div class="field-item field-item--full">
+            <label for="role">Rôle et niveau d'habilitation</label>
+            <select id="role" formControlName="role">
+              <option value="MEDECIN">Médecin (Obstétricien / Praticien)</option>
+              <option value="SAGE_FEMME">Sage-femme (Suivi prénatal)</option>
+              <option value="ADMIN">Administrateur (Gestion globale)</option>
+              <option value="FEMME_ENCEINTE">Femme enceinte (Patiente suivie)</option>
+            </select>
+          </div>
+        </div>
+
+        @if (erreurFormulaire()) {
+          <div class="form-alert" role="alert">
+            <span>⚠️</span> {{ erreurFormulaire() }}
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
+            {{ enregistrement() ? 'Création en cours…' : 'Créer et valider le compte' }}
+          </button>
+          <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerFormulaire()">
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Filtres par rôle -->
+  <div class="filter-bar pro-card">
+    <div class="filter-tabs">
+      @for (onglet of onglets; track onglet.cle) {
+        <button type="button"
+                class="filter-tab"
+                [class.filter-tab--active]="ongletActif() === onglet.cle"
+                (click)="changerOnglet(onglet.cle)">
+          <span>{{ onglet.label }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- États de chargement et d'erreur -->
+  @if (chargement()) {
+    <div class="users-loading">
+      <div class="pro-spinner"></div>
+      <p>Synchronisation de l'annuaire des utilisateurs…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="users-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (utilisateurs().length === 0) {
+    <div class="users-empty pro-card">
+      <div class="users-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucun utilisateur trouvé</h3>
+      <p>Aucun compte enregistré pour le filtre sélectionné.</p>
+    </div>
+  } @else {
+    <!-- Table des utilisateurs -->
+    <div class="pro-table-wrapper">
+      <table class="pro-table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Contact & Identifiant</th>
+            <th>Rôle</th>
+            <th>Date de création</th>
+            <th>Statut</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of utilisateurs(); track u.id) {
+            <tr [class.row--inactif]="!u.actif">
+              <td>
+                <div class="user-meta">
+                  <div class="avatar-circle">
+                    {{ u.prenom.charAt(0) }}{{ u.nom.charAt(0) }}
+                  </div>
+                  <div class="user-info">
+                    <strong class="user-name">{{ u.prenom }} {{ u.nom }}</strong>
+                    <span class="user-sub">ID: #{{ u.id }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="contact-meta">
+                  <span class="contact-email">{{ u.email }}</span>
+                  <span class="contact-phone">{{ u.telephone }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="role-pill" [attr.data-role]="u.role">
+                  {{ u.role === 'FEMME_ENCEINTE' ? 'Patiente' : (u.role === 'MEDECIN' ? 'Médecin' : (u.role === 'SAGE_FEMME' ? 'Sage-femme' : 'Admin')) }}
+                </span>
+              </td>
+              <td>
+                <span class="date-text">{{ u.dateCreation | date: 'dd/MM/yyyy' }}</span>
+              </td>
+              <td>
+                <span class="pro-badge" [class.pro-badge--primary]="u.actif" [class.pro-badge--subtle]="!u.actif">
+                  <span class="status-dot" [class.status-dot--active]="u.actif"></span>
+                  {{ u.actif ? 'Actif' : 'Désactivé' }}
+                </span>
+              </td>
+              <td class="td-actions">
+                <div class="action-buttons">
+                  @if (u.actif) {
+                    <button type="button"
+                            class="pro-btn pro-btn--secondary pro-btn--sm"
+                            [disabled]="idEnAction() === u.id"
+                            (click)="desactiver(u)">
+                      {{ idEnAction() === u.id ? '…' : 'Désactiver' }}
+                    </button>
+                  } @else {
+                    <button type="button"
+                            class="pro-btn pro-btn--secondary pro-btn--sm"
+                            [disabled]="idEnAction() === u.id"
+                            (click)="activer(u)">
+                      {{ idEnAction() === u.id ? '…' : 'Activer' }}
+                    </button>
+                  }
+                  <button type="button"
+                          class="pro-btn pro-btn--ghost pro-btn--sm btn-delete"
+                          [disabled]="idEnAction() === u.id"
+                          (click)="supprimer(u)">
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

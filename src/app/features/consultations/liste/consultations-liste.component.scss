@@ -1,0 +1,117 @@
+﻿:host {
+  display: block;
+}
+
+.consult-row {
+  cursor: pointer;
+  transition: all var(--trans-fast);
+
+  &:hover {
+    .row-arrow {
+      color: var(--c-primary);
+      transform: translateX(4px);
+    }
+  }
+}
+
+.patient-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--text-main);
+  }
+}
+
+.patient-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  background: var(--c-navy-soft);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.consult-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.weight-cell {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.diag-truncate {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.row-arrow {
+  display: inline-block;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all var(--trans-fast);
+}
+
+.consult-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 0;
+  color: var(--text-muted);
+}
+
+.consult-error {
+  padding: 1.5rem 2rem;
+  border-left: 4px solid var(--c-primary);
+}
+
+.consult-empty {
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__circle {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-pill);
+    background: var(--c-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.35rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+}

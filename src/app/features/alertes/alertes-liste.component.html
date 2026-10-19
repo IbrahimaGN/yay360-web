@@ -1,0 +1,130 @@
+﻿<div class="pro-fade-in">
+
+  <!-- En-tête -->
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Vigilance du parcours maternel</span>
+      <h1 class="pro-header__title">Alertes & Symptômes</h1>
+      <p class="pro-header__desc">Signalements liés à la santé des femmes enceintes.</p>
+    </div>
+  </header>
+
+  <!-- Filtres par catégorie d'alerte -->
+  <div class="filter-bar pro-card">
+    <div class="filter-tabs">
+      @for (onglet of onglets; track onglet.cle) {
+        <button type="button"
+                class="filter-tab"
+                [class.filter-tab--active]="ongletActif() === onglet.cle"
+                (click)="changerOnglet(onglet.cle)">
+          <span>{{ onglet.label }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (chargement()) {
+    <div class="alerts-loading">
+      <div class="pro-spinner"></div>
+      <p>Synchronisation des alertes médicales…</p>
+    </div>
+  } @else if (erreur()) {
+    <div class="alerts-error pro-card">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (alertesGrossesse().length === 0) {
+    <div class="alerts-empty pro-card">
+      <div class="alerts-empty__circle">
+        <span>0</span>
+      </div>
+      <h3>Aucune alerte active</h3>
+      <p>Aucun signalement pour cette catégorie pour le moment.</p>
+    </div>
+  } @else {
+    <div class="alerts-feed">
+      @for (alerte of alertesGrossesse(); track alerte.id) {
+        <div class="alert-card pro-card" [class.alert-card--urgent]="alerte.niveauGravite === 'URGENT'">
+          <div class="alert-card__top">
+            <div class="alert-card__patient">
+              <span class="patient-avatar">{{ alerte.femmeEnceinteNomComplet.charAt(0) }}</span>
+              <div>
+                <strong>{{ alerte.femmeEnceinteNomComplet }}</strong>
+                @if (alerte.femmeEnceinteTelephone) {
+                  <small>Tél : {{ alerte.femmeEnceinteTelephone }}</small>
+                }
+              </div>
+            </div>
+
+            <div class="alert-card__badges">
+              <span class="pro-badge" [class.pro-badge--primary]="alerte.niveauGravite === 'URGENT'">
+                {{ alerte.niveauGravite }}
+              </span>
+              <span class="pro-badge pro-badge--subtle">{{ alerte.statut }}</span>
+            </div>
+          </div>
+
+          <div class="alert-card__body">
+            <h4 class="alert-card__symptom">{{ alerte.typeSymptome }}</h4>
+            @if (alerte.description) {
+              <p class="alert-card__desc">{{ alerte.description }}</p>
+            }
+            <div class="alert-card__recommendation">
+              <strong>Conduite recommandée :</strong>
+              <span>{{ alerte.recommandation }}</span>
+            </div>
+          </div>
+
+          <div class="alert-card__footer">
+            <span class="footer-meta">Signalé le {{ alerte.dateDeclaration | date: 'dd/MM/yyyy à HH:mm' }}</span>
+            @if (alerte.professionnelNomComplet) {
+              <span class="footer-meta">Suivi par {{ alerte.professionnelNomComplet }}</span>
+            }
+          </div>
+
+          @if (alerte.notesPriseEnCharge) {
+            <div class="alert-card__notes">
+              <strong>Observations de suivi :</strong> {{ alerte.notesPriseEnCharge }}
+            </div>
+          }
+
+          @if (peutAgir() && alerte.statut !== 'RESOLUE') {
+            <div class="alert-card__actions">
+              @if (alerte.statut === 'NOUVELLE') {
+                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
+                        [disabled]="idEnAction() === alerte.id" (click)="prendreEnCharge(alerte)">
+                  Prendre en charge
+                </button>
+              }
+              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm" (click)="ouvrirResolution(alerte)">
+                Résoudre l'alerte
+              </button>
+            </div>
+
+            @if (formulaireResolutionOuvert() === alerte.id) {
+              <div class="inline-resolution-form">
+                <label [for]="'notes-' + alerte.id">Compte-rendu de résolution clinique :</label>
+                <textarea
+                  [id]="'notes-' + alerte.id"
+                  rows="2"
+                  placeholder="Actions menées, état stabilisé, orientation..."
+                  (input)="mettreAJourNote(alerte.id, $any($event.target).value)"
+                ></textarea>
+                <div class="form-btn-row">
+                  <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
+                          [disabled]="idEnAction() === alerte.id" (click)="confirmerResolution(alerte)">
+                    Confirmer la résolution
+                  </button>
+                  <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireResolutionOuvert.set(null)">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

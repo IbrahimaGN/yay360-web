@@ -1,0 +1,38 @@
+<div class="pro-fade-in">
+  <header class="pro-header">
+    <div class="pro-header__left">
+      <span class="pro-header__tag">Centre d’information</span>
+      <h2 class="pro-header__title">Notifications</h2>
+      <p class="pro-header__desc">Rappels, alertes et informations liés à votre dossier.</p>
+    </div>
+    @if (notifications().some(n => !n.lue)) {
+      <button type="button" class="mark-all" [disabled]="enAction()" (click)="toutMarquerLu()">Tout marquer comme lu</button>
+    }
+  </header>
+
+  @if (erreur()) { <div class="notice notice--error" role="alert">{{ erreur() }}</div> }
+  @if (chargement()) {
+    <div class="empty-state pro-card">Chargement des notifications…</div>
+  } @else if (notifications().length === 0) {
+    <div class="empty-state pro-card">Vous n’avez aucune notification pour le moment.</div>
+  } @else {
+    <div class="notification-list">
+      @for (notification of notifications(); track notification.id) {
+        <article class="notification-card pro-card" [class.notification-card--unread]="!notification.lue">
+          <div class="notification-card__marker" aria-hidden="true"></div>
+          <div class="notification-card__body">
+            <div class="notification-card__top">
+              <span class="notification-type">{{ notification.type.replaceAll('_', ' ') }}</span>
+              <time>{{ notification.dateEnvoi | date:'d MMM y, HH:mm' }}</time>
+            </div>
+            <h3>{{ notification.titre }}</h3>
+            <p>{{ notification.message }}</p>
+            @if (!notification.lue) {
+              <button type="button" class="mark-one" [disabled]="enAction()" (click)="marquerLue(notification)">Marquer comme lue</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>
