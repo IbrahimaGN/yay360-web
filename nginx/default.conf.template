@@ -1,0 +1,54 @@
+# YAY360 Web — Nginx (image officielle : les variables ${...} sont substituées au démarrage)
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # En-têtes de sécurité, répétés dans chaque bloc location (add_header n'est pas hérité)
+    include /etc/nginx/conf.d/securite.inc;
+
+    # API : même origine que le web, pas de CORS ni d'URL codée en dur dans le build
+    location /api/ {
+        proxy_pass ${API_UPSTREAM}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+        # Données de santé : jamais en cache
+        add_header Cache-Control "no-store" always;
+        include /etc/nginx/conf.d/securite.inc;
+    }
+
+    # Fichiers générés par Angular (nom haché) : cache long et immuable
+    location ~* "-[A-Z0-9]{8}\.(js|css)$" {
+        expires 1y;
+        add_header Cache-Control "public, immutable" always;
+        include /etc/nginx/conf.d/securite.inc;
+    }
+
+    # Images et polices non hachées : cache court
+    location ~* \.(png|jpg|jpeg|svg|ico|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public" always;
+        include /etc/nginx/conf.d/securite.inc;
+    }
+
+    # index.html toujours revalidé : un nouveau déploiement est pris en compte immédiatement
+    location = /index.html {
+        add_header Cache-Control "no-cache" always;
+        include /etc/nginx/conf.d/securite.inc;
+    }
+
+    # Routage SPA : toute route inconnue renvoie index.html (Angular Router prend le relais)
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache" always;
+        include /etc/nginx/conf.d/securite.inc;
+    }
+}

@@ -1,192 +1,114 @@
-﻿<div class="pro-fade-in">
+﻿<div class="us">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Administration Système</span>
-      <h1 class="pro-header__title">Comptes & Utilisateurs</h1>
-      <p class="pro-header__desc">Gestion des profils d'accès pour les médecins, sages-femmes, patientes et administrateurs.</p>
-    </div>
-    <div class="pro-header__actions">
-      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreation()">
-        + Nouveau compte
-      </button>
-    </div>
-  </header>
-
-  <!-- Formulaire de création d'utilisateur -->
-  @if (formulaireOuvert()) {
-    <div class="pro-card form-box">
-      <div class="form-box__header">
-        <h3 class="form-box__title">Créer un nouveau compte utilisateur</h3>
-        <span class="pro-badge pro-badge--primary">Formulaire d'inscription</span>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card us__head">
+    <div class="us__intro">
+      <span class="us__intro-icon" aria-hidden="true"><yay360-icon name="users" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Comptes de la plateforme</h2>
+        <p>Les patientes s’inscrivent elles-mêmes et invitent leur conjoint. Les comptes des professionnels sont créés ici.</p>
       </div>
-
-      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
-        <div class="form-grid">
-          <div class="field-item">
-            <label for="prenom">Prénom</label>
-            <input id="prenom" type="text" formControlName="prenom" placeholder="ex. Fatou" />
-          </div>
-
-          <div class="field-item">
-            <label for="nom">Nom de famille</label>
-            <input id="nom" type="text" formControlName="nom" placeholder="ex. Ndiaye" />
-          </div>
-
-          <div class="field-item">
-            <label for="email">Adresse email professionnelle / personnelle</label>
-            <input id="email" type="email" formControlName="email" placeholder="utilisateur@domaine.sn" />
-          </div>
-
-          <div class="field-item">
-            <label for="password">Mot de passe temporaire</label>
-            <input id="password" type="password" formControlName="password" placeholder="Minimum 6 caractères" />
-          </div>
-
-          <div class="field-item">
-            <label for="telephone">Numéro de téléphone</label>
-            <input id="telephone" type="text" placeholder="+221 77 000 00 00" formControlName="telephone" />
-          </div>
-
-          <div class="field-item">
-            <label for="dateNaissance">Date de naissance</label>
-            <input id="dateNaissance" type="date" formControlName="dateNaissance" />
-          </div>
-
-          <div class="field-item field-item--full">
-            <label for="role">Rôle et niveau d'habilitation</label>
-            <select id="role" formControlName="role">
-              <option value="MEDECIN">Médecin (Obstétricien / Praticien)</option>
-              <option value="SAGE_FEMME">Sage-femme (Suivi prénatal)</option>
-              <option value="ADMIN">Administrateur (Gestion globale)</option>
-              <option value="FEMME_ENCEINTE">Femme enceinte (Patiente suivie)</option>
-            </select>
-          </div>
-        </div>
-
-        @if (erreurFormulaire()) {
-          <div class="form-alert" role="alert">
-            <span>⚠️</span> {{ erreurFormulaire() }}
-          </div>
-        }
-
-        <div class="form-actions">
-          <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
-            {{ enregistrement() ? 'Création en cours…' : 'Créer et valider le compte' }}
-          </button>
-          <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerFormulaire()">
-            Annuler
-          </button>
-        </div>
-      </form>
     </div>
-  }
+    <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreation()">
+      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouveau professionnel
+    </button>
+  </section>
 
-  <!-- Filtres par rôle -->
-  <div class="filter-bar pro-card">
-    <div class="filter-tabs">
-      @for (onglet of onglets; track onglet.cle) {
-        <button type="button"
-                class="filter-tab"
-                [class.filter-tab--active]="ongletActif() === onglet.cle"
-                (click)="changerOnglet(onglet.cle)">
-          <span>{{ onglet.label }}</span>
-        </button>
-      }
-    </div>
+  <div class="tabs" role="tablist" aria-label="Profil">
+    @for (o of onglets; track o.cle) {
+      <button type="button" role="tab" class="tabs__btn" [class.tabs__btn--active]="ongletActif() === o.cle"
+              [attr.aria-selected]="ongletActif() === o.cle" (click)="changerOnglet(o.cle)">
+        <yay360-icon [name]="o.icone" [size]="16" aria-hidden="true" /> {{ o.label }}
+      </button>
+    }
   </div>
 
-  <!-- États de chargement et d'erreur -->
+  <section class="tools" aria-label="Filtres">
+    <div class="input-ico tools__search">
+      <yay360-icon name="search" [size]="18" aria-hidden="true" />
+      <input type="search" placeholder="Nom, e-mail ou téléphone…" aria-label="Rechercher un utilisateur"
+             [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
+    </div>
+    <div class="segmented" role="group" aria-label="Statut du compte">
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'TOUS'" (click)="filtreStatut.set('TOUS')">Tous <b>{{ stats().total }}</b></button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'ACTIFS'" (click)="filtreStatut.set('ACTIFS')">Actifs <b>{{ stats().actifs }}</b></button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'INACTIFS'" (click)="filtreStatut.set('INACTIFS')">Inactifs <b>{{ stats().inactifs }}</b></button>
+    </div>
+  </section>
+
+  @if (succes()) {
+    <div class="pro-notice pro-notice--success" role="status">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succes() }}</span>
+      <button type="button" class="notice-close" (click)="succes.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+  @if (erreurAction()) {
+    <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+  }
+
+  <!-- ═══════════ Liste ═══════════ -->
   @if (chargement()) {
-    <div class="users-loading">
-      <div class="pro-spinner"></div>
-      <p>Synchronisation de l'annuaire des utilisateurs…</p>
-    </div>
+    <div class="pro-skeleton us__skeleton" aria-hidden="true"></div>
+    <span class="sr-only" role="status">Chargement des utilisateurs…</span>
   } @else if (erreur()) {
-    <div class="users-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
-  } @else if (utilisateurs().length === 0) {
-    <div class="users-empty pro-card">
-      <div class="users-empty__circle">
-        <span>0</span>
-      </div>
-      <h3>Aucun utilisateur trouvé</h3>
-      <p>Aucun compte enregistré pour le filtre sélectionné.</p>
-    </div>
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (utilisateursFiltres().length === 0) {
+    <yay360-state type="vide" titre="Aucun utilisateur"
+                  [message]="filtresActifs() ? 'Aucun compte ne correspond à ces filtres.' : 'Aucun compte dans cette catégorie.'">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      }
+    </yay360-state>
   } @else {
-    <!-- Table des utilisateurs -->
-    <div class="pro-table-wrapper">
-      <table class="pro-table">
+    <div class="card pro-table-wrapper us__table">
+      <table class="pro-table pro-table--stack">
+        <caption class="sr-only">Liste des comptes</caption>
         <thead>
           <tr>
-            <th>Utilisateur</th>
-            <th>Contact & Identifiant</th>
-            <th>Rôle</th>
-            <th>Date de création</th>
-            <th>Statut</th>
-            <th class="th-actions">Actions</th>
+            <th scope="col">Utilisateur</th>
+            <th scope="col">Profil</th>
+            <th scope="col">Téléphone</th>
+            <th scope="col">Créé le</th>
+            <th scope="col">Statut</th>
+            <th scope="col" class="cell-end"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody>
-          @for (u of utilisateurs(); track u.id) {
-            <tr [class.row--inactif]="!u.actif">
-              <td>
-                <div class="user-meta">
-                  <div class="avatar-circle">
-                    {{ u.prenom.charAt(0) }}{{ u.nom.charAt(0) }}
-                  </div>
-                  <div class="user-info">
-                    <strong class="user-name">{{ u.prenom }} {{ u.nom }}</strong>
-                    <span class="user-sub">ID: #{{ u.id }}</span>
+          @for (u of utilisateursFiltres(); track u.id) {
+            <tr [class.us__row--off]="!u.actif">
+              <td data-label="Utilisateur">
+                <div class="who">
+                  <span class="avatar avatar--sm" [attr.data-role]="u.role" aria-hidden="true">{{ initiales(u) }}</span>
+                  <div>
+                    <strong>{{ u.prenom }} {{ u.nom }} @if (estMoi(u)) { <span class="badge badge--orange">Vous</span> }</strong>
+                    <small>{{ u.email }}</small>
                   </div>
                 </div>
               </td>
-              <td>
-                <div class="contact-meta">
-                  <span class="contact-email">{{ u.email }}</span>
-                  <span class="contact-phone">{{ u.telephone }}</span>
-                </div>
+              <td data-label="Profil"><span class="role" [attr.data-role]="u.role">{{ libelleRole(u.role) }}</span></td>
+              <td data-label="Téléphone">{{ u.telephone || '—' }}</td>
+              <td data-label="Créé le">{{ u.dateCreation | date: 'd MMM y' }}</td>
+              <td data-label="Statut">
+                @if (u.actif) { <span class="badge badge--success"><span class="dot" aria-hidden="true"></span> Actif</span> }
+                @else { <span class="badge badge--subtle">Inactif</span> }
               </td>
-              <td>
-                <span class="role-pill" [attr.data-role]="u.role">
-                  {{ u.role === 'FEMME_ENCEINTE' ? 'Patiente' : (u.role === 'MEDECIN' ? 'Médecin' : (u.role === 'SAGE_FEMME' ? 'Sage-femme' : 'Admin')) }}
-                </span>
-              </td>
-              <td>
-                <span class="date-text">{{ u.dateCreation | date: 'dd/MM/yyyy' }}</span>
-              </td>
-              <td>
-                <span class="pro-badge" [class.pro-badge--primary]="u.actif" [class.pro-badge--subtle]="!u.actif">
-                  <span class="status-dot" [class.status-dot--active]="u.actif"></span>
-                  {{ u.actif ? 'Actif' : 'Désactivé' }}
-                </span>
-              </td>
-              <td class="td-actions">
-                <div class="action-buttons">
-                  @if (u.actif) {
-                    <button type="button"
-                            class="pro-btn pro-btn--secondary pro-btn--sm"
-                            [disabled]="idEnAction() === u.id"
-                            (click)="desactiver(u)">
-                      {{ idEnAction() === u.id ? '…' : 'Désactiver' }}
+              <td class="cell-end">
+                <div class="row-actions">
+                  @if (!estMoi(u)) {
+                    @if (u.actif) {
+                      <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" [disabled]="idEnAction() === u.id" (click)="demanderConfirmation('desactiver', u)">Désactiver</button>
+                    } @else {
+                      <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" [disabled]="idEnAction() === u.id" (click)="activer(u)">
+                        @if (idEnAction() === u.id) { <span class="btn-spinner" aria-hidden="true"></span> } Activer
+                      </button>
+                    }
+                    <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm row-actions__delete" [disabled]="idEnAction() === u.id"
+                            (click)="demanderConfirmation('supprimer', u)" [attr.aria-label]="'Supprimer le compte de ' + u.prenom + ' ' + u.nom" title="Supprimer">
+                      <yay360-icon name="trash" [size]="16" aria-hidden="true" />
                     </button>
                   } @else {
-                    <button type="button"
-                            class="pro-btn pro-btn--secondary pro-btn--sm"
-                            [disabled]="idEnAction() === u.id"
-                            (click)="activer(u)">
-                      {{ idEnAction() === u.id ? '…' : 'Activer' }}
-                    </button>
+                    <span class="row-actions__self">Votre compte</span>
                   }
-                  <button type="button"
-                          class="pro-btn pro-btn--ghost pro-btn--sm btn-delete"
-                          [disabled]="idEnAction() === u.id"
-                          (click)="supprimer(u)">
-                    Supprimer
-                  </button>
                 </div>
               </td>
             </tr>
@@ -195,5 +117,138 @@
       </table>
     </div>
   }
-
 </div>
+
+<!-- ═══════════ Fenêtre : nouveau professionnel ═══════════ -->
+@if (formulaireOuvert()) {
+  <div class="pro-modal-backdrop" (click)="fermerFormulaire()">
+    <section class="pro-modal" role="dialog" aria-modal="true" aria-labelledby="titre-nouveau" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="user" [size]="22" /></span>
+        <div class="us__modal-title">
+          <h2 id="titre-nouveau">Nouveau professionnel</h2>
+          <p>Un mot de passe temporaire est généré ; il devra être changé à la première connexion.</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="fermerFormulaire()" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="us__form">
+        <fieldset class="role-pick">
+          <legend>Profil *</legend>
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="MEDECIN" /><span><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Médecin</span></label>
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="SAGE_FEMME" /><span><yay360-icon name="activity" [size]="18" aria-hidden="true" /> Sage-femme</span></label>
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN" /><span><yay360-icon name="shield" [size]="18" aria-hidden="true" /> Administrateur</span></label>
+        </fieldset>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="prenom">Prénom *</label>
+            <input id="prenom" formControlName="prenom" autocomplete="off" [attr.aria-invalid]="invalide('prenom')" />
+            @if (invalide('prenom')) { <span class="field-error">Lettres uniquement, 2 à 50 caractères.</span> }
+          </div>
+          <div class="field">
+            <label for="nom">Nom *</label>
+            <input id="nom" formControlName="nom" autocomplete="off" [attr.aria-invalid]="invalide('nom')" />
+            @if (invalide('nom')) { <span class="field-error">Lettres uniquement, 2 à 50 caractères.</span> }
+          </div>
+        </div>
+        <div class="field">
+          <label for="email">E-mail *</label>
+          <input id="email" type="email" formControlName="email" autocomplete="off" [attr.aria-invalid]="invalide('email')" />
+          @if (invalide('email')) { <span class="field-error">Adresse e-mail invalide.</span> }
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="telephone">Téléphone *</label>
+            <input id="telephone" type="tel" formControlName="telephone" placeholder="+221771234567" [attr.aria-invalid]="invalide('telephone')" />
+            @if (invalide('telephone')) { <span class="field-error">{{ aideTelephone }}</span> }
+            @else { <span class="field-hint">+221 puis 9 chiffres</span> }
+          </div>
+          <div class="field">
+            <label for="dateNaissance">Date de naissance *</label>
+            <input id="dateNaissance" type="date" [max]="dateNaissanceMax" formControlName="dateNaissance" [attr.aria-invalid]="invalide('dateNaissance')" />
+            @if (invalide('dateNaissance')) { <span class="field-error">Date obligatoire.</span> }
+          </div>
+        </div>
+
+        @if (erreurFormulaire()) {
+          <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurFormulaire() }}</span></div>
+        }
+
+        <div class="pro-modal__foot">
+          <button type="button" class="pro-btn pro-btn--ghost" (click)="fermerFormulaire()">Annuler</button>
+          <button type="submit" class="pro-btn pro-btn--accent" [disabled]="enregistrement()">
+            @if (enregistrement()) { <span class="btn-spinner" aria-hidden="true"></span> Création… }
+            @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Créer le compte }
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+<!-- ═══════════ Fenêtre : compte créé ═══════════ -->
+@if (compteCree(); as c) {
+  <div class="pro-modal-backdrop">
+    <section class="pro-modal pro-modal--sm" role="dialog" aria-modal="true" aria-labelledby="titre-cree">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon us__ok" aria-hidden="true"><yay360-icon name="check" [size]="22" /></span>
+        <div class="us__modal-title">
+          <h2 id="titre-cree">Compte créé</h2>
+          <p>{{ c.nomComplet }} · {{ c.email }}</p>
+        </div>
+      </header>
+
+      @if (c.emailEnvoye) {
+        <p class="pro-notice pro-notice--success"><yay360-icon name="mail" [size]="18" aria-hidden="true" /><span>Les identifiants ont été envoyés par e-mail au professionnel.</span></p>
+      }
+      @if (c.motDePasseTemporaire) {
+        <div class="temp">
+          <span class="temp__label">Mot de passe temporaire</span>
+          <div class="temp__box">
+            <code>{{ c.motDePasseTemporaire }}</code>
+            <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="copierMotDePasse()">
+              <yay360-icon [name]="copie() ? 'check' : 'clipboard'" [size]="16" aria-hidden="true" /> {{ copie() ? 'Copié' : 'Copier' }}
+            </button>
+          </div>
+          <p class="temp__warn"><yay360-icon name="alert-triangle" [size]="14" aria-hidden="true" /> Affiché une seule fois. Transmettez-le de façon sécurisée ; il devra être changé à la première connexion.</p>
+        </div>
+      }
+
+      <div class="pro-modal__foot">
+        <button type="button" class="pro-btn pro-btn--accent" (click)="fermerCompteCree()">J’ai transmis les identifiants</button>
+      </div>
+    </section>
+  </div>
+}
+
+<!-- ═══════════ Fenêtre : confirmation ═══════════ -->
+@if (confirmation(); as c) {
+  <div class="pro-modal-backdrop" (click)="confirmation.set(null)">
+    <section class="pro-modal pro-modal--sm" role="alertdialog" aria-modal="true" aria-labelledby="titre-confirm-u" aria-describedby="texte-confirm-u" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" [class.pro-modal__icon--danger]="c.mode === 'supprimer'" [class.pro-modal__icon--warning]="c.mode === 'desactiver'" aria-hidden="true">
+          <yay360-icon [name]="c.mode === 'supprimer' ? 'trash' : 'alert-triangle'" [size]="22" />
+        </span>
+        <div class="us__modal-title">
+          <h2 id="titre-confirm-u">{{ c.mode === 'supprimer' ? 'Supprimer ce compte ?' : 'Désactiver ce compte ?' }}</h2>
+          <p id="texte-confirm-u">
+            @if (c.mode === 'supprimer') {
+              Le compte de {{ c.utilisateur.prenom }} {{ c.utilisateur.nom }} sera supprimé définitivement. S’il contient déjà des données, préférez la désactivation.
+            } @else {
+              {{ c.utilisateur.prenom }} {{ c.utilisateur.nom }} ne pourra plus se connecter. Ses données sont conservées et le compte pourra être réactivé.
+            }
+          </p>
+        </div>
+      </header>
+      <div class="pro-modal__foot">
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="confirmation.set(null)">Annuler</button>
+        <button type="button" class="pro-btn" [class.pro-btn--danger]="c.mode === 'supprimer'" [class.pro-btn--accent]="c.mode === 'desactiver'"
+                [disabled]="idEnAction() === c.utilisateur.id" (click)="confirmerAction()">
+          @if (idEnAction() === c.utilisateur.id) { <span class="btn-spinner" aria-hidden="true"></span> }
+          {{ c.mode === 'supprimer' ? 'Supprimer' : 'Désactiver' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -23,10 +23,21 @@
             "styles": [
               "src/styles.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            },
             "scripts": []
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              },
+              "fileReplacements": [
+                { "replace": "src/environments/environment.ts", "with": "src/environments/environment.prod.ts" }
+              ],
               "budgets": [
                 { "type": "initial", "maximumWarning": "600kB", "maximumError": "1MB" },
                 { "type": "anyComponentStyle", "maximumWarning": "16kB", "maximumError": "32kB" }
@@ -41,6 +52,15 @@
           },
           "defaultConfiguration": "production"
         },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": ["src/test-setup.ts"],
+            "buildTarget": "::development"
+          }
+        },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
@@ -54,8 +74,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": "228dbb4e-4ab5-4d15-88cd-c8de198935aa"
   }
 }

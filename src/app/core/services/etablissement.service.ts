@@ -13,6 +13,16 @@ export class EtablissementService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/etablissements`;
 
+  /** Établissements actifs (tout utilisateur connecté), éventuellement filtrés par ville. */
+  listerActifs(ville?: string): Observable<EtablissementDto[]> {
+    return this.http.get<EtablissementDto[]>(this.baseUrl, ville ? { params: { ville } } : {});
+  }
+
+  /** Établissements où exerce le soignant connecté. */
+  mesEtablissements(): Observable<EtablissementDto[]> {
+    return this.http.get<EtablissementDto[]>(`${this.baseUrl}/mes-etablissements`);
+  }
+
   listerTous(): Observable<EtablissementDto[]> {
     return this.http.get<EtablissementDto[]>(`${this.baseUrl}/tous`);
   }

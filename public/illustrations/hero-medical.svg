@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice">
   <defs>
     <radialGradient id="glowA" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#E8636B" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#E8636B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#D99AA5" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#D99AA5" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="glowB" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#4C8C6B" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="#4C8C6B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#668F83" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#668F83" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="glowC" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#E0A63A" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#E0A63A" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#F7E9EC" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#F7E9EC" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
@@ -20,25 +20,25 @@
   <circle cx="600" cy="60" r="200" fill="url(#glowC)"/>
 
   <!-- Anneau signature, très grand, en filigrane -->
-  <circle cx="980" cy="250" r="320" fill="none" stroke="#F7F1E6" stroke-opacity="0.08" stroke-width="2"/>
-  <circle cx="980" cy="250" r="230" fill="none" stroke="#F7F1E6" stroke-opacity="0.07" stroke-width="1.5"/>
+  <circle cx="980" cy="250" r="320" fill="none" stroke="#F8F6F0" stroke-opacity="0.08" stroke-width="2"/>
+  <circle cx="980" cy="250" r="230" fill="none" stroke="#F8F6F0" stroke-opacity="0.07" stroke-width="1.5"/>
 
   <!-- Courbe vitale (ECG) traversant la composition -->
   <path d="M-20 300 L180 300 L220 240 L260 360 L300 180 L340 300 L520 300 L560 250 L600 300 L1220 300"
-        fill="none" stroke="#F7F1E6" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        fill="none" stroke="#F8F6F0" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- Croix médicale stylisée -->
   <g opacity="0.18">
-    <rect x="150" y="90" width="16" height="60" rx="4" fill="#F7F1E6"/>
-    <rect x="128" y="112" width="60" height="16" rx="4" fill="#F7F1E6"/>
+    <rect x="150" y="90" width="16" height="60" rx="4" fill="#F8F6F0"/>
+    <rect x="128" y="112" width="60" height="16" rx="4" fill="#F8F6F0"/>
   </g>
   <g opacity="0.14">
-    <rect x="1040" y="380" width="12" height="46" rx="3" fill="#F7F1E6"/>
-    <rect x="1023" y="397" width="46" height="12" rx="3" fill="#F7F1E6"/>
+    <rect x="1040" y="380" width="12" height="46" rx="3" fill="#F8F6F0"/>
+    <rect x="1023" y="397" width="46" height="12" rx="3" fill="#F8F6F0"/>
   </g>
 
   <!-- Semis d'étoiles -->
-  <g fill="#F7F1E6" fill-opacity="0.3">
+  <g fill="#F8F6F0" fill-opacity="0.3">
     <circle cx="80" cy="80" r="2.5"/>
     <circle cx="400" cy="60" r="2"/>
     <circle cx="700" cy="420" r="2.5"/>

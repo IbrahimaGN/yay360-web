@@ -1,0 +1,105 @@
+<main class="auth-bg">
+  <yay360-theme-toggle class="auth-theme" />
+  <div class="auth-center cmp">
+    <div class="auth-logo cmp__logo" aria-hidden="true">
+      <img src="yay360-logo.png" alt="" width="52" height="52" />
+      <span>YaY°360</span>
+    </div>
+
+    <section class="auth-card cmp__card" aria-labelledby="titre-cmp">
+      <div class="cmp__banner">
+        <yay360-icon name="shield" [size]="18" aria-hidden="true" />
+        <span>Étape obligatoire avant d’accéder à votre espace</span>
+      </div>
+
+      <div class="auth-head">
+        <span class="auth-head__icon"><yay360-icon name="user" [size]="26" aria-hidden="true" /></span>
+        <span class="auth-kicker">Bienvenue {{ authService.nomComplet() }}</span>
+        <h1 id="titre-cmp">Choisissez votre mot de passe</h1>
+        <p>Votre compte a été créé avec un mot de passe temporaire. Remplacez-le par un mot de passe personnel.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+        <!-- Mot de passe temporaire -->
+        <div class="field">
+          <label for="ancienMotDePasse">Mot de passe temporaire</label>
+          <div class="pwd input-ico">
+            <yay360-icon name="user" [size]="18" aria-hidden="true" />
+            <input id="ancienMotDePasse" [type]="ancienVisible() ? 'text' : 'password'" formControlName="ancienMotDePasse"
+                   autocomplete="current-password" placeholder="Celui reçu de l’administrateur"
+                   [attr.aria-invalid]="invalide('ancienMotDePasse')" aria-describedby="err-ancien" />
+            <button type="button" (click)="ancienVisible.set(!ancienVisible())"
+                    [attr.aria-label]="ancienVisible() ? 'Masquer le mot de passe temporaire' : 'Afficher le mot de passe temporaire'"
+                    [attr.aria-pressed]="ancienVisible()">
+              <yay360-icon [name]="ancienVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+            </button>
+          </div>
+          @if (invalide('ancienMotDePasse')) {
+            <span class="field-error" id="err-ancien">Saisissez le mot de passe reçu.</span>
+          }
+        </div>
+
+        <!-- Nouveau mot de passe -->
+        <div class="cmp__new">
+          <div class="field">
+            <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+            <div class="pwd input-ico">
+              <yay360-icon name="shield" [size]="18" aria-hidden="true" />
+              <input id="nouveauMotDePasse" [type]="nouveauVisible() ? 'text' : 'password'" formControlName="nouveauMotDePasse"
+                     autocomplete="new-password" [attr.aria-invalid]="invalide('nouveauMotDePasse')" aria-describedby="regles-mdp" />
+              <button type="button" (click)="nouveauVisible.set(!nouveauVisible())"
+                      [attr.aria-label]="nouveauVisible() ? 'Masquer les nouveaux mots de passe' : 'Afficher les nouveaux mots de passe'"
+                      [attr.aria-pressed]="nouveauVisible()">
+                <yay360-icon [name]="nouveauVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+              </button>
+            </div>
+            <ul class="pwd-rules" id="regles-mdp" aria-label="Règles du mot de passe">
+              @for (r of reglesMotDePasse(); track r.libelle) {
+                <li [class.pwd-rules__ok]="r.ok" [class.pwd-rules__ko]="!r.ok && form.controls.nouveauMotDePasse.touched">
+                  <span class="pwd-rules__mark" aria-hidden="true">@if (r.ok) { <yay360-icon name="check" [size]="12" /> }</span>
+                  {{ r.libelle }}<span class="sr-only">{{ r.ok ? ' : respecté' : ' : non respecté' }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <div class="field">
+            <label for="confirmation">Confirmer le nouveau mot de passe</label>
+            <div class="input-ico">
+              <yay360-icon name="check" [size]="18" aria-hidden="true" />
+              <input id="confirmation" [type]="nouveauVisible() ? 'text' : 'password'" formControlName="confirmation"
+                     autocomplete="new-password" placeholder="Saisir à nouveau"
+                     [attr.aria-invalid]="invalide('confirmation')" aria-describedby="err-confirmation" />
+            </div>
+            @if (form.controls.confirmation.hasError('differents') && form.controls.confirmation.touched) {
+              <span class="field-error" id="err-confirmation">Les deux mots de passe ne correspondent pas.</span>
+            } @else if (invalide('confirmation')) {
+              <span class="field-error" id="err-confirmation">Confirmez votre nouveau mot de passe.</span>
+            }
+          </div>
+        </div>
+
+        @if (erreur()) {
+          <div class="pro-notice pro-notice--error" role="alert">
+            <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+            <span>{{ erreur() }}</span>
+          </div>
+        }
+
+        <button type="submit" class="pro-btn pro-btn--accent pro-btn--block auth-submit" [disabled]="chargement()">
+          @if (chargement()) {
+            <span class="btn-spinner" aria-hidden="true"></span> Enregistrement…
+          } @else {
+            Enregistrer et continuer <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" />
+          }
+        </button>
+      </form>
+
+      <button type="button" class="auth-back cmp__logout" (click)="seDeconnecter()">
+        <yay360-icon name="logout" [size]="16" aria-hidden="true" /> Se déconnecter
+      </button>
+    </section>
+  </div>
+
+  <yay360-feuillage class="auth-bg__leaves" />
+</main>

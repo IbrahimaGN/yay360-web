@@ -1,310 +1,333 @@
-<div class="pro-fade-in">
+<div class="gd">
 
-  <!-- Retour -->
-  <div class="detail-nav">
-    <a routerLink="/grossesses" class="back-btn">
-      <span>← Retour au suivi des grossesses</span>
-    </a>
-  </div>
+  <a routerLink="/grossesses" class="gd__back"><yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> Retour aux grossesses</a>
 
   @if (chargement()) {
-    <div class="detail-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement du dossier obstétrical…</p>
+    <div class="gd__skeleton">
+      <div class="pro-skeleton gd__skeleton-hero" aria-hidden="true"></div>
+      <div class="pro-skeleton gd__skeleton-block" aria-hidden="true"></div>
     </div>
+    <span class="sr-only" role="status">Chargement du dossier…</span>
   } @else if (erreur()) {
-    <div class="detail-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
   } @else if (grossesse(); as g) {
 
-    <!-- Carte Profil Patiente -->
-    <header class="patient-hero pro-card">
-      <div class="patient-hero__left">
-        <span class="patient-hero__avatar">{{ g.femmeEnceinteNomComplet.charAt(0) }}</span>
-        <div class="patient-hero__meta">
-          <div class="patient-hero__tags">
+    <!-- ═══════════ Profil de la grossesse ═══════════ -->
+    <header class="card hero" [class.hero--risk]="g.grossesseARisque">
+      <div class="hero__id">
+        <span class="avatar avatar--lg" [class.avatar--orange]="g.grossesseARisque" aria-hidden="true">{{ initiales(g.femmeEnceinteNomComplet) }}</span>
+        <div class="hero__who">
+          <div class="hero__badges">
             @if (g.statut === 'EN_COURS') {
-              <span class="pro-badge pro-badge--primary">Semaine {{ g.semaineActuelle }} / {{ dureeGrossesseSemaines }}</span>
+              <span class="badge badge--primary"><span class="dot" aria-hidden="true"></span> En cours</span>
             } @else {
-              <span class="pro-badge pro-badge--primary">Grossesse clôturée</span>
+              <span class="badge badge--subtle">{{ g.statut | statut }}</span>
             }
             @if (g.grossesseARisque) {
-              <span class="pro-badge pro-badge--primary">Vigilance : À risque</span>
-            } @else {
-              <span class="pro-badge">Normale</span>
+              <span class="badge badge--warning"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> À risque</span>
             }
-            <span class="pro-badge pro-badge--subtle">{{ g.statut }}</span>
           </div>
-          <h1 class="patient-hero__title">{{ g.femmeEnceinteNomComplet }}</h1>
-          <p class="patient-hero__sub">
+          <h2 class="hero__name">{{ g.femmeEnceinteNomComplet }}</h2>
+          <p class="hero__sub">
+            Dossier #{{ g.id }} ·
             @if (g.statut !== 'EN_COURS') {
-              Grossesse clôturée le {{ g.dateAccouchementReelle ? (g.dateAccouchementReelle | date: 'dd MMMM yyyy') : '—' }}
+              {{ g.statut === 'TERMINEE' ? 'Accouchement' : 'Interruption' }} le {{ g.dateFin ? (g.dateFin | date: 'd MMMM y') : '—' }}
             } @else {
-              Dossier ouvert le {{ g.dateCreation | date: 'dd MMMM yyyy' }}
+              ouvert le {{ g.dateCreation | date: 'd MMMM y' }}
             }
           </p>
+          <p class="hero__place"><yay360-icon name="building" [size]="14" aria-hidden="true" /> {{ g.etablissementSuiviNom || 'Aucun établissement de suivi' }}</p>
         </div>
       </div>
 
       @if (g.statut === 'EN_COURS') {
-        <div class="patient-hero__ring">
-          <yay360-ring-chart [data]="segmentsProgression()" [size]="130" [centerLabel]="'/ ' + dureeGrossesseSemaines + ' sem.'" />
+        <div class="hero__progress">
+          <yay360-ring-chart [data]="segmentsProgression()" [size]="136" [epaisseur]="18"
+                             [centerValue]="g.semaineActuelle" [centerLabel]="'sur ' + dureeGrossesseSemaines + ' sem.'" />
+          <dl class="hero__metrics">
+            <div><dt>Trimestre</dt><dd>{{ g.trimestre }}</dd></div>
+            <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+            <div><dt>Jours restants</dt><dd>{{ g.joursRestants }}</dd></div>
+            <div><dt>Dernières règles</dt><dd>{{ g.dateDernieresRegles | date: 'd MMM y' }}</dd></div>
+          </dl>
         </div>
-      }
-
-      @if (g.statut === 'EN_COURS') {
-      <div class="patient-hero__metrics">
-        <div class="metric-item">
-          <span class="metric-item__label">Trimestre</span>
-          <strong class="metric-item__value">{{ g.trimestre }}</strong>
-        </div>
-        <div class="metric-item">
-          <span class="metric-item__label">Terme prévu (DPA)</span>
-          <strong class="metric-item__value">{{ g.datePrevueAccouchement | date: 'dd/MM/yyyy' }}</strong>
-        </div>
-        <div class="metric-item">
-          <span class="metric-item__label">Jours restants</span>
-          <strong class="metric-item__value">{{ g.joursRestants }} j</strong>
-        </div>
-      </div>
       }
     </header>
 
-    <!-- Actions médicales -->
-    @if (peutGererRisque() || peutTerminer()) {
-      <section class="actions-card pro-card">
-        <div class="actions-card__header">
-          <div>
-            <h3>Actions cliniques</h3>
-            <p>Interventions médicales directes sur ce dossier de grossesse</p>
-          </div>
-        </div>
-
-        @if (messageAction()) {
-          <div class="action-alert">
-            <p>{{ messageAction() }}</p>
-          </div>
-        }
-
-        <div class="actions-card__buttons">
-          @if (peutEnregistrerConsultation() && g.statut === 'EN_COURS') {
-            <a class="pro-btn pro-btn--primary" [routerLink]="['/consultations/nouvelle']" [queryParams]="{ grossesseId: g.id }">
-              + Nouvelle consultation
-            </a>
-          }
-          @if (peutGererRisque() && g.statut === 'EN_COURS') {
-            @if (!g.grossesseARisque) {
-              <button type="button" class="pro-btn pro-btn--secondary" (click)="ouvrirFormulaireRisque()">
-                Déclarer à risque
-              </button>
-            } @else {
-              <button type="button" class="pro-btn pro-btn--secondary" (click)="retirerRisque()" [disabled]="actionEnCours()">
-                Retirer le statut à risque
-              </button>
-            }
-          }
-          @if (peutTerminer() && g.statut === 'EN_COURS') {
-            <button type="button" class="pro-btn pro-btn--ghost" (click)="ouvrirFormulaireTerminer()">
-              Clôturer le dossier (Accouchement)
-            </button>
-          }
-        </div>
-
-        <!-- Formulaire Déclarer à risque -->
-        @if (formulaireRisqueOuvert()) {
-          <div class="inline-action-form">
-            <label for="motif">Motif clinique de la vigilance :</label>
-            <textarea id="motif" rows="2" placeholder="Précisez la complication ou le facteur de risque..."
-                      [value]="motifRisque()" (input)="motifRisque.set($any($event.target).value)"></textarea>
-            <div class="form-btn-row">
-              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
-                      [disabled]="actionEnCours() || !motifRisque().trim()" (click)="confirmerRisque()">
-                Confirmer la mise sous vigilance
-              </button>
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireRisqueOuvert.set(false)">
-                Annuler
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- Formulaire Terminer -->
-        @if (formulaireTerminerOuvert()) {
-          <div class="inline-action-form">
-            <label for="statutFinal">Issue de la grossesse :</label>
-            <select id="statutFinal" [value]="statutFinal()" (change)="statutFinal.set($any($event.target).value)">
-              <option value="TERMINEE">Accouchement (dossier mené à terme)</option>
-              <option value="INTERROMPUE">Interruption médicale ou spontanée</option>
-            </select>
-            @if (statutFinal() === 'TERMINEE') {
-              <label for="dateAccouchement">Date réelle de l'accouchement :</label>
-              <input id="dateAccouchement" type="date" class="field-input"
-                     [value]="dateAccouchementReelle()"
-                     (input)="dateAccouchementReelle.set($any($event.target).value)" />
-            }
-            <div class="form-btn-row">
-              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
-                      [disabled]="actionEnCours()" (click)="confirmerTerminer()">
-                Valider la clôture
-              </button>
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireTerminerOuvert.set(false)">
-                Annuler
-              </button>
-            </div>
-          </div>
-        }
-      </section>
+    @if (estAdmin()) {
+      <p class="pro-notice pro-notice--info gd__notice">
+        <yay360-icon name="shield" [size]="18" aria-hidden="true" />
+        <span>Vue de supervision. Le contenu médical (consultations, antécédents, évaluation du risque) est réservé aux soignants qui suivent la patiente.</span>
+      </p>
     }
 
-    <!-- Calendrier gestationnel -->
-    @if (g.statut === 'EN_COURS' && calendrier(); as c) {
-      <section class="timeline-card pro-card">
-        <div class="timeline-card__header">
-          <h3>Progression obstétricale — {{ dureeGrossesseSemaines }} semaines</h3>
-          <div class="timeline-legend">
-            <span><i class="dot dot--t1"></i> T1</span>
-            <span><i class="dot dot--t2"></i> T2</span>
-            <span><i class="dot dot--t3"></i> T3</span>
-          </div>
-        </div>
-
-        <div class="timeline-track">
-          @for (semaine of c.semaines; track semaine.semaine) {
-            <span
-              class="timeline-step"
-              [class.timeline-step--active]="semaine.statutSemaine === 'ACTUELLE'"
-              [class.timeline-step--past]="semaine.statutSemaine === 'PASSEE'"
-              [attr.data-t]="semaine.trimestre"
-              [title]="'Semaine ' + semaine.semaine + ' — ' + semaine.trimestre"
-            ></span>
-          }
-        </div>
-      </section>
-    }
-
-    <!-- Grille historique -->
-    <div class="history-grid">
-
-      <!-- Consultations -->
-      <section class="pro-card history-panel">
-        <div class="history-panel__header">
-          <h3>Consultations cliniques</h3>
-          <span class="pro-badge">{{ consultations().length }} enregistrées</span>
-        </div>
-
-        @if (consultations().length === 0) {
-          <p class="history-empty">Aucune consultation enregistrée.</p>
-        } @else {
-          <ul class="history-items">
-            @for (c of consultations().slice(0, 5); track c.id) {
-              <li>
-                <a [routerLink]="['/consultations', c.id]" class="history-row">
-                  <div>
-                    <strong>{{ c.dateConsultation | date: 'dd MMMM yyyy' }}</strong>
-                    <small>{{ c.professionnelNomComplet }}</small>
-                  </div>
-                  <span class="row-arrow">Détail →</span>
-                </a>
-              </li>
+    <!-- ═══════════ Actions des soignants ═══════════ -->
+    @if (estSoignant()) {
+      <section class="card actions" aria-labelledby="titre-actions">
+        <div class="actions__head">
+          <div class="actions__title">
+            <h2 id="titre-actions" class="panel-title">Actions</h2>
+            @if (!estMedecin() && g.statut === 'EN_COURS') {
+              <p class="actions__note"><yay360-icon name="shield" [size]="14" aria-hidden="true" /> Déclarer à risque et clôturer la grossesse : réservé au médecin.</p>
             }
-          </ul>
-        }
-      </section>
-
-      <!-- Rendez-vous -->
-      <section class="pro-card history-panel">
-        <div class="history-panel__header">
-          <h3>Rendez-vous programmés</h3>
-          <span class="pro-badge">{{ rendezVous().length }} prévus</span>
-        </div>
-
-        @if (rendezVous().length === 0) {
-          <p class="history-empty">Aucun rendez-vous enregistré.</p>
-        } @else {
-          <ul class="history-items">
-            @for (r of rendezVous().slice(0, 5); track r.id) {
-              <li>
-                <div class="history-row">
-                  <div>
-                    <strong>{{ r.dateHeure | date: 'dd/MM/yyyy à HH:mm' }}</strong>
-                    <small>{{ r.motif || 'Visite de suivi' }}</small>
-                  </div>
-                  <span class="pro-badge pro-badge--primary">{{ r.statut }}</span>
-                </div>
-              </li>
-            }
-          </ul>
-        }
-      </section>
-
-    </div>
-
-    <!-- Suivi hebdomadaire intelligent -->
-    @if (g.statut === 'EN_COURS' && suivi(); as s) {
-      <section class="pro-card suivi-section">
-        <div class="suivi-section__header">
-          <div>
-            <h3>Fiche clinique — Semaine {{ s.semaineActuelle }}</h3>
-            <p>Recommandations cliniques automatisées pour ce stade gestationnel</p>
           </div>
-        </div>
-
-        <div class="suivi-blocks-grid">
-          <div class="suivi-tile">
-            <span class="suivi-tile__tag">Bébé</span>
-            <h4>Développement fœtal</h4>
-            <p>{{ s.developpementBebe || '—' }}</p>
-          </div>
-          <div class="suivi-tile">
-            <span class="suivi-tile__tag">Mère</span>
-            <h4>Changements maternels</h4>
-            <p>{{ s.changementsMere || '—' }}</p>
-          </div>
-          <div class="suivi-tile">
-            <span class="suivi-tile__tag">Objectifs</span>
-            <h4>Objectifs de santé</h4>
-            <p>{{ s.objectifsSante || '—' }}</p>
-          </div>
-          <div class="suivi-tile">
-            <span class="suivi-tile__tag">Examens</span>
-            <h4>Examens recommandés</h4>
-            <p>{{ s.examensRecommandes || '—' }}</p>
-          </div>
-          <div class="suivi-tile">
-            <span class="suivi-tile__tag">Hygiène de vie</span>
-            <h4>Alimentation & Sommeil</h4>
-            <p>{{ s.conseilsAlimentation || '' }} {{ s.conseilsSommeil || '' }}</p>
-          </div>
-          <div class="suivi-tile suivi-tile--alert">
-            <span class="suivi-tile__tag">Urgence</span>
-            <h4>Signes d'alerte</h4>
-            <p>{{ s.signesAlerte || '—' }}</p>
-          </div>
-        </div>
-
-        @if (s.conseilsPersonnalises.length > 0) {
-          <div class="conseils-feed">
-            <h4>Conseils personnalisés</h4>
-            <div class="conseils-feed__cards">
-              @for (conseil of s.conseilsPersonnalises; track conseil.id) {
-                <div class="feed-card">
-                  <span class="feed-card__category">{{ conseil.categorie }}</span>
-                  <h5>{{ conseil.titre }}</h5>
-                  <p>{{ conseil.contenu }}</p>
-                </div>
+          @if (g.statut === 'EN_COURS') {
+            <div class="actions__buttons">
+              <a class="pro-btn pro-btn--accent" [routerLink]="['/consultations/nouvelle']" [queryParams]="{ grossesseId: g.id }">
+                <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouvelle consultation
+              </a>
+              <button type="button" class="pro-btn pro-btn--secondary" (click)="formulairePlanifierOuvert.set(true)">
+                <yay360-icon name="calendar" [size]="18" aria-hidden="true" /> Planifier un rendez-vous
+              </button>
+              @if (estMedecin()) {
+                @if (!g.grossesseARisque) {
+                  <button type="button" class="pro-btn pro-btn--ghost" (click)="ouvrirFormulaireRisque()">
+                    <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /> Déclarer à risque
+                  </button>
+                } @else {
+                  <button type="button" class="pro-btn pro-btn--ghost" (click)="retirerRisque()" [disabled]="actionEnCours()">
+                    Retirer le statut à risque
+                  </button>
+                }
+                <button type="button" class="pro-btn pro-btn--ghost" (click)="formulaireTerminerOuvert.set(true)">
+                  Clôturer la grossesse
+                </button>
               }
             </div>
+          }
+        </div>
+
+        @if (erreurAction()) {
+          <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+        }
+        @if (succesAction()) {
+          <div class="pro-notice pro-notice--success" role="status"><yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succesAction() }}</span></div>
+        }
+
+        @if (formulairePlanifierOuvert()) {
+          <yay360-planifier-rendez-vous [grossesseId]="g.id" [patienteNom]="g.femmeEnceinteNomComplet" (cree)="rendezVousPlanifie()" (annule)="formulairePlanifierOuvert.set(false)" />
+        }
+
+        @if (formulaireRisqueOuvert()) {
+          <div class="inline-form">
+            <div class="field">
+              <label for="motif">Motif clinique</label>
+              <textarea id="motif" rows="3" placeholder="Complication ou facteur de risque constaté…"
+                        [value]="motifRisque()" (input)="motifRisque.set($any($event.target).value)"></textarea>
+              <span class="field-hint">La décision de classer à risque revient au médecin.</span>
+            </div>
+            <div class="inline-form__buttons">
+              <button type="button" class="pro-btn pro-btn--accent" [disabled]="actionEnCours() || !motifRisque().trim()" (click)="confirmerRisque()">
+                Confirmer
+              </button>
+              <button type="button" class="pro-btn pro-btn--ghost" (click)="formulaireRisqueOuvert.set(false)">Annuler</button>
+            </div>
           </div>
         }
 
-        <footer class="suivi-disclaimer">
-          <p>{{ s.avertissement }}</p>
-        </footer>
+        @if (formulaireTerminerOuvert()) {
+          <div class="inline-form">
+            <div class="field-row">
+              <div class="field">
+                <label for="statutFinal">Issue de la grossesse</label>
+                <select id="statutFinal" [value]="statutFinal()" (change)="statutFinal.set($any($event.target).value)">
+                  <option value="TERMINEE">Accouchement</option>
+                  <option value="INTERROMPUE">Interruption médicale ou spontanée</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="dateFin">{{ statutFinal() === 'TERMINEE' ? 'Date de l’accouchement' : 'Date de l’interruption' }}</label>
+                <input id="dateFin" type="date" [max]="aujourdhui" [min]="g.dateDernieresRegles"
+                       [value]="dateFin()" (input)="dateFin.set($any($event.target).value)" />
+              </div>
+            </div>
+            <p class="field-hint">Les rendez-vous encore prévus seront annulés automatiquement.</p>
+            <div class="inline-form__buttons">
+              <button type="button" class="pro-btn pro-btn--accent" [disabled]="actionEnCours()" (click)="confirmerTerminer()">Valider la clôture</button>
+              <button type="button" class="pro-btn pro-btn--ghost" (click)="formulaireTerminerOuvert.set(false)">Annuler</button>
+            </div>
+          </div>
+        }
       </section>
     }
 
-  }
+    <div class="gd__grid">
+      <!-- ═══════════ Colonne principale ═══════════ -->
+      <div class="gd__main">
 
+        @if (g.statut === 'EN_COURS') {
+          <section class="card panel" aria-labelledby="titre-cpn">
+            <header class="panel__head">
+              <h2 id="titre-cpn" class="panel-title">Consultations prénatales</h2>
+              <span class="badge badge--subtle">8 contacts recommandés (OMS)</span>
+            </header>
+            @if (erreursBlocs()['planCpn']) {
+              <yay360-state type="erreur" [compact]="true" [message]="erreursBlocs()['planCpn']" (reessayer)="charger()" />
+            } @else if (!planCpn()) {
+              <div class="pro-skeleton panel__skeleton" aria-hidden="true"></div>
+            } @else {
+              <yay360-plan-cpn [plan]="planCpn()" />
+            }
+          </section>
+
+          @if (calendrier(); as c) {
+            @if (c.semaines.length) {
+              <section class="card panel" aria-labelledby="titre-frise">
+                <header class="panel__head">
+                  <h2 id="titre-frise" class="panel-title">Progression sur {{ dureeGrossesseSemaines }} semaines</h2>
+                  <ul class="weeks-legend" aria-hidden="true">
+                    <li><i class="weeks-legend__past"></i> Passées</li>
+                    <li><i class="weeks-legend__now"></i> Actuelle</li>
+                    <li><i></i> À venir</li>
+                  </ul>
+                </header>
+                <div class="weeks" role="img" [attr.aria-label]="'Semaine ' + c.semaineActuelle + ' sur ' + dureeGrossesseSemaines">
+                  @for (s of c.semaines; track s.semaine) {
+                    <span class="weeks__cell" [class.weeks__cell--past]="s.statutSemaine === 'PASSEE'"
+                          [class.weeks__cell--now]="s.statutSemaine === 'ACTUELLE'" [class.weeks__cell--sep]="s.semaine === 14 || s.semaine === 28"
+                          [title]="'Semaine ' + s.semaine + ' · ' + s.trimestre"></span>
+                  }
+                </div>
+                <div class="weeks__scale" aria-hidden="true"><span>T1 · 1–13</span><span>T2 · 14–27</span><span>T3 · 28–40</span></div>
+              </section>
+            }
+          }
+        }
+
+        @if (estSoignant() && g.statut === 'EN_COURS') {
+          <section class="card panel" aria-labelledby="titre-eval">
+            <header class="panel__head">
+              <h2 id="titre-eval" class="panel-title">Évaluation du risque</h2>
+              <span class="badge badge--info">Aide à la décision · règles</span>
+            </header>
+            @if (erreursBlocs()['evaluation']) {
+              <yay360-state type="erreur" [compact]="true" [message]="erreursBlocs()['evaluation']" (reessayer)="charger()" />
+            } @else if (evaluation(); as e) {
+              @if (e.facteurs.length === 0) {
+                <p class="panel__empty"><yay360-icon name="check" [size]="16" aria-hidden="true" /> Aucun facteur de risque détecté dans le dossier.</p>
+              } @else {
+                <ul class="factors">
+                  @for (f of e.facteurs; track f) { <li><yay360-icon name="info" [size]="16" aria-hidden="true" /> {{ f }}</li> }
+                </ul>
+              }
+              @if (e.suggestionDeclarerARisque) {
+                <div class="suggestion" role="status">
+                  <span><strong>Suggestion des règles :</strong> envisager de classer cette grossesse à risque. La décision revient au médecin après examen clinique.
+                    @if (!estMedecin()) { <br /><strong class="suggestion__sf">Signalez-la au médecin qui suit la patiente.</strong> }</span>
+                  @if (estMedecin() && !g.grossesseARisque) {
+                    <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="ouvrirFormulaireRisque()">Déclarer à risque</button>
+                  }
+                </div>
+              }
+              <p class="pro-disclaimer"><yay360-icon name="info" [size]="14" aria-hidden="true" /><span>{{ e.avertissement }}</span></p>
+            }
+          </section>
+        }
+
+        @if (g.statut === 'EN_COURS' && suivi(); as s) {
+          <section class="card panel" aria-labelledby="titre-semaine">
+            <header class="panel__head">
+              <h2 id="titre-semaine" class="panel-title">Repères de la semaine {{ s.semaineActuelle }}</h2>
+              <span class="badge badge--subtle">Contenu général</span>
+            </header>
+            <div class="tiles">
+              <article class="tile"><span class="tile__icon"><yay360-icon name="heart" [size]="18" aria-hidden="true" /></span><h3>Développement du bébé</h3><p>{{ s.developpementBebe || '—' }}</p></article>
+              <article class="tile tile--orange"><span class="tile__icon"><yay360-icon name="user" [size]="18" aria-hidden="true" /></span><h3>Changements chez la mère</h3><p>{{ s.changementsMere || '—' }}</p></article>
+              <article class="tile tile--lilac"><span class="tile__icon"><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /></span><h3>Examens recommandés</h3><p>{{ s.examensRecommandes || '—' }}</p></article>
+              <article class="tile"><span class="tile__icon"><yay360-icon name="activity" [size]="18" aria-hidden="true" /></span><h3>Objectifs de santé</h3><p>{{ s.objectifsSante || '—' }}</p></article>
+              <article class="tile tile--orange"><span class="tile__icon"><yay360-icon name="book" [size]="18" aria-hidden="true" /></span><h3>Alimentation et sommeil</h3><p>{{ (s.conseilsAlimentation || '') + ' ' + (s.conseilsSommeil || '') }}</p></article>
+              <article class="tile tile--danger"><span class="tile__icon"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /></span><h3>Signes d’alerte</h3><p>{{ s.signesAlerte || '—' }}</p></article>
+            </div>
+            @if (s.conseilsPersonnalises.length > 0) {
+              <h3 class="panel__sub">Conseils personnalisés</h3>
+              <div class="advice">
+                @for (conseil of s.conseilsPersonnalises; track conseil.id) {
+                  <article class="advice__card">
+                    <span class="badge badge--orange">{{ conseil.categorie }}</span>
+                    <h4>{{ conseil.titre }}</h4>
+                    <p>{{ conseil.contenu }}</p>
+                  </article>
+                }
+              </div>
+            }
+            <p class="pro-disclaimer"><yay360-icon name="info" [size]="14" aria-hidden="true" /><span>{{ s.avertissement }}</span></p>
+          </section>
+        }
+      </div>
+
+      <!-- ═══════════ Colonne latérale ═══════════ -->
+      <aside class="gd__side">
+        @if (estSoignant() && (g.motifRisque || g.antecedents || g.nombreGrossessesPrecedentes !== null)) {
+          <section class="card panel" aria-labelledby="titre-infos">
+            <header class="panel__head"><h2 id="titre-infos" class="panel-title">Informations cliniques</h2></header>
+            <dl class="infos">
+              @if (g.motifRisque) { <div><dt>Motif du risque</dt><dd>{{ g.motifRisque }}</dd></div> }
+              @if (g.nombreGrossessesPrecedentes !== null) { <div><dt>Grossesses précédentes</dt><dd>{{ g.nombreGrossessesPrecedentes }}</dd></div> }
+              @if (g.antecedents) { <div><dt>Antécédents</dt><dd>{{ g.antecedents }}</dd></div> }
+            </dl>
+          </section>
+        }
+
+        <section class="card panel" aria-labelledby="titre-rdv">
+          <header class="panel__head">
+            <h2 id="titre-rdv" class="panel-title">Rendez-vous</h2>
+            <span class="badge badge--primary">{{ rendezVous().length }}</span>
+          </header>
+          @if (erreursBlocs()['rendezVous']) {
+            <yay360-state type="erreur" [compact]="true" [message]="erreursBlocs()['rendezVous']" (reessayer)="charger()" />
+          } @else if (rendezVous().length === 0) {
+            <p class="panel__muted">Aucun rendez-vous enregistré.</p>
+          } @else {
+            <ul class="timeline">
+              @for (r of rendezVousTries().slice(0, 6); track r.id) {
+                <li class="timeline__item" [class.timeline__item--past]="estPasse(r.dateHeure)">
+                  <span class="timeline__date">
+                    <strong>{{ r.dateHeure | date: 'd' }}</strong>
+                    <small>{{ r.dateHeure | date: 'MMM' }}</small>
+                  </span>
+                  <div class="timeline__body">
+                    <strong>{{ libelleTypeRendezVous(r.type) }}</strong>
+                    <small>{{ r.dateHeure | date: 'HH:mm' }}{{ r.etablissementNom ? ' · ' + r.etablissementNom : '' }}</small>
+                  </div>
+                  <span class="badge" [class.badge--primary]="!estPasse(r.dateHeure)">{{ r.statut | statut }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="card panel" aria-labelledby="titre-consult">
+          <header class="panel__head">
+            <h2 id="titre-consult" class="panel-title">Consultations</h2>
+            @if (estSoignant()) { <span class="badge badge--primary">{{ consultations().length }}</span> }
+          </header>
+          @if (estAdmin()) {
+            <p class="panel__locked"><yay360-icon name="shield" [size]="16" aria-hidden="true" /> Réservé aux soignants qui suivent la patiente.</p>
+          } @else if (erreursBlocs()['consultations']) {
+            <yay360-state type="erreur" [compact]="true" [message]="erreursBlocs()['consultations']" (reessayer)="charger()" />
+          } @else if (consultations().length === 0) {
+            <p class="panel__muted">Aucune consultation enregistrée.</p>
+          } @else {
+            <ul class="list">
+              @for (c of consultations().slice(0, 5); track c.id) {
+                <li>
+                  <a [routerLink]="['/consultations', c.id]" class="list__row">
+                    <span class="list__icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="16" /></span>
+                    <span class="list__body">
+                      <strong>{{ c.dateConsultation | date: 'd MMMM y' }}</strong>
+                      <small>{{ c.professionnelNomComplet }}</small>
+                      @if (c.signauxCliniques.length > 0) {
+                        <small class="list__signal"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> {{ c.signauxCliniques.length }} signal{{ c.signauxCliniques.length > 1 ? 'aux' : '' }}</small>
+                      }
+                    </span>
+                    <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </aside>
+    </div>
+  }
 </div>

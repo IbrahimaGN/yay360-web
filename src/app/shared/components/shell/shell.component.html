@@ -1,108 +1,103 @@
-﻿<div class="shell" [class.shell--collapsed]="sidebarCollapsed()">
-  <yay360-assistant-ia />
+﻿<a class="skip-link" href="#contenu-principal">Aller au contenu</a>
 
-  <!-- Overlay mobile -->
-  @if (sidebarOuverte()) {
-    <div class="sidebar-overlay" (click)="fermerSidebar()"></div>
+<div class="shell">
+  @if (menuOuvert()) {
+    <div class="scrim" (click)="fermerMenu()" aria-hidden="true"></div>
   }
 
-  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
-  <aside class="sidebar" [class.sidebar--open]="sidebarOuverte()">
-
-    <div class="sidebar__header">
-      <div class="sidebar__brand">
-        <img src="yay360-logo.png" class="sidebar__logo" alt="Logo YAY360">
-        <span class="sidebar__brand-name">YaY°360</span>
-      </div>
-      <button class="sidebar__collapse-btn" (click)="toggleCollapse()"
-              [attr.aria-label]="sidebarCollapsed() ? 'Développer le menu' : 'Réduire le menu'">
-        <yay360-icon [name]="sidebarCollapsed() ? 'chevron-right' : 'chevron-left'" [size]="16" />
+  <!-- ═══════════ Barre latérale ═══════════ -->
+  <aside class="side" id="navigation-principale" aria-label="Menu principal" [class.side--open]="menuOuvert()" [class.side--repliee]="repliee()">
+    <div class="side__top">
+      <a routerLink="/accueil" class="side__brand" (click)="fermerMenu()" aria-label="YAY360 — accueil">
+        <span class="side__logo"><img src="yay360-logo.png" alt="" width="40" height="40" /></span>
+        <span class="side__name">YaY°360</span>
+      </a>
+      <button type="button" class="side__toggle" (click)="basculerRepliee()"
+              [attr.aria-label]="repliee() ? 'Déplier la barre latérale' : 'Replier la barre latérale'"
+              [attr.aria-expanded]="!repliee()" aria-controls="navigation-principale"
+              [title]="repliee() ? 'Déplier' : 'Replier'">
+        <yay360-icon [name]="repliee() ? 'chevron-right' : 'chevron-left'" [size]="18" aria-hidden="true" />
+      </button>
+      <button type="button" class="side__close" (click)="fermerMenu()" aria-label="Fermer le menu">
+        <yay360-icon name="x" [size]="20" aria-hidden="true" />
       </button>
     </div>
 
-    <nav class="sidebar__nav" aria-label="Navigation principale">
-      @for (item of navItems(); track item.path) {
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="sidebar__link--active"
-          class="sidebar__link"
-          (click)="fermerSidebar()"
-          [attr.data-tooltip]="item.label"
-          [attr.aria-label]="item.label"
-        >
-          <span class="sidebar__link-icon">
-            <yay360-icon [name]="item.icon" [size]="19" />
-          </span>
-          <span class="sidebar__link-label">{{ item.label }}</span>
-        </a>
+    <nav class="side__nav" aria-label="Navigation principale">
+      @for (section of sections(); track section.cle) {
+        <div class="side__section">
+          <p class="side__section-title">{{ section.titre }}</p>
+          <ul class="side__list">
+            @for (item of section.items; track item.path) {
+              <li>
+                <a class="side__link" [routerLink]="item.path" routerLinkActive="side__link--active"
+                   #rla="routerLinkActive" [attr.aria-current]="rla.isActive ? 'page' : null"
+                   [attr.aria-label]="item.label" [title]="repliee() ? item.label : ''" (click)="fermerMenu()">
+                  <span class="side__icon"><yay360-icon [name]="item.icon" [size]="20" aria-hidden="true" /></span>
+                  <span class="side__label">{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
       }
     </nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user-preview">
-        <div class="sidebar__avatar">{{ initiales() }}</div>
-        <div class="sidebar__user-text">
+    <div class="side__user">
+      <a routerLink="/profil" class="side__me" (click)="fermerMenu()" aria-label="Mon profil" [title]="repliee() ? 'Mon profil' : ''">
+        <span class="avatar avatar--sm side__avatar" aria-hidden="true">{{ initiales() }}</span>
+        <span class="side__me-text">
           <strong>{{ nomComplet() }}</strong>
           <small>{{ libelleRole() }}</small>
-        </div>
-      </div>
+        </span>
+      </a>
+      <button type="button" class="side__logout" (click)="deconnexion()" aria-label="Se déconnecter" title="Se déconnecter">
+        <yay360-icon name="logout" [size]="18" aria-hidden="true" />
+      </button>
     </div>
   </aside>
 
-  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
-  <div class="shell__main">
-
-    <!-- Topbar -->
+  <!-- ═══════════ Zone principale ═══════════ -->
+  <div class="main">
     <header class="topbar">
-      <button class="topbar__burger" (click)="toggleSidebar()" aria-label="Ouvrir le menu">
-        <span></span><span></span><span></span>
+      <button type="button" class="topbar__burger icon-btn icon-btn--white" (click)="basculerMenu()"
+              aria-label="Ouvrir le menu" aria-controls="navigation-principale" [attr.aria-expanded]="menuOuvert()">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
       </button>
 
-      <div class="topbar__left">
-        <h1 class="topbar__title">{{ titrePage() }}</h1>
-      </div>
+      <h1 class="topbar__title">{{ titrePage() }}</h1>
 
       <div class="topbar__actions">
-        <!-- Toggle thème -->
-        <button class="topbar__icon-btn"
-                (click)="themeService.toggle()"
-                [attr.aria-label]="themeService.isDark() ? 'Passer en mode clair' : 'Passer en mode sombre'">
-          @if (themeService.isDark()) {
-            <yay360-icon name="sun" [size]="18" />
-          } @else {
-            <yay360-icon name="moon" [size]="18" />
+        <yay360-theme-toggle />
+        <a routerLink="/notifications" class="icon-btn icon-btn--white topbar__notif"
+           [attr.aria-label]="nonLues() ? 'Notifications : ' + nonLues() + ' non lues' : 'Notifications'">
+          <yay360-icon name="bell" [size]="20" aria-hidden="true" />
+          @if (nonLues() > 0) {
+            <span class="topbar__count" aria-hidden="true">{{ nonLues() > 99 ? '99+' : nonLues() }}</span>
           }
-        </button>
+        </a>
 
-        <!-- Notifications -->
-        <button class="topbar__icon-btn" routerLink="/notifications" aria-label="Notifications">
-          <yay360-icon name="bell" [size]="18" />
-        </button>
-
-        <!-- Menu utilisateur -->
-        <div class="topbar__user">
-          <button class="topbar__user-trigger" (click)="toggleMenuUtilisateur()"
-                  [attr.aria-expanded]="menuUtilisateurOuvert()">
-            <span class="topbar__avatar">{{ initiales() }}</span>
-            <span class="topbar__user-info">
-              <strong>Mon compte</strong>
+        <div class="account">
+          <button type="button" class="account__trigger" (click)="basculerCompte()" [attr.aria-label]="'Menu du compte : ' + nomComplet()"
+                  aria-haspopup="menu" aria-controls="menu-compte" [attr.aria-expanded]="compteOuvert()">
+            <span class="avatar avatar--sm" aria-hidden="true">{{ initiales() }}</span>
+            <span class="account__text">
+              <strong>{{ nomComplet() }}</strong>
               <small>{{ libelleRole() }}</small>
             </span>
-            <span class="topbar__chevron" [class.topbar__chevron--open]="menuUtilisateurOuvert()">
-              <yay360-icon name="chevron-down" [size]="14" />
-            </span>
+            <yay360-icon name="chevron-down" [size]="16" aria-hidden="true" class="account__chevron" />
           </button>
 
-          @if (menuUtilisateurOuvert()) {
-            <div class="topbar__dropdown" role="menu">
-              <a routerLink="/profil" (click)="toggleMenuUtilisateur()" role="menuitem" class="topbar__dropdown-item">
-                <yay360-icon name="user" [size]="15" />
-                <span>Mon profil</span>
+          @if (compteOuvert()) {
+            <div class="account__menu" id="menu-compte" role="menu">
+              <a routerLink="/profil" role="menuitem" class="account__item" (click)="basculerCompte()">
+                <yay360-icon name="user" [size]="16" aria-hidden="true" /> Mon profil
               </a>
-              <hr class="topbar__dropdown-divider" />
-              <button type="button" (click)="deconnexion()" role="menuitem" class="topbar__dropdown-item topbar__dropdown-item--danger">
-                <yay360-icon name="logout" [size]="15" />
-                <span>Déconnexion</span>
+              <a routerLink="/notifications" role="menuitem" class="account__item" (click)="basculerCompte()">
+                <yay360-icon name="bell" [size]="16" aria-hidden="true" /> Notifications
+              </a>
+              <button type="button" role="menuitem" class="account__item account__item--danger" (click)="deconnexion()">
+                <yay360-icon name="logout" [size]="16" aria-hidden="true" /> Déconnexion
               </button>
             </div>
           }
@@ -110,8 +105,7 @@
       </div>
     </header>
 
-    <!-- Contenu -->
-    <main class="shell__content">
+    <main class="content" id="contenu-principal" tabindex="-1">
       <router-outlet />
     </main>
   </div>

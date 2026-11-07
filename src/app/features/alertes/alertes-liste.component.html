@@ -1,130 +1,180 @@
-﻿<div class="pro-fade-in">
+﻿<div class="al">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Vigilance du parcours maternel</span>
-      <h1 class="pro-header__title">Alertes & Symptômes</h1>
-      <p class="pro-header__desc">Signalements liés à la santé des femmes enceintes.</p>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card al__head">
+    <div class="al__intro">
+      <span class="al__intro-icon" aria-hidden="true"><yay360-icon name="alert-triangle" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Alertes et symptômes</h2>
+        <p>
+          @if (peutAgir()) { Signalements de vos patientes et signaux détectés en consultation, classés par les règles de triage. }
+          @else { Vue de supervision des signalements. La prise en charge est assurée par les soignants. }
+        </p>
+      </div>
     </div>
-  </header>
+  </section>
 
-  <!-- Filtres par catégorie d'alerte -->
-  <div class="filter-bar pro-card">
-    <div class="filter-tabs">
-      @for (onglet of onglets; track onglet.cle) {
-        <button type="button"
-                class="filter-tab"
-                [class.filter-tab--active]="ongletActif() === onglet.cle"
-                (click)="changerOnglet(onglet.cle)">
-          <span>{{ onglet.label }}</span>
-        </button>
+  <!-- ═══════════ Filtres ═══════════ -->
+  <section class="card filters" aria-label="Filtres">
+    <div class="filters__top">
+      <div class="status-tabs" role="tablist" aria-label="Statut des alertes">
+        @for (o of onglets; track o.cle) {
+          <button type="button" role="tab" class="status-tab" [class.status-tab--urgent]="o.cle === 'URGENTES'"
+                  [class.status-tab--active]="ongletActif() === o.cle" [attr.aria-selected]="ongletActif() === o.cle"
+                  (click)="changerOnglet(o.cle)">
+            <yay360-icon [name]="o.icone" [size]="16" aria-hidden="true" /> {{ o.label }}
+          </button>
+        }
+      </div>
+      @if (!chargement() && !erreur() && filtresActifs()) {
+        <p class="filters__count" role="status">
+          <strong>{{ alertesFiltrees().length }}</strong> sur {{ alertes().length }} ·
+          <button type="button" class="filters__reset" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+        </p>
       }
     </div>
-  </div>
 
-  @if (chargement()) {
-    <div class="alerts-loading">
-      <div class="pro-spinner"></div>
-      <p>Synchronisation des alertes médicales…</p>
-    </div>
-  } @else if (erreur()) {
-    <div class="alerts-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
-  } @else if (alertesGrossesse().length === 0) {
-    <div class="alerts-empty pro-card">
-      <div class="alerts-empty__circle">
-        <span>0</span>
+    <div class="filters__tools">
+      <div class="input-ico tools__search">
+        <yay360-icon name="search" [size]="18" aria-hidden="true" />
+        <input type="search" placeholder="Patiente ou symptôme…" aria-label="Rechercher une alerte"
+               [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
       </div>
-      <h3>Aucune alerte active</h3>
-      <p>Aucun signalement pour cette catégorie pour le moment.</p>
+      <div class="chips" role="group" aria-label="Filtrer par gravité">
+        @for (g of gravites; track g) {
+          <button type="button" class="chip" [attr.data-g]="g" [class.chip--active]="filtreGravite() === g"
+                  [attr.aria-pressed]="filtreGravite() === g" (click)="filtreGravite.set(g)">
+            {{ g === 'TOUTES' ? 'Toutes' : libelleGravite(g) }}
+            @if (g !== 'TOUTES') { <span class="chip__count">{{ compteGravite()[g] }}</span> }
+          </button>
+        }
+      </div>
+      <label class="tools__origin">
+        <span class="sr-only">Origine</span>
+        <select class="select" [value]="filtreOrigine()" (change)="filtreOrigine.set($any($event.target).value)">
+          <option value="">Toutes origines</option>
+          <option value="PATIENTE">Signalées par la patiente</option>
+          <option value="ANALYSE_AUTOMATIQUE">Détectées en consultation</option>
+        </select>
+      </label>
     </div>
+  </section>
+
+  @if (erreurAction()) {
+    <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+  }
+
+  <!-- ═══════════ Liste ═══════════ -->
+  @if (chargement()) {
+    <div class="feed">
+      @for (i of [1, 2]; track i) { <div class="pro-skeleton al__skeleton" aria-hidden="true"></div> }
+    </div>
+    <span class="sr-only" role="status">Chargement des alertes…</span>
+  } @else if (erreur()) {
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (alertesFiltrees().length === 0) {
+    <yay360-state type="vide" titre="Aucune alerte"
+                  [message]="filtresActifs() ? 'Aucune alerte ne correspond à ces filtres.' : 'Aucun signalement dans cette catégorie pour le moment.'">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      }
+    </yay360-state>
   } @else {
-    <div class="alerts-feed">
-      @for (alerte of alertesGrossesse(); track alerte.id) {
-        <div class="alert-card pro-card" [class.alert-card--urgent]="alerte.niveauGravite === 'URGENT'">
-          <div class="alert-card__top">
-            <div class="alert-card__patient">
-              <span class="patient-avatar">{{ alerte.femmeEnceinteNomComplet.charAt(0) }}</span>
-              <div>
-                <strong>{{ alerte.femmeEnceinteNomComplet }}</strong>
-                @if (alerte.femmeEnceinteTelephone) {
-                  <small>Tél : {{ alerte.femmeEnceinteTelephone }}</small>
-                }
-              </div>
+    <ul class="feed">
+      @for (alerte of alertesFiltrees(); track alerte.id) {
+        <li class="card alert" [attr.data-g]="alerte.niveauGravite">
+          <div class="alert__head">
+            <div class="alert__title">
+              <yay360-niveau-gravite [niveau]="alerte.niveauGravite" />
+              <h3>{{ libelleSymptome(alerte.typeSymptome) }}</h3>
             </div>
-
-            <div class="alert-card__badges">
-              <span class="pro-badge" [class.pro-badge--primary]="alerte.niveauGravite === 'URGENT'">
-                {{ alerte.niveauGravite }}
-              </span>
-              <span class="pro-badge pro-badge--subtle">{{ alerte.statut }}</span>
-            </div>
+            <span class="alert__when" [title]="(alerte.dateDeclaration | date: 'dd/MM/yyyy à HH:mm') ?? ''">
+              <yay360-icon name="calendar" [size]="14" aria-hidden="true" /> {{ depuis(alerte.dateDeclaration) }}
+            </span>
           </div>
 
-          <div class="alert-card__body">
-            <h4 class="alert-card__symptom">{{ alerte.typeSymptome }}</h4>
-            @if (alerte.description) {
-              <p class="alert-card__desc">{{ alerte.description }}</p>
+          <div class="alert__patient">
+            <span class="avatar avatar--sm" aria-hidden="true">{{ initiales(alerte.femmeEnceinteNomComplet) }}</span>
+            <a [routerLink]="['/grossesses', alerte.grossesseId]" class="alert__name">{{ alerte.femmeEnceinteNomComplet }}</a>
+            @if (alerte.femmeEnceinteTelephone) {
+              <a class="alert__tel" [href]="'tel:' + alerte.femmeEnceinteTelephone.replaceAll(' ', '')">
+                <yay360-icon name="phone" [size]="14" aria-hidden="true" /> {{ alerte.femmeEnceinteTelephone }}
+              </a>
             }
-            <div class="alert-card__recommendation">
-              <strong>Conduite recommandée :</strong>
-              <span>{{ alerte.recommandation }}</span>
-            </div>
+            <span class="badge" [class.badge--info]="alerte.origine === 'ANALYSE_AUTOMATIQUE'">
+              <yay360-icon [name]="alerte.origine === 'ANALYSE_AUTOMATIQUE' ? 'activity' : 'user'" [size]="12" aria-hidden="true" />
+              {{ alerte.origine === 'ANALYSE_AUTOMATIQUE' ? 'Détectée en consultation' : 'Signalée par la patiente' }}
+            </span>
           </div>
 
-          <div class="alert-card__footer">
-            <span class="footer-meta">Signalé le {{ alerte.dateDeclaration | date: 'dd/MM/yyyy à HH:mm' }}</span>
-            @if (alerte.professionnelNomComplet) {
-              <span class="footer-meta">Suivi par {{ alerte.professionnelNomComplet }}</span>
-            }
+          @if (alerte.description) {
+            <p class="alert__desc">« {{ alerte.description }} »</p>
+          }
+
+          <div class="alert__reco">
+            <span class="alert__reco-icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="16" /></span>
+            <div><strong>Conduite recommandée par les règles</strong><p>{{ alerte.recommandation }}</p></div>
           </div>
+
+          @if (alerte.justificationTriage.length > 0) {
+            <button type="button" class="alert__why" (click)="basculerJustification(alerte.id)"
+                    [attr.aria-expanded]="justificationOuverte() === alerte.id" [attr.aria-controls]="'justif-' + alerte.id">
+              <yay360-icon [name]="justificationOuverte() === alerte.id ? 'chevron-down' : 'chevron-right'" [size]="16" aria-hidden="true" />
+              Pourquoi le niveau « {{ libelleGravite(alerte.niveauGravite) }} » ?
+            </button>
+            @if (justificationOuverte() === alerte.id) {
+              <ul class="alert__rules" [id]="'justif-' + alerte.id">
+                @for (j of alerte.justificationTriage; track $index) { <li><yay360-icon name="check" [size]="14" aria-hidden="true" /> {{ j }}</li> }
+              </ul>
+            }
+          }
+
+          <!-- Avancement -->
+          <ol class="steps" [attr.aria-label]="'Statut : ' + libelleStatutAlerte(alerte.statut)">
+            <li [class.steps__done]="etape(alerte.statut) >= 1"><span aria-hidden="true"></span>Signalée</li>
+            <li [class.steps__done]="etape(alerte.statut) >= 2"><span aria-hidden="true"></span>Prise en charge{{ alerte.professionnelNomComplet ? ' · ' + alerte.professionnelNomComplet : '' }}</li>
+            <li [class.steps__done]="etape(alerte.statut) >= 3"><span aria-hidden="true"></span>Résolue{{ alerte.dateResolution ? ' le ' + (alerte.dateResolution | date: 'd MMM') : '' }}</li>
+          </ol>
 
           @if (alerte.notesPriseEnCharge) {
-            <div class="alert-card__notes">
-              <strong>Observations de suivi :</strong> {{ alerte.notesPriseEnCharge }}
-            </div>
+            <p class="alert__notes"><strong>Observations :</strong> {{ alerte.notesPriseEnCharge }}</p>
+          }
+
+          @if (alerte.avertissement) {
+            <p class="pro-disclaimer"><yay360-icon name="info" [size]="14" aria-hidden="true" /><span>{{ alerte.avertissement }}</span></p>
           }
 
           @if (peutAgir() && alerte.statut !== 'RESOLUE') {
-            <div class="alert-card__actions">
+            <div class="alert__actions">
               @if (alerte.statut === 'NOUVELLE') {
-                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
-                        [disabled]="idEnAction() === alerte.id" (click)="prendreEnCharge(alerte)">
-                  Prendre en charge
+                <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" [disabled]="idEnAction() === alerte.id" (click)="prendreEnCharge(alerte)">
+                  <yay360-icon name="activity" [size]="16" aria-hidden="true" /> Prendre en charge
                 </button>
               }
-              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm" (click)="ouvrirResolution(alerte)">
-                Résoudre l'alerte
-              </button>
+              @if (alerte.statut === 'PRISE_EN_CHARGE') {
+                <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" (click)="ouvrirResolution(alerte)">
+                  <yay360-icon name="check" [size]="16" aria-hidden="true" /> Résoudre l’alerte
+                </button>
+              }
+              <a class="pro-btn pro-btn--ghost pro-btn--sm" [routerLink]="['/grossesses', alerte.grossesseId]">Voir le dossier</a>
             </div>
 
             @if (formulaireResolutionOuvert() === alerte.id) {
-              <div class="inline-resolution-form">
-                <label [for]="'notes-' + alerte.id">Compte-rendu de résolution clinique :</label>
-                <textarea
-                  [id]="'notes-' + alerte.id"
-                  rows="2"
-                  placeholder="Actions menées, état stabilisé, orientation..."
-                  (input)="mettreAJourNote(alerte.id, $any($event.target).value)"
-                ></textarea>
-                <div class="form-btn-row">
-                  <button type="button" class="pro-btn pro-btn--primary pro-btn--sm"
-                          [disabled]="idEnAction() === alerte.id" (click)="confirmerResolution(alerte)">
-                    Confirmer la résolution
-                  </button>
-                  <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireResolutionOuvert.set(null)">
-                    Annuler
-                  </button>
+              <div class="resolve">
+                <div class="field">
+                  <label [for]="'notes-' + alerte.id">Compte rendu de résolution <small>(obligatoire)</small></label>
+                  <textarea [id]="'notes-' + alerte.id" rows="3" maxlength="2000" placeholder="Actions menées, état de la patiente, orientation…"
+                            (input)="mettreAJourNote(alerte.id, $any($event.target).value)"></textarea>
+                </div>
+                <div class="resolve__buttons">
+                  <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" [disabled]="idEnAction() === alerte.id || !note(alerte.id)" (click)="confirmerResolution(alerte)">Confirmer la résolution</button>
+                  <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="formulaireResolutionOuvert.set(null)">Annuler</button>
                 </div>
               </div>
             }
           }
-        </div>
+        </li>
       }
-    </div>
+    </ul>
   }
-
 </div>

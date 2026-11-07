@@ -1,45 +1,111 @@
-<div class="pro-fade-in">
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Espace familial</span>
-      <h2 class="pro-header__title">Un dossier, un accompagnement partagé</h2>
-      <p class="pro-header__desc">
-        Le conjoint dispose de son propre compte et accède uniquement au dossier maternel auquel il est associé.
-      </p>
-    </div>
-  </header>
+<div class="df">
 
-  <section class="family-card pro-card">
-    <div class="family-card__mark" aria-hidden="true">360°</div>
-    <div class="family-card__body">
-      @if (estFemme()) {
-        <h3>Inviter votre conjoint</h3>
-        <p>Saisissez son adresse e-mail. Il pourra créer son compte personnel à partir du code d’invitation.</p>
-        <form [formGroup]="form" (ngSubmit)="inviter()" novalidate>
-          <div class="field">
-            <label for="emailConjoint">Adresse e-mail du conjoint</label>
-            <input id="emailConjoint" type="email" formControlName="email"
-                   placeholder="conjoint@exemple.com" autocomplete="email" />
-          </div>
-          @if (erreur()) { <div class="notice notice--error" role="alert">{{ erreur() }}</div> }
-          @if (message()) { <div class="notice notice--success" role="status">{{ message() }}</div> }
-          <button class="family-button" type="submit" [disabled]="chargement()">
-            {{ chargement() ? 'Création de l’invitation…' : 'Créer une invitation' }}
-          </button>
-        </form>
-        <p class="family-card__footnote">
-          L’envoi e-mail est en attente de configuration. Le code d’acceptation est actuellement communiqué par le backend.
-        </p>
-      } @else {
-        <h3>Votre accès au dossier partagé</h3>
-        <p>
-          Votre compte conjoint est lié au dossier de la femme qui vous a invité. Les consultations, rendez-vous,
-          alertes et informations de grossesse consultées ici concernent uniquement ce dossier.
-        </p>
-        <p class="family-card__footnote">
-          Pour protéger les informations de santé, le lien entre les comptes est géré par l’invitation et ne peut pas être modifié ici.
-        </p>
-      }
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card df__head">
+    <span class="df__icon" aria-hidden="true"><yay360-icon name="users" [size]="24" /></span>
+    <div>
+      <h2 class="section-title">Dossier familial</h2>
+      <p>Un seul dossier de grossesse, partagé entre la future maman et son conjoint. Chacun a son propre compte.</p>
     </div>
   </section>
+
+  @if (estFemme()) {
+    <div class="df__grid">
+      <!-- ═══════════ Inviter ═══════════ -->
+      <section class="card df__card" aria-labelledby="titre-inviter">
+        <header class="df__card-head">
+          <span class="df__card-icon df__card-icon--orange" aria-hidden="true"><yay360-icon name="mail" [size]="20" /></span>
+          <div>
+            <h3 id="titre-inviter">Inviter votre conjoint</h3>
+            <p>Il créera son compte personnel grâce au code d’invitation.</p>
+          </div>
+        </header>
+
+        @if (invitation(); as i) {
+          <div class="invite" role="status">
+            <p class="invite__ok"><yay360-icon name="check" [size]="18" aria-hidden="true" /> {{ i.message }}</p>
+            @if (!i.emailEnvoye) {
+              <div class="invite__code">
+                <span>Code d’invitation</span>
+                <code>{{ i.code }}</code>
+                <small>Valable jusqu’au {{ i.dateExpiration | date: "d MMMM y 'à' HH:mm" }}</small>
+              </div>
+              <p class="invite__hint">Envoyez ce lien à votre conjoint (SMS, WhatsApp) : il y créera son compte avec le code.</p>
+              <div class="invite__actions">
+                <button type="button" class="pro-btn pro-btn--accent" (click)="copierLien()">
+                  <yay360-icon [name]="copie() ? 'check' : 'clipboard'" [size]="18" aria-hidden="true" /> {{ copie() ? 'Lien copié' : 'Copier le lien' }}
+                </button>
+                <a class="pro-btn pro-btn--secondary" [href]="lienWhatsapp()" target="_blank" rel="noopener">
+                  <yay360-icon name="phone" [size]="18" aria-hidden="true" /> Envoyer par WhatsApp
+                </a>
+              </div>
+            }
+            <button type="button" class="df__again" (click)="invitation.set(null)">Inviter une autre adresse</button>
+          </div>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="inviter()" novalidate class="df__form">
+            <div class="field">
+              <label for="emailConjoint">Adresse e-mail du conjoint</label>
+              <div class="input-ico">
+                <yay360-icon name="mail" [size]="18" aria-hidden="true" />
+                <input id="emailConjoint" type="email" formControlName="email" placeholder="conjoint@exemple.sn" autocomplete="email"
+                       [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched" aria-describedby="err-email" />
+              </div>
+              @if (form.controls.email.invalid && form.controls.email.touched) {
+                <span class="field-error" id="err-email">Saisissez une adresse e-mail valide.</span>
+              }
+            </div>
+            @if (erreur()) {
+              <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreur() }}</span></div>
+            }
+            <button class="pro-btn pro-btn--accent" type="submit" [disabled]="chargement()">
+              @if (chargement()) { <span class="btn-spinner" aria-hidden="true"></span> Création de l’invitation… }
+              @else { <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /> Créer une invitation }
+            </button>
+          </form>
+        }
+        <p class="df__foot"><yay360-icon name="shield" [size]="14" aria-hidden="true" /> Code à usage unique, valable 72 heures.</p>
+      </section>
+
+      <!-- ═══════════ Comment ça marche ═══════════ -->
+      <section class="card df__card" aria-labelledby="titre-etapes">
+        <header class="df__card-head">
+          <span class="df__card-icon" aria-hidden="true"><yay360-icon name="info" [size]="20" /></span>
+          <div><h3 id="titre-etapes">Comment ça marche</h3></div>
+        </header>
+        <ol class="steps">
+          <li><span>1</span><div><strong>Vous créez l’invitation</strong><small>avec l’adresse e-mail de votre conjoint.</small></div></li>
+          <li><span>2</span><div><strong>Vous lui envoyez le lien</strong><small>par SMS ou WhatsApp, avec le code.</small></div></li>
+          <li><span>3</span><div><strong>Il crée son compte</strong><small>et rejoint votre dossier familial.</small></div></li>
+        </ol>
+        <div class="sees">
+          <p class="sees__title">Ce que votre conjoint pourra voir</p>
+          <ul>
+            <li><yay360-icon name="check" [size]="14" aria-hidden="true" /> Le suivi prénatal de votre grossesse</li>
+            <li><yay360-icon name="check" [size]="14" aria-hidden="true" /> Les rendez-vous, les consultations et les conseils de la semaine</li>
+            <li><yay360-icon name="check" [size]="14" aria-hidden="true" /> Signaler un symptôme ou demander un rendez-vous pour vous</li>
+            <li><yay360-icon name="shield" [size]="14" aria-hidden="true" /> Uniquement votre dossier, jamais celui d’une autre patiente</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  } @else {
+    <!-- ═══════════ Vue conjoint ═══════════ -->
+    <section class="card df__card df__card--wide" aria-labelledby="titre-acces">
+      <header class="df__card-head">
+        <span class="df__card-icon" aria-hidden="true"><yay360-icon name="shield" [size]="20" /></span>
+        <div>
+          <h3 id="titre-acces">Votre accès au dossier partagé</h3>
+          <p>Votre compte est lié au dossier de la future maman qui vous a invité.</p>
+        </div>
+      </header>
+      <ul class="sees__list">
+        <li><yay360-icon name="heart" [size]="18" aria-hidden="true" /><div><strong>Suivi prénatal</strong><small>Avancement de la grossesse, consultations prénatales, conseils de la semaine.</small></div></li>
+        <li><yay360-icon name="calendar" [size]="18" aria-hidden="true" /><div><strong>Rendez-vous et consultations</strong><small>Les rendez-vous et le dossier médical, pour l’accompagner.</small></div></li>
+        <li><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><div><strong>Signaler ou demander</strong><small>Vous pouvez signaler un symptôme ou demander un rendez-vous pour elle.</small></div></li>
+        <li><yay360-icon name="shield" [size]="18" aria-hidden="true" /><div><strong>Accès protégé</strong><small>Le lien entre vos comptes est créé par l’invitation et ne peut pas être modifié ici.</small></div></li>
+      </ul>
+      <a routerLink="/suivi-prenatal" class="pro-btn pro-btn--accent df__cta">Voir le suivi prénatal <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+    </section>
+  }
 </div>

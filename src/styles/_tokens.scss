@@ -1,0 +1,228 @@
+/* ==========================================================================
+   YAY360 — Design system « Soft Medical » (inspiré du modèle tablette)
+   Seul fichier où une couleur est définie.
+
+   Contraste (WCAG AA vérifié) :
+     - Texte turquoise courant → --c-teal-ink (5,3:1 sur blanc).
+       Le turquoise vif --c-teal ne sert qu'aux titres ≥ 18px, icônes, courbes.
+     - Barre latérale : texte blanc sur --c-rail (4,75:1).
+     - Orange : fond d'action avec texte foncé (5,9:1), jamais du texte orange
+       clair ; texte orange → --c-orange-ink.
+
+   Thème sombre : bloc :root[data-theme='dark'] en fin de fichier (posé par
+   ThemeService). Mêmes noms, autres valeurs ; chaque couple texte/fond est
+   vérifié (≥ 4,5:1 pour le texte, ≥ 3:1 pour les icônes et grands titres).
+   ========================================================================== */
+:root {
+  color-scheme: light;
+  /* ── Palette du modèle ─────────────────────────────────────────────────── */
+  --c-teal:          #2BA3A8;
+  --c-teal-ink:      #15777C;
+  --c-teal-dark:     #1A7F86;
+  --c-teal-soft:     #E3F4F5;
+  --c-teal-softer:   #F1FAFA;
+  --c-teal-line:     #CDEBEC;
+
+  --c-orange:        #F7A84B;
+  --c-orange-hover:  #F29A33;
+  --c-orange-ink:    #A85A06;
+  --c-orange-soft:   #FEF1E2;
+  --c-orange-line:   #E08A25;   /* bordure des boutons orange */
+  --c-orange-line-hover: #C97616;
+  --c-orange-tint:   #FCDDB8;
+
+  --c-lilac-ink:     #4A5FB0;   /* texte et icônes lilas */
+  --c-lilac-soft:    #ECF0FC;
+  --c-lilac-softer:  #F3F6FD;
+  --c-lilac-line:    #C9D3F5;
+  --c-teal-deep:     #0F5E62;
+  --c-link-hover:    #1A7F86;   /* survol des liens (≥ 4,5:1) */
+
+  --c-coral:         #F28B7D;   /* décor (feuilles, puces) */
+  --c-lilac:         #8EA4E8;   /* décor (graphiques) */
+  /* Palette des graphiques (catégorielle, ordre fixe, validée daltonisme) */
+  --viz-1:           #14969C;   /* turquoise */
+  --viz-2:           #E08A25;   /* orange    */
+  --viz-3:           #6F86D6;   /* lilas     */
+  --viz-warning:     #E08A25;
+  --viz-track:       #E3F4F5;   /* fond des anneaux et barres */
+
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  --c-bg:            #E6F4F5;   /* fond de page */
+  --c-panel:         #F4FBFB;   /* colonne intermédiaire */
+  --c-surface:       #FFFFFF;   /* cartes */
+  --c-surface-2:     #F6FAFA;
+  --c-hover:         #EEF7F7;
+  --c-overlay-hover: rgba(0, 0, 0, 0.06);
+  --c-glass:         rgba(255, 255, 255, 0.6);    /* surfaces translucides sur le fond */
+  --c-glass-strong:  rgba(255, 255, 255, 0.92);
+  --c-nav-glass:     rgba(230, 244, 245, 0.88);
+  --c-glow-1:        #F4FBFB;                     /* halos décoratifs du fond */
+  --c-glow-2:        #DDF0F1;
+  --c-scrim:         rgba(26, 60, 66, 0.35);      /* voile derrière les fenêtres */
+  --c-logo-bg:       #FFFFFF;                     /* le logo garde son fond blanc */
+
+  /* ── Texte ─────────────────────────────────────────────────────────────── */
+  --t-main:          #2D3B45;
+  --t-muted:         #5A6B74;
+  --t-soft:          #8A9AA2;   /* uniquement texte ≥ 18px ou décoratif */
+  --t-inverse:       #FFFFFF;
+  --t-on-strong:     #FFFFFF;   /* texte sur fond turquoise foncé, rouge ou vert plein */
+  --t-on-accent:     #2D3B45;   /* texte sur l'orange : reste foncé dans les deux thèmes */
+
+  /* ── Bordures ──────────────────────────────────────────────────────────── */
+  --b-light:         #E4EEF0;
+  --b-strong:        #C9D9DC;
+
+  /* ── Barre latérale ────────────────────────────────────────────────────── */
+  --c-rail:          #1A7F86;
+  --c-rail-2:        #176F75;
+  --c-rail-text:     #FFFFFF;
+  --c-rail-active:   #FFFFFF;   /* pastille claire sur le rail (lien actif, logo) */
+  --c-rail-active-text: #15777C;
+  --c-rail-active-icon: #E3F4F5;
+  --c-banner-1:      #1A7F86;   /* bannières dégradées avec texte blanc */
+  --c-banner-2:      #2BA3A8;
+
+  /* ── États ─────────────────────────────────────────────────────────────── */
+  --c-success:       #1E7A4C;
+  --c-success-soft:  #E3F5EC;
+  --c-success-line:  #9FD6B8;
+  --c-success-strong: #1E7A4C;  /* fond plein avec texte blanc */
+  --c-warning:       #9A5B00;
+  --c-warning-soft:  #FFF4E0;
+  --c-warning-line:  #F6CF9F;
+  --c-danger:        #C62828;
+  --c-danger-soft:   #FDECEC;
+  --c-danger-softer: #FFF8F8;
+  --c-danger-line:   #F2B8B8;
+  --c-danger-strong: #C62828;   /* fond plein avec texte blanc */
+  --c-danger-border: #9E1F1F;
+  --c-info:          var(--c-teal-ink);
+  --c-info-soft:     var(--c-teal-soft);
+
+  /* ── Ombres douces teintées ────────────────────────────────────────────── */
+  --sh-xs: 0 1px 3px rgba(26, 127, 134, 0.06);
+  --sh-sm: 0 6px 18px rgba(26, 127, 134, 0.08);
+  --sh-md: 0 14px 34px rgba(26, 127, 134, 0.12);
+  --sh-lg: 0 24px 60px rgba(26, 127, 134, 0.16);
+  --ring:  0 0 0 3px rgba(43, 163, 168, 0.35);
+  --sh-accent: 0 8px 18px rgba(247, 168, 75, 0.35);
+  --sh-float:  0 8px 20px rgba(0, 0, 0, 0.14);
+
+  /* ── Rayons ────────────────────────────────────────────────────────────── */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 40px;
+  --r-pill: 999px;
+
+  /* ── Espacements ───────────────────────────────────────────────────────── */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+
+  /* ── Typographie ───────────────────────────────────────────────────────── */
+  --font: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2.25rem;
+
+  /* ── Layout & mouvement ────────────────────────────────────────────────── */
+  --rail-w: 116px;
+  --tap: 44px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 150ms var(--ease);
+  --t-base: 240ms var(--ease);
+}
+
+/* ==========================================================================
+   Thème sombre — valeurs vérifiées (contraste minimal du texte : 5,3:1)
+   ========================================================================== */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --c-teal:          #3FC3C9;   /* icônes, grands titres */
+  --c-teal-ink:      #5CCFD4;   /* texte turquoise */
+  --c-teal-dark:     #17767C;   /* fond plein avec texte blanc (5,4:1) */
+  --c-teal-soft:     #173E44;
+  --c-teal-softer:   #132E33;
+  --c-teal-line:     #255A60;
+  --c-teal-deep:     #0E5257;
+  --c-link-hover:    #8ADFE3;
+
+  --c-orange:        #F7A84B;   /* inchangé : texte foncé posé dessus */
+  --c-orange-hover:  #F9B964;
+  --c-orange-ink:    #F4B266;
+  --c-orange-soft:   #36281A;
+  --c-orange-line:   #D98A2E;
+  --c-orange-line-hover: #E79A3F;
+  --c-orange-tint:   #4A3420;
+
+  --c-lilac-ink:     #AAB8F0;
+  --c-lilac-soft:    #232A47;
+  --c-lilac-softer:  #1D2440;
+  --c-lilac-line:    #3A4677;
+
+  --viz-1:           #22A0A6;   /* palette validée sur la surface sombre */
+  --viz-2:           #CF7D24;
+  --viz-3:           #7C90DA;
+  --viz-warning:     #CF7D24;
+  --viz-track:       #1E3940;
+
+  --c-bg:            #0E1A1D;
+  --c-panel:         #122126;
+  --c-surface:       #16282E;
+  --c-surface-2:     #1B3138;
+  --c-hover:         #203A42;
+  --c-overlay-hover: rgba(255, 255, 255, 0.08);
+  --c-glass:         rgba(22, 40, 46, 0.72);
+  --c-glass-strong:  rgba(22, 40, 46, 0.94);
+  --c-nav-glass:     rgba(14, 26, 29, 0.86);
+  --c-glow-1:        #132429;
+  --c-glow-2:        #12302F;
+  --c-scrim:         rgba(3, 9, 11, 0.62);
+
+  --t-main:          #E4EDEF;
+  --t-muted:         #A7B8BF;
+  --t-soft:          #7C9198;
+  --t-inverse:       #0E1A1D;
+
+  --b-light:         #24393F;
+  --b-strong:        #36545C;
+
+  --c-rail:          #0F3B40;
+  --c-rail-2:        #0B2F33;
+  --c-rail-active:   #DCEFF1;
+  --c-rail-active-text: #0E4C51;
+  --c-rail-active-icon: #BFE3E6;
+  --c-banner-1:      #0F4E53;
+  --c-banner-2:      #17767C;
+
+  --c-success:       #63D19C;
+  --c-success-soft:  #163325;
+  --c-success-line:  #2E6B4C;
+  --c-success-strong: #1E7A4C;
+  --c-warning:       #F0B862;
+  --c-warning-soft:  #382B16;
+  --c-warning-line:  #6B4E22;
+  --c-danger:        #FF8F86;
+  --c-danger-soft:   #3B1E20;
+  --c-danger-softer: #2B191B;
+  --c-danger-line:   #7A3434;
+  --c-danger-strong: #C62828;
+  --c-danger-border: #E57373;
+
+  --sh-xs: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --sh-sm: 0 6px 18px rgba(0, 0, 0, 0.35);
+  --sh-md: 0 14px 34px rgba(0, 0, 0, 0.45);
+  --sh-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --ring:  0 0 0 3px rgba(92, 207, 212, 0.45);
+  --sh-accent: 0 8px 18px rgba(0, 0, 0, 0.4);
+  --sh-float:  0 8px 20px rgba(0, 0, 0, 0.4);
+}

@@ -1,10 +1,11 @@
 # ==================== STAGE 1 : BUILD ====================
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
+# Installation reproductible, à partir du lockfile
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build -- --configuration production
@@ -12,11 +13,12 @@ RUN npm run build -- --configuration production
 # ==================== STAGE 2 : RUNTIME (NGINX) ====================
 FROM nginx:1.27-alpine
 
-# Fichiers statiques générés par le build Angular
-COPY --from=build /app/dist/yay360-web/browser /usr/share/nginx/html
+# Adresse interne du backend (réseau Docker Compose) ; modifiable au lancement
+ENV API_UPSTREAM=http://yay360-api:8080
 
-# Config Nginx adaptée au routing SPA Angular (fallback vers index.html)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist/yay360-web/browser /usr/share/nginx/html
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/securite.inc /etc/nginx/conf.d/securite.inc
 
 EXPOSE 80
 

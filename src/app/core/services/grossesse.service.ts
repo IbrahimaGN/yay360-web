@@ -6,7 +6,12 @@ import {
   CalendrierGrossesseDto,
   DeclarerGrossesseRequest,
   DeclarerRisqueRequest,
+  ChoisirEtablissementRequest,
+  EvaluationRisqueDto,
   GrossesseDto,
+  PatienteRechercheDto,
+  PlanCpnDto,
+  RattacherGrossesseRequest,
   SuiviHebdomadaireDto,
   TerminerGrossesseRequest,
 } from '../models/grossesse.model';
@@ -66,5 +71,31 @@ export class GrossesseService {
 
   terminer(id: number, request: TerminerGrossesseRequest): Observable<GrossesseDto> {
     return this.http.put<GrossesseDto>(`${this.baseUrl}/${id}/terminer`, request);
+  }
+
+  /** La patiente choisit ou change son établissement de suivi. */
+  choisirEtablissement(request: ChoisirEtablissementRequest): Observable<GrossesseDto> {
+    return this.http.put<GrossesseDto>(`${this.baseUrl}/ma-grossesse/etablissement`, request);
+  }
+
+  /** Recherche exacte (téléphone OU email) d'une patiente qui se présente. */
+  rechercher(critere: { telephone: string } | { email: string }): Observable<PatienteRechercheDto[]> {
+    return this.http.get<PatienteRechercheDto[]>(`${this.baseUrl}/recherche`, { params: critere });
+  }
+
+  rattacher(id: number, request: RattacherGrossesseRequest): Observable<GrossesseDto> {
+    return this.http.put<GrossesseDto>(`${this.baseUrl}/${id}/rattacher`, request);
+  }
+
+  monPlanCpn(): Observable<PlanCpnDto> {
+    return this.http.get<PlanCpnDto>(`${this.baseUrl}/mon-plan-cpn`);
+  }
+
+  planCpn(id: number): Observable<PlanCpnDto> {
+    return this.http.get<PlanCpnDto>(`${this.baseUrl}/${id}/plan-cpn`);
+  }
+
+  evaluationRisque(id: number): Observable<EvaluationRisqueDto> {
+    return this.http.get<EvaluationRisqueDto>(`${this.baseUrl}/${id}/evaluation-risque`);
   }
 }

@@ -1,120 +1,196 @@
-﻿<div class="pro-fade-in">
-
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Compte & Accès</span>
-      <h1 class="pro-header__title">Mon Profil</h1>
-      <p class="pro-header__desc">Gérez vos coordonnées professionnelles et la sécurité de vos identifiants d'accès.</p>
-    </div>
-  </header>
+﻿<div class="profil">
 
   @if (chargement()) {
-    <div class="profil-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement des données du compte…</p>
-    </div>
+    <yay360-state type="chargement" message="Chargement de votre profil…" />
+  } @else if (erreurChargement()) {
+    <yay360-state type="erreur" [message]="erreurChargement()" (reessayer)="charger()" />
   } @else if (profil(); as p) {
-    <div class="profil-layout">
+    <div class="profil__grid">
 
-      <!-- Section Informations Générales -->
-      <section class="pro-card profil-card">
-        <div class="profil-card__header">
-          <div class="profil-avatar">
-            <span class="profil-avatar__text">{{ p.prenom.charAt(0) }}{{ p.nom.charAt(0) }}</span>
+      <!-- ═══════════ Carte d'identité ═══════════ -->
+      <aside class="card id-card" aria-label="Résumé du compte">
+        <div class="id-card__cover" aria-hidden="true"></div>
+        <span class="id-card__avatar" aria-hidden="true">{{ initiales(p) }}</span>
+        <h2 class="id-card__name">{{ p.prenom }} {{ p.nom }}</h2>
+        <span class="badge badge--primary">{{ libelleRole(p.role) }}</span>
+
+        <dl class="id-card__stats">
+          <div>
+            <dt>Membre depuis</dt>
+            <dd>{{ p.dateCreation | date: 'MMM yyyy' }}</dd>
           </div>
-          <div class="profil-meta">
-            <h2 class="profil-meta__name">{{ p.prenom }} {{ p.nom }}</h2>
-            <div class="profil-meta__badges">
-              <span class="pro-badge pro-badge--primary">{{ p.role }}</span>
-              <span class="profil-meta__date">Membre depuis {{ p.dateCreation | date: 'MMMM yyyy' }}</span>
-            </div>
+          <div>
+            <dt>Statut</dt>
+            <dd>
+              @if (p.actif) { <span class="id-card__status"><span class="dot" aria-hidden="true"></span> Actif</span> }
+              @else { Inactif }
+            </dd>
           </div>
-        </div>
+        </dl>
 
-        <form [formGroup]="formProfil" (ngSubmit)="soumettreProfil()" class="profil-form" novalidate>
-          <div class="form-grid">
-            <div class="field-item">
-              <label for="prenom">Prénom</label>
-              <input id="prenom" type="text" formControlName="prenom" />
+        <ul class="id-card__infos">
+          <li>
+            <span class="id-card__ico"><yay360-icon name="mail" [size]="16" aria-hidden="true" /></span>
+            <div><small>E-mail</small><span class="id-card__mail">{{ p.email }}</span></div>
+          </li>
+          <li>
+            <span class="id-card__ico id-card__ico--orange"><yay360-icon name="phone" [size]="16" aria-hidden="true" /></span>
+            <div><small>Téléphone</small><span>{{ p.telephone }}</span></div>
+          </li>
+          <li>
+            <span class="id-card__ico id-card__ico--lilac"><yay360-icon name="calendar" [size]="16" aria-hidden="true" /></span>
+            <div><small>Date de naissance</small><span>{{ p.dateNaissance | date: 'longDate' }}</span></div>
+          </li>
+        </ul>
+      </aside>
+
+      <div class="profil__forms">
+
+        <!-- ═══════════ Informations personnelles ═══════════ -->
+        <section class="card form-card" aria-labelledby="titre-infos">
+          <header class="form-card__head">
+            <span class="form-card__icon"><yay360-icon name="user" [size]="20" aria-hidden="true" /></span>
+            <div>
+              <h2 id="titre-infos" class="section-title">Informations personnelles</h2>
+              <p>Ces informations permettent à l’équipe de santé de vous joindre.</p>
+            </div>
+          </header>
+
+          <form [formGroup]="formProfil" (ngSubmit)="soumettreProfil()" novalidate>
+            <div class="field-row">
+              <div class="field">
+                <label for="prenom">Prénom</label>
+                <input id="prenom" type="text" formControlName="prenom" autocomplete="given-name"
+                       [attr.aria-invalid]="invalide('prenom')" aria-describedby="err-prenom" />
+                @if (invalide('prenom')) { <span class="field-error" id="err-prenom">Lettres uniquement, 2 à 50 caractères.</span> }
+              </div>
+              <div class="field">
+                <label for="nom">Nom</label>
+                <input id="nom" type="text" formControlName="nom" autocomplete="family-name"
+                       [attr.aria-invalid]="invalide('nom')" aria-describedby="err-nom" />
+                @if (invalide('nom')) { <span class="field-error" id="err-nom">Lettres uniquement, 2 à 50 caractères.</span> }
+              </div>
             </div>
 
-            <div class="field-item">
-              <label for="nom">Nom de famille</label>
-              <input id="nom" type="text" formControlName="nom" />
+            <div class="field-row">
+              <div class="field">
+                <label for="email">Adresse e-mail</label>
+                <div class="input-ico">
+                  <yay360-icon name="mail" [size]="18" aria-hidden="true" />
+                  <input id="email" type="email" [value]="p.email" disabled aria-describedby="aide-email" />
+                </div>
+                <span class="field-hint" id="aide-email">Identifiant de connexion, non modifiable.</span>
+              </div>
+              <div class="field">
+                <label for="telephone">Téléphone</label>
+                <div class="input-ico">
+                  <yay360-icon name="phone" [size]="18" aria-hidden="true" />
+                  <input id="telephone" type="tel" inputmode="tel" formControlName="telephone" autocomplete="tel" placeholder="+221771234567"
+                         [attr.aria-invalid]="invalide('telephone')" aria-describedby="aide-tel" />
+                </div>
+                @if (invalide('telephone')) {
+                  <span class="field-error" id="aide-tel">{{ aideTelephone }}</span>
+                } @else {
+                  <span class="field-hint" id="aide-tel">+221 puis 9 chiffres, sans espace</span>
+                }
+              </div>
             </div>
 
-            <div class="field-item field-item--full">
-              <label for="email">Adresse email (identifiant permanent)</label>
-              <input id="email" type="email" [value]="p.email" disabled class="input-disabled" />
-              <span class="field-hint">L'identifiant email est rattaché à votre compte et ne peut être modifié directement.</span>
+            @if (erreurProfil()) {
+              <div class="pro-notice pro-notice--error" role="alert">
+                <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurProfil() }}</span>
+              </div>
+            }
+            @if (succesProfil()) {
+              <div class="pro-notice pro-notice--success" role="status">
+                <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succesProfil() }}</span>
+              </div>
+            }
+
+            <div class="form-card__actions">
+              <button type="submit" class="pro-btn pro-btn--accent" [disabled]="enregistrementProfil() || formProfil.pristine">
+                @if (enregistrementProfil()) { <span class="btn-spinner" aria-hidden="true"></span> Enregistrement… }
+                @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Enregistrer }
+              </button>
             </div>
+          </form>
+        </section>
 
-            <div class="field-item field-item--full">
-              <label for="telephone">Numéro de téléphone de contact</label>
-              <input id="telephone" type="text" formControlName="telephone" />
+        <!-- ═══════════ Sécurité ═══════════ -->
+        <section class="card form-card" aria-labelledby="titre-securite">
+          <header class="form-card__head">
+            <span class="form-card__icon form-card__icon--lilac"><yay360-icon name="shield" [size]="20" aria-hidden="true" /></span>
+            <div>
+              <h2 id="titre-securite" class="section-title">Sécurité</h2>
+              <p>Changer votre mot de passe déconnecte vos autres sessions.</p>
             </div>
-          </div>
+          </header>
 
-          @if (messageProfil()) {
-            <div class="alert-banner alert-banner--success">
-              <span>✓</span> {{ messageProfil() }}
-            </div>
-          }
-
-          <div class="form-actions">
-            <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementProfil()">
-              {{ enregistrementProfil() ? 'Mise à jour…' : 'Enregistrer les modifications' }}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Section Sécurité & Mot de Passe -->
-      <section class="pro-card profil-card">
-        <div class="profil-card__header">
-          <div class="security-icon">
-            <span>🔒</span>
-          </div>
-          <div class="profil-meta">
-            <h3 class="profil-meta__name">Sécurité du Compte</h3>
-            <span class="profil-meta__date">Mettez à jour votre mot de passe pour garantir la confidentialité clinique.</span>
-          </div>
-        </div>
-
-        <form [formGroup]="formMotDePasse" (ngSubmit)="soumettreMotDePasse()" class="profil-form" novalidate>
-          <div class="form-grid">
-            <div class="field-item field-item--full">
+          <form [formGroup]="formMotDePasse" (ngSubmit)="soumettreMotDePasse()" novalidate>
+            <div class="field">
               <label for="ancienMotDePasse">Mot de passe actuel</label>
-              <input id="ancienMotDePasse" type="password" formControlName="ancienMotDePasse" placeholder="Saisissez votre mot de passe actuel" />
+              <div class="pwd">
+                <input id="ancienMotDePasse" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="ancienMotDePasse"
+                       autocomplete="current-password" aria-describedby="err-ancien"
+                       [attr.aria-invalid]="formMotDePasse.controls.ancienMotDePasse.invalid && formMotDePasse.controls.ancienMotDePasse.touched" />
+                <button type="button" (click)="motDePasseVisible.set(!motDePasseVisible())"
+                        [attr.aria-label]="motDePasseVisible() ? 'Masquer les mots de passe' : 'Afficher les mots de passe'"
+                        [attr.aria-pressed]="motDePasseVisible()">
+                  <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+                </button>
+              </div>
+              @if (formMotDePasse.controls.ancienMotDePasse.invalid && formMotDePasse.controls.ancienMotDePasse.touched) {
+                <span class="field-error" id="err-ancien">Saisissez votre mot de passe actuel.</span>
+              }
             </div>
 
-            <div class="field-item field-item--full">
-              <label for="nouveauMotDePasse">Nouveau mot de passe</label>
-              <input id="nouveauMotDePasse" type="password" formControlName="nouveauMotDePasse" placeholder="6 caractères minimum" />
+            <div class="field-row">
+              <div class="field">
+                <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+                <input id="nouveauMotDePasse" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="nouveauMotDePasse"
+                       autocomplete="new-password" aria-describedby="regles-mdp"
+                       [attr.aria-invalid]="formMotDePasse.controls.nouveauMotDePasse.invalid && formMotDePasse.controls.nouveauMotDePasse.touched" />
+              </div>
+              <div class="field">
+                <label for="confirmation">Confirmation</label>
+                <input id="confirmation" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="confirmation"
+                       autocomplete="new-password" aria-describedby="err-confirmation"
+                       [attr.aria-invalid]="formMotDePasse.controls.confirmation.invalid && formMotDePasse.controls.confirmation.touched" />
+                @if (formMotDePasse.controls.confirmation.hasError('differents') && formMotDePasse.controls.confirmation.touched) {
+                  <span class="field-error" id="err-confirmation">Les deux mots de passe ne correspondent pas.</span>
+                }
+              </div>
             </div>
-          </div>
 
-          @if (erreurMotDePasse()) {
-            <div class="alert-banner alert-banner--error" role="alert">
-              <span>⚠️</span> {{ erreurMotDePasse() }}
+            <ul class="pwd-rules" id="regles-mdp" aria-label="Règles du mot de passe">
+              @for (r of reglesMotDePasse(); track r.libelle) {
+                <li [class.pwd-rules__ok]="r.ok" [class.pwd-rules__ko]="!r.ok && formMotDePasse.controls.nouveauMotDePasse.touched">
+                  <span class="pwd-rules__mark" aria-hidden="true">@if (r.ok) { <yay360-icon name="check" [size]="12" /> }</span>
+                  {{ r.libelle }}<span class="sr-only">{{ r.ok ? ' : respecté' : ' : non respecté' }}</span>
+                </li>
+              }
+            </ul>
+
+            @if (erreurMotDePasse()) {
+              <div class="pro-notice pro-notice--error" role="alert">
+                <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurMotDePasse() }}</span>
+              </div>
+            }
+            @if (succesMotDePasse()) {
+              <div class="pro-notice pro-notice--success" role="status">
+                <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succesMotDePasse() }}</span>
+              </div>
+            }
+
+            <div class="form-card__actions">
+              <button type="submit" class="pro-btn pro-btn--secondary" [disabled]="enregistrementMotDePasse()">
+                @if (enregistrementMotDePasse()) { <span class="btn-spinner" aria-hidden="true"></span> Modification… }
+                @else { <yay360-icon name="shield" [size]="18" aria-hidden="true" /> Modifier le mot de passe }
+              </button>
             </div>
-          }
-          @if (messageMotDePasse()) {
-            <div class="alert-banner alert-banner--success">
-              <span>✓</span> {{ messageMotDePasse() }}
-            </div>
-          }
-
-          <div class="form-actions">
-            <button type="submit" class="pro-btn pro-btn--secondary" [disabled]="enregistrementMotDePasse()">
-              {{ enregistrementMotDePasse() ? 'Modification…' : 'Modifier le mot de passe' }}
-            </button>
-          </div>
-        </form>
-      </section>
-
+          </form>
+        </section>
+      </div>
     </div>
   }
-
 </div>

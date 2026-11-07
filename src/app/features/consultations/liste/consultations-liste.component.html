@@ -1,74 +1,101 @@
-﻿<div class="pro-fade-in">
+﻿<div class="cl">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Dossiers Médicaux</span>
-      <h1 class="pro-header__title">Historique des Consultations</h1>
-      <p class="pro-header__desc">Relevé des examens cliniques, constantes vitales et diagnostics obstétricaux.</p>
-    </div>
-  </header>
-
-  @if (chargement()) {
-    <div class="consult-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement des consultations…</p>
-    </div>
-  } @else if (erreur()) {
-    <div class="consult-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
-  } @else if (consultations().length === 0) {
-    <div class="consult-empty pro-card">
-      <div class="consult-empty__circle">
-        <span>0</span>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card cl__head">
+    <div class="cl__intro">
+      <span class="cl__intro-icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Mes consultations</h2>
+        <p>Consultations que vous avez enregistrées : constantes, observations et conduite à tenir.</p>
       </div>
-      <h3>Aucune consultation</h3>
-      <p>Aucune consultation clinique n'est enregistrée pour le moment.</p>
     </div>
-  } @else {
-    <div class="pro-table-wrapper">
-      <table class="pro-table">
-        <thead>
-          <tr>
-            <th>Patiente</th>
-            <th>Date & Heure</th>
-            <th>Tension</th>
-            <th>Poids</th>
-            <th>Diagnostic</th>
-            <th style="text-align: right;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of consultations(); track c.id) {
-            <tr [routerLink]="['/consultations', c.id]" class="consult-row">
-              <td>
-                <div class="patient-cell">
-                  <span class="patient-avatar">{{ c.femmeEnceinteNomComplet.charAt(0) }}</span>
-                  <strong>{{ c.femmeEnceinteNomComplet }}</strong>
-                </div>
-              </td>
-              <td>
-                <span class="consult-date">{{ c.dateConsultation | date: 'dd/MM/yyyy à HH:mm' }}</span>
-              </td>
-              <td>
-                <span class="pro-badge">{{ c.tensionArterielle || '—' }}</span>
-              </td>
-              <td>
-                <span class="weight-cell">{{ c.poidsKg ? (c.poidsKg + ' kg') : '—' }}</span>
-              </td>
-              <td>
-                <span class="diag-truncate">{{ c.diagnostic || '—' }}</span>
-              </td>
-              <td style="text-align: right;">
-                <span class="row-arrow">Consulter →</span>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <a routerLink="/consultations/nouvelle" class="pro-btn pro-btn--accent">
+      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouvelle consultation
+    </a>
+  </section>
+
+  @if (!chargement() && !erreur()) {
+    <dl class="stats">
+      <div class="stat"><dt>Consultations</dt><dd>{{ stats().total }}</dd></div>
+      <div class="stat stat--orange"><dt>Ce mois-ci</dt><dd>{{ stats().ceMois }}</dd></div>
+      <div class="stat stat--lilac"><dt>Patientes vues</dt><dd>{{ stats().patientes }}</dd></div>
+      <div class="stat stat--warn"><dt>Avec signaux détectés</dt><dd>{{ stats().signaux }}</dd></div>
+    </dl>
   }
 
+  <section class="tools" aria-label="Filtres">
+    <div class="input-ico tools__search">
+      <yay360-icon name="search" [size]="18" aria-hidden="true" />
+      <input type="search" placeholder="Patiente ou diagnostic…" aria-label="Rechercher une consultation"
+             [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
+    </div>
+    <div class="segmented" role="group" aria-label="Période">
+      <button type="button" [attr.aria-pressed]="periode() === 'TOUT'" (click)="periode.set('TOUT')">Tout</button>
+      <button type="button" [attr.aria-pressed]="periode() === '30'" (click)="periode.set('30')">30 jours</button>
+      <button type="button" [attr.aria-pressed]="periode() === '7'" (click)="periode.set('7')">7 jours</button>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" [checked]="avecSignaux()" (change)="avecSignaux.set($any($event.target).checked)" />
+      <span class="toggle__track" aria-hidden="true"><span></span></span>
+      Avec signaux uniquement
+    </label>
+  </section>
+
+  @if (chargement()) {
+    <div class="pro-skeleton cl__skeleton" aria-hidden="true"></div>
+    <span class="sr-only" role="status">Chargement des consultations…</span>
+  } @else if (erreur()) {
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (mois().length === 0) {
+    <yay360-state type="vide" titre="Aucune consultation"
+                  [message]="filtresActifs() ? 'Aucune consultation ne correspond à ces filtres.' : 'Vos consultations apparaîtront ici. Ouvrez la fiche d’une patiente pour en enregistrer une.'">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      } @else {
+        <a routerLink="/grossesses" class="pro-btn pro-btn--accent">Voir mes patientes</a>
+      }
+    </yay360-state>
+  } @else {
+    @if (filtresActifs()) {
+      <p class="cl__count" role="status"><strong>{{ nombreAffiches() }}</strong> sur {{ consultations().length }} · <button type="button" class="cl__reset" (click)="reinitialiserFiltres()">Effacer les filtres</button></p>
+    }
+    @for (m of mois(); track m.cle) {
+      <section class="month" [attr.aria-label]="m.date | date: 'MMMM y'">
+        <h3 class="month__title">{{ m.date | date: 'MMMM y' }} <span>{{ m.items.length }}</span></h3>
+        <ul class="list">
+          @for (c of m.items; track c.id) {
+            <li>
+              <a class="card row" [routerLink]="['/consultations', c.id]" [class.row--signal]="c.signauxCliniques.length > 0"
+                 [attr.aria-label]="'Consultation de ' + c.femmeEnceinteNomComplet + ' du ' + (c.dateConsultation | date: 'd MMMM y')">
+                <span class="row__date">
+                  <strong>{{ c.dateConsultation | date: 'd' }}</strong>
+                  <small>{{ c.dateConsultation | date: 'MMM' }}</small>
+                  <small>{{ c.dateConsultation | date: 'HH:mm' }}</small>
+                </span>
+                <span class="row__main">
+                  <span class="row__who">
+                    <span class="avatar avatar--sm" aria-hidden="true">{{ initiales(c.femmeEnceinteNomComplet) }}</span>
+                    <strong>{{ c.femmeEnceinteNomComplet }}</strong>
+                    @if (c.signauxCliniques.length > 0) {
+                      <span class="badge badge--warning"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> {{ c.signauxCliniques.length }} signal{{ c.signauxCliniques.length > 1 ? 'aux' : '' }}</span>
+                    }
+                  </span>
+                  <span class="vitals">
+                    <span class="vital"><small>TA</small>{{ c.tensionArterielle || '—' }}</span>
+                    <span class="vital"><small>Poids</small>{{ c.poidsKg ? c.poidsKg + ' kg' : '—' }}</span>
+                    <span class="vital"><small>T°</small>{{ c.temperatureC ? c.temperatureC + ' °C' : '—' }}</span>
+                    <span class="vital"><small>HU</small>{{ c.hauteurUterineCm ? c.hauteurUterineCm + ' cm' : '—' }}</span>
+                    <span class="vital"><small>BCF</small>{{ c.battementsCoeurFoetal ? c.battementsCoeurFoetal + '/min' : '—' }}</span>
+                  </span>
+                  @if (c.diagnostic) { <span class="row__diag">{{ c.diagnostic }}</span> }
+                  @if (c.etablissementNom) { <span class="row__place"><yay360-icon name="building" [size]="12" aria-hidden="true" /> {{ c.etablissementNom }}</span> }
+                </span>
+                <span class="row__go" aria-hidden="true"><yay360-icon name="chevron-right" [size]="18" /></span>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
 </div>

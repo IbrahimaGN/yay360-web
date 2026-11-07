@@ -1,228 +1,197 @@
-<div class="pro-fade-in dashboard-page">
+<div class="dash">
 
-  @if (chargement()) {
-    <div class="dash-loading">
-      <div class="pro-spinner"></div>
-      <p>Synchronisation des indicateurs cliniques…</p>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card dash__head">
+    <div>
+      <h2 class="section-title">Indicateurs de la plateforme</h2>
+      <p>
+        @if (data(); as d) { Données au {{ d.dateGeneration | date: 'd MMMM y à HH:mm' }} }
+        @else { Activité, grossesses, rendez-vous et alertes. }
+      </p>
     </div>
-  } @else if (erreur()) {
-    <div class="dash-error pro-card">
-      <div class="dash-error__content">
-        <h3>Connexion au serveur interrompue</h3>
-        <p>{{ erreur() }}</p>
-      </div>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">
-        <span>Réessayer</span>
+    <div class="dash__actions">
+      <button type="button" class="pro-btn pro-btn--ghost" (click)="charger()" [disabled]="chargement()">
+        @if (chargement()) { <span class="btn-spinner" aria-hidden="true"></span> } @else { <yay360-icon name="activity" [size]="18" aria-hidden="true" /> }
+        Actualiser
       </button>
+      <a class="pro-btn pro-btn--secondary" routerLink="/grossesses">Suivi des grossesses <yay360-icon name="arrow-right" [size]="16" aria-hidden="true" /></a>
     </div>
+  </section>
+
+  @if (chargement() && !data()) {
+    <div class="kpis">
+      @for (i of [1, 2, 3, 4]; track i) { <div class="kpi pro-skeleton" aria-hidden="true"></div> }
+    </div>
+    <yay360-state type="chargement" [compact]="true" message="Chargement des indicateurs…" />
+  } @else if (erreur()) {
+    <yay360-state type="erreur" titre="Indicateurs indisponibles" [message]="erreur()" (reessayer)="charger()" />
   } @else if (data(); as d) {
 
-    <!-- En-tête de page -->
-    <header class="pro-header dash-header">
-      <div class="pro-header__left">
-        <span class="pro-header__tag">Indicateurs Cliniques & Activité</span>
-        <h1 class="pro-header__title">Suivi de la santé maternelle</h1>
-        <p class="pro-header__desc">Indicateurs des grossesses en cours, des consultations et des rendez-vous.</p>
+    <!-- ═══════════ Activité ═══════════ -->
+    <section class="kpis" aria-label="Activité générale">
+      @for (k of kpis(); track k.label) {
+        <div class="kpi" [attr.data-ton]="k.ton">
+          <span class="kpi__icon" aria-hidden="true"><yay360-icon [name]="k.icone" [size]="20" /></span>
+          <strong class="kpi__value">{{ k.valeur | number }}</strong>
+          <span class="kpi__label">{{ k.label }}</span>
+        </div>
+      }
+    </section>
+
+    <!-- ═══════════ Pilotage ═══════════ -->
+    <section aria-labelledby="titre-pilotage">
+      <h2 id="titre-pilotage" class="section-title dash__title">Indicateurs de pilotage</h2>
+      <div class="gauges">
+        <article class="card gauge">
+          <yay360-ring-chart [data]="jauge(d.ratioGrossessesARisque, 'var(--viz-2)', 'À risque')" [size]="112" [epaisseur]="18"
+                             [centerValue]="(d.ratioGrossessesARisque | number: '1.0-1') + ' %'" centerLabel="" />
+          <div class="gauge__text">
+            <strong>Grossesses à risque</strong>
+            <span>{{ d.nombreGrossessesARisque }} sur {{ d.nombreGrossessesActives }} grossesses en cours</span>
+          </div>
+        </article>
+
+        <article class="card gauge">
+          <yay360-ring-chart [data]="jauge(d.tauxResolutionAlertes, 'var(--viz-1)', 'Résolues')" [size]="112" [epaisseur]="18"
+                             [centerValue]="(d.tauxResolutionAlertes | number: '1.0-1') + ' %'" centerLabel="" />
+          <div class="gauge__text">
+            <strong>Alertes résolues</strong>
+            <span>Part des alertes déclarées qui ont été résolues</span>
+          </div>
+        </article>
+
+        <article class="card gauge gauge--number">
+          <span class="gauge__clock" aria-hidden="true"><yay360-icon name="calendar" [size]="26" /></span>
+          <div class="gauge__text">
+            <strong class="gauge__big">{{ delaiPriseEnCharge() }}</strong>
+            <span>Délai moyen entre la déclaration d’une alerte et sa prise en charge</span>
+          </div>
+        </article>
       </div>
-      <div class="pro-header__actions">
-        <a class="pro-btn pro-btn--secondary" routerLink="/grossesses">
-          Ouvrir le suivi des grossesses
-        </a>
-        <button type="button" class="pro-btn pro-btn--secondary" (click)="charger()">
-          <span>Actualiser</span>
-        </button>
-      </div>
-    </header>
+    </section>
 
-    <!-- KPI Grid -->
-    <div class="kpi-grid">
-      <yay360-stat-card
-        label="Patientes enregistrées"
-        [valeur]="d.nombreFemmesEnceintes"
-        icon="users"
-        iconBg="var(--c-primary-soft)"
-        iconColor="var(--c-primary)"
-      />
-      <yay360-stat-card
-        label="Grossesses actives"
-        [valeur]="d.nombreGrossessesActives"
-        icon="ring"
-        iconBg="rgba(15, 23, 42, 0.08)"
-        iconColor="var(--c-navy)"
-      />
-      <yay360-stat-card
-        label="Consultations réalisées"
-        [valeur]="d.nombreConsultations"
-        icon="clipboard"
-        iconBg="var(--c-primary-soft)"
-        iconColor="var(--c-primary)"
-      />
-      <yay360-stat-card
-        label="Rendez-vous programmés"
-        [valeur]="d.nombreRendezVous"
-        icon="calendar"
-        iconBg="rgba(15, 23, 42, 0.08)"
-        iconColor="var(--c-navy)"
-      />
-    </div>
+    <!-- ═══════════ Détails ═══════════ -->
+    <div class="panels">
 
-    <!-- Grille Principale -->
-    <div class="dashboard-grid">
-
-      <!-- Répartition par trimestre -->
-      <section class="pro-card dash-panel">
-        <div class="dash-panel__header">
-          <div>
-            <h2 class="dash-panel__title">Grossesses par trimestre</h2>
-            <p class="dash-panel__subtitle">Répartition de la cohorte selon l'âge gestationnel</p>
-          </div>
-          <span class="pro-badge pro-badge--primary dash-cohort-badge">Cohorte {{ d.nombreGrossessesActives }}</span>
-        </div>
-
-        <div class="dash-panel__ring-wrap">
-          <yay360-ring-chart [data]="segmentsTrimestre()" [size]="170" centerLabel="Actives" />
-          <ul class="trimestre-legend">
-            @for (segment of segmentsTrimestre(); track segment.label) {
-              <li class="trimestre-legend__item">
-                <span class="trimestre-legend__dot" [style.background]="segment.color"></span>
-                <span class="trimestre-legend__name">{{ segment.label }}</span>
-                <strong class="trimestre-legend__val">{{ segment.value }}</strong>
-              </li>
-            }
-          </ul>
-        </div>
-      </section>
-
-      <!-- Vigilance & Grossesses à Risque -->
-      <section class="pro-card dash-panel">
-        <div class="dash-panel__header">
-          <div>
-            <h2 class="dash-panel__title">Vigilance clinique</h2>
-            <p class="dash-panel__subtitle">Surveillance obstétricale et statuts des dossiers</p>
-          </div>
-        </div>
-
-        <div class="risk-callout" [class.risk-callout--alert]="d.nombreGrossessesARisque > 0">
-          <div class="risk-callout__number">{{ d.nombreGrossessesARisque }}</div>
-          <div class="risk-callout__text">
-            <strong>Grossesses à haut risque médical</strong>
-            <p>Nécessitent un suivi rapproché et une prise en charge prioritaire.</p>
-          </div>
-        </div>
-
-        <div class="status-summary">
-          <div class="status-summary__item">
-            <span class="status-summary__label">Grossesses en cours</span>
-            <span class="status-summary__badge pro-badge pro-badge--primary">{{ d.nombreGrossessesActives }}</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Progression Rendez-vous -->
-      <section class="pro-card dash-panel">
-        <div class="dash-panel__header">
-          <div>
-            <h2 class="dash-panel__title">Flux des rendez-vous</h2>
-            <p class="dash-panel__subtitle">Répartition par état de planification clinique</p>
-          </div>
-        </div>
-
-        <div class="bar-chart-list">
-          @for (barre of barresRendezVous(); track barre.label) {
-            <div class="bar-chart-item">
-              <span class="bar-chart-item__label">{{ barre.label }}</span>
-              <div class="bar-chart-item__track">
-                <div class="bar-chart-item__fill"
-                     [style.width]="largeurBarre(barre.valeur)"
-                     [style.background]="barre.couleur"></div>
-              </div>
-              <strong class="bar-chart-item__val">{{ barre.valeur }}</strong>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- Alertes Médicales Triage -->
-      <section class="pro-card dash-panel">
-        <div class="dash-panel__header">
-          <div>
-            <h2 class="dash-panel__title">Alertes & Triage</h2>
-            <p class="dash-panel__subtitle">Signalements maternels par niveau d'urgence</p>
-          </div>
-        </div>
-
-        <div class="alert-matrix">
-          <div class="alert-box alert-box--urgent">
-            <span class="alert-box__count">{{ d.nombreAlertesUrgentes }}</span>
-            <span class="alert-box__title">Alertes urgentes</span>
-          </div>
-          <div class="alert-box alert-box--new">
-            <span class="alert-box__count">{{ d.nombreAlertesNouvelles }}</span>
-            <span class="alert-box__title">En attente</span>
-          </div>
-          <div class="alert-box alert-box--ongoing">
-            <span class="alert-box__count">{{ d.nombreAlertesPrisesEnCharge }}</span>
-            <span class="alert-box__title">En cours</span>
-          </div>
-          <div class="alert-box alert-box--resolved">
-            <span class="alert-box__count">{{ d.nombreAlertesResolues }}</span>
-            <span class="alert-box__title">Résolues</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Activité des établissements -->
-      <section class="pro-card dash-panel dash-panel--wide">
-        <div class="dash-panel__header">
-          <div>
-            <h2 class="dash-panel__title">Activité des centres de santé</h2>
-            <p class="dash-panel__subtitle">Rendez-vous par structure partenaire</p>
-          </div>
-          <span class="pro-badge">{{ d.nombreEtablissementsActifs }} structures actives</span>
-        </div>
-
-        @if (etablissementsTries().length === 0) {
-          <div class="dash-empty">
-            <p>Aucun établissement enregistré pour le moment.</p>
-          </div>
+      <!-- Trimestres -->
+      <section class="card panel" aria-labelledby="titre-trimestres">
+        <header class="panel__head">
+          <h2 id="titre-trimestres" class="panel__title">Grossesses en cours par trimestre</h2>
+        </header>
+        @if (totalTrimestres() === 0) {
+          <yay360-state type="vide" [compact]="true" message="Aucune grossesse en cours." />
         } @else {
-          <div class="pro-table-wrapper">
-            <table class="pro-table">
-              <thead>
-                <tr>
-                  <th>Centre de santé</th>
-                  <th>Localité / Ville</th>
-                  <th style="text-align: right;">Rendez-vous cumulés</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (etab of etablissementsTries(); track etab.etablissementId) {
-                  <tr>
-                    <td>
-                      <div class="etab-cell">
-                        <span class="etab-cell__dot"></span>
-                        <strong>{{ etab.nom }}</strong>
-                      </div>
-                    </td>
-                    <td>{{ etab.ville || '—' }}</td>
-                    <td style="text-align: right;">
-                      <span class="pro-badge pro-badge--primary">{{ etab.nombreRendezVous }} RDV</span>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+          <div class="trim">
+            <yay360-ring-chart [data]="segmentsTrimestre()" [size]="170" [epaisseur]="20" centerLabel="en cours" />
+            <ul class="legend">
+              @for (s of segmentsTrimestre(); track s.label) {
+                <li>
+                  <span class="legend__swatch" [style.background]="s.color" aria-hidden="true"></span>
+                  <span class="legend__label">{{ s.label }}</span>
+                  <strong>{{ s.value }}</strong>
+                  <span class="legend__pct">{{ pourcentage(s.value, totalTrimestres()) }} %</span>
+                </li>
+              }
+            </ul>
           </div>
         }
       </section>
 
+      <!-- Issue des grossesses -->
+      <section class="card panel" aria-labelledby="titre-issues">
+        <header class="panel__head">
+          <h2 id="titre-issues" class="panel__title">Statut des grossesses</h2>
+          @if (d.nombreGrossessesARisque) {
+            <a routerLink="/grossesses" class="badge badge--orange">{{ d.nombreGrossessesARisque }} à risque</a>
+          }
+        </header>
+        <ul class="bars">
+          @for (b of issues(); track b.label) {
+            <li class="bars__row" [title]="b.label + ' : ' + b.valeur">
+              <span class="bars__label">{{ b.label }}</span>
+              <span class="bars__track"><span class="bars__fill" [style.width]="largeur(b.valeur, issues())"></span></span>
+              <strong class="bars__value">{{ b.valeur | number }}</strong>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Rendez-vous -->
+      <section class="card panel" aria-labelledby="titre-rdv">
+        <header class="panel__head">
+          <h2 id="titre-rdv" class="panel__title">Rendez-vous par statut</h2>
+          <a routerLink="/rendez-vous" class="panel__link">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
+        </header>
+        <ul class="bars">
+          @for (b of barresRendezVous(); track b.label) {
+            <li class="bars__row" [title]="b.label + ' : ' + b.valeur">
+              <span class="bars__label">{{ b.label }}</span>
+              <span class="bars__track"><span class="bars__fill" [style.width]="largeur(b.valeur, barresRendezVous())"></span></span>
+              <strong class="bars__value">{{ b.valeur | number }}</strong>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Alertes -->
+      <section class="card panel" aria-labelledby="titre-alertes">
+        <header class="panel__head">
+          <h2 id="titre-alertes" class="panel__title">Alertes</h2>
+          <a routerLink="/alertes" class="panel__link">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
+        </header>
+        <div class="statuses">
+          @for (s of statutsAlertes(); track s.label) {
+            <div class="status" [attr.data-ton]="s.ton">
+              <span class="status__icon" aria-hidden="true"><yay360-icon [name]="s.icone" [size]="16" /></span>
+              <strong>{{ s.valeur | number }}</strong>
+              <span>{{ s.label }}</span>
+            </div>
+          }
+        </div>
+
+        <p class="panel__sub">Alertes non résolues par niveau de gravité</p>
+        @if (gravites().total === 0) {
+          <p class="panel__empty"><yay360-icon name="check" [size]="16" aria-hidden="true" /> Aucune alerte en attente.</p>
+        } @else {
+          <div class="stack" role="img" [attr.aria-label]="'Répartition : ' + gravites().items[0].valeur + ' urgentes, ' + gravites().items[1].valeur + ' élevées, ' + gravites().items[2].valeur + ' modérées'">
+            @for (g of gravites().items; track g.label) {
+              @if (g.valeur) {
+                <span class="stack__part" [attr.data-ton]="g.ton" [style.flex-grow]="g.valeur" [title]="g.label + ' : ' + g.valeur"></span>
+              }
+            }
+          </div>
+          <ul class="stack__legend">
+            @for (g of gravites().items; track g.label) {
+              <li [attr.data-ton]="g.ton"><span class="stack__dot" aria-hidden="true"></span>{{ g.label }} <strong>{{ g.valeur }}</strong></li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Établissements -->
+      <section class="card panel panel--wide" aria-labelledby="titre-etab">
+        <header class="panel__head">
+          <h2 id="titre-etab" class="panel__title">Activité des établissements</h2>
+          <span class="badge badge--primary">{{ d.nombreEtablissementsActifs }} actif{{ d.nombreEtablissementsActifs > 1 ? 's' : '' }}</span>
+        </header>
+        @if (etablissementsTries().length === 0) {
+          <yay360-state type="vide" [compact]="true" message="Aucun établissement enregistré pour le moment." />
+        } @else {
+          <ol class="etabs">
+            @for (e of etablissementsTries(); track e.etablissementId; let i = $index) {
+              <li class="etabs__row">
+                <span class="etabs__rank" aria-hidden="true">{{ i + 1 }}</span>
+                <span class="etabs__name">
+                  <strong>{{ e.nom }}</strong>
+                  <small><yay360-icon name="map-pin" [size]="12" aria-hidden="true" /> {{ e.ville || 'Ville non renseignée' }}</small>
+                </span>
+                <span class="bars__track etabs__track"><span class="bars__fill" [style.width]="largeur(e.nombreRendezVous, etablissementsTries())"></span></span>
+                <strong class="etabs__value">{{ e.nombreRendezVous | number }} <small>RDV</small></strong>
+              </li>
+            }
+          </ol>
+        }
+      </section>
     </div>
-
-    <!-- Pied de page discret -->
-    <footer class="dash-footer">
-      <span>Dernière synchronisation : {{ d.dateGeneration | date: 'dd/MM/yyyy à HH:mm' }}</span>
-    </footer>
-
   }
-
 </div>

@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 import {
   AnnulerRendezVousRequest,
   ChangerStatutRendezVousRequest,
+  ModifierRendezVousRequest,
+  PlanifierRendezVousRequest,
   PrendreRendezVousRequest,
   RendezVousDto,
   StatutRendezVous,
@@ -41,6 +43,18 @@ export class RendezVousService {
 
   changerStatut(id: number, request: ChangerStatutRendezVousRequest): Observable<RendezVousDto> {
     return this.http.put<RendezVousDto>(`${this.baseUrl}/${id}/statut`, request);
+  }
+
+  planifier(request: PlanifierRendezVousRequest): Observable<RendezVousDto> {
+    return this.http.post<RendezVousDto>(`${this.baseUrl}/planifier`, request);
+  }
+
+  reporter(id: number, request: ModifierRendezVousRequest): Observable<RendezVousDto> {
+    return this.http.put<RendezVousDto>(`${this.baseUrl}/${id}`, request);
+  }
+
+  mesRendezVousAVenir(): Observable<RendezVousDto[]> {
+    return this.http.get<RendezVousDto[]>(`${this.baseUrl}/mes-rendez-vous/a-venir`);
   }
 
   annuler(id: number, request: AnnulerRendezVousRequest = {}): Observable<RendezVousDto> {

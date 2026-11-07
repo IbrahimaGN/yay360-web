@@ -29,11 +29,20 @@ export type IconName =
   | 'eye'
   | 'eye-off'
   | 'heart'
-  | 'chat';
+  | 'activity'
+  | 'arrow-right'
+  | 'mail'
+  | 'phone'
+  | 'map-pin'
+  | 'shield';
 
 export interface NavItem {
   label: string;
+  /** Libellé court affiché sous l'icône dans la barre latérale. */
+  court: string;
   path: string;
   icon: IconName;
   roles: Role[];
+  /** Section de la barre latérale. */
+  section: 'general' | 'suivi' | 'gestion';
 }

@@ -17,10 +17,15 @@ export interface AlerteDto {
   dateResolution: string | null;
   recommandation: string;
   avertissement: string;
+  /** PATIENTE (symptôme signalé) ou ANALYSE_AUTOMATIQUE (constantes anormales en consultation). */
+  origine: 'PATIENTE' | 'ANALYSE_AUTOMATIQUE' | null;
+  /** Règles de triage appliquées (intelligence explicable). */
+  justificationTriage: string[];
 }
 
+/** Résolution : les observations sont obligatoires (traçabilité). */
 export interface PriseEnChargeRequest {
-  notesPriseEnCharge?: string;
+  notesPriseEnCharge: string;
 }
 
 export interface DeclarerSymptomeRequest {

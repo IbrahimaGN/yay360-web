@@ -13,7 +13,11 @@ export interface GrossesseDto {
   motifRisque: string | null;
   nombreGrossessesPrecedentes: number | null;
   antecedents: string | null;
-  dateAccouchementReelle: string | null;
+  /** Établissement qui assure le suivi : ses soignants ont accès au dossier. */
+  etablissementSuiviId: number | null;
+  etablissementSuiviNom: string | null;
+  /** Date de l'accouchement ou de l'interruption. */
+  dateFin: string | null;
   dateCreation: string;
 }
 
@@ -75,11 +79,61 @@ export interface DeclarerRisqueRequest {
 
 export interface TerminerGrossesseRequest {
   statut: 'TERMINEE' | 'INTERROMPUE';
-  dateAccouchementReelle?: string;
+  dateFin?: string;
 }
 
 export interface DeclarerGrossesseRequest {
   dateDernieresRegles: string;
   nombreGrossessesPrecedentes?: number;
   antecedents?: string;
+  etablissementId?: number | null;
+}
+
+export interface ChoisirEtablissementRequest {
+  etablissementId: number;
+}
+
+/** Rattachement par un soignant : le téléphone de la patiente sert de preuve de présence. */
+export interface RattacherGrossesseRequest {
+  etablissementId: number;
+  telephonePatiente: string;
+}
+
+/** Résultat de recherche : aucune donnée clinique. */
+export interface PatienteRechercheDto {
+  grossesseId: number;
+  prenom: string;
+  nom: string;
+  semaineActuelle: number;
+  etablissementSuiviNom: string | null;
+  dejaSuivie: boolean;
+}
+
+export type StatutContactCpn = 'REALISE' | 'PLANIFIE' | 'A_VENIR' | 'EN_RETARD';
+
+/** Un des 8 contacts prénatals recommandés par l'OMS. */
+export interface ContactCpn {
+  numero: number;
+  semaineCible: number;
+  dateCible: string;
+  statut: StatutContactCpn;
+  dateRealisation: string | null;
+}
+
+export interface PlanCpnDto {
+  grossesseId: number;
+  semaineActuelle: number;
+  contacts: ContactCpn[];
+  nombreRealises: number;
+  nombreEnRetard: number;
+  reference: string;
+}
+
+/** Aide à la décision : seul le médecin classe une grossesse à risque. */
+export interface EvaluationRisqueDto {
+  grossesseId: number;
+  grossesseARisque: boolean;
+  facteurs: string[];
+  suggestionDeclarerARisque: boolean;
+  avertissement: string;
 }

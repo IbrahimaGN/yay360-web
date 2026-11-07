@@ -12,6 +12,9 @@ export interface DashboardDto {
   nombreAdmins: number;
 
   nombreGrossessesActives: number;
+  nombreGrossessesTerminees: number;
+  nombreGrossessesInterrompues: number;
+  /** Grossesses à risque EN COURS (les grossesses clôturées ne sont pas comptées). */
   nombreGrossessesARisque: number;
   repartitionGrossessesParTrimestre: Record<string, number>;
 
@@ -22,7 +25,17 @@ export interface DashboardDto {
   nombreAlertesNouvelles: number;
   nombreAlertesPrisesEnCharge: number;
   nombreAlertesResolues: number;
+  /** Alertes urgentes non résolues. */
   nombreAlertesUrgentes: number;
+  repartitionAlertesNonResoluesParGravite: Record<string, number>;
+
+  // --- Indicateurs de pilotage (cahier des charges §4.8) ---
+  /** Grossesses à risque en cours / grossesses en cours, en %. */
+  ratioGrossessesARisque: number;
+  /** Alertes résolues / alertes déclarées, en %. */
+  tauxResolutionAlertes: number;
+  /** Délai moyen déclaration → prise en charge, en minutes (null si aucune donnée). */
+  delaiMoyenPriseEnChargeMinutes: number | null;
 
   nombreEtablissementsActifs: number;
   activiteEtablissements: ActiviteEtablissement[];

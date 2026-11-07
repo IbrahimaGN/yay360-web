@@ -1,95 +1,147 @@
-<div class="pro-fade-in">
+<div class="nc">
+  <a [routerLink]="rendezVousId() ? '/rendez-vous' : '/consultations'" class="nc__back">
+    <yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> {{ rendezVousId() ? 'Retour aux rendez-vous' : 'Retour aux consultations' }}
+  </a>
 
-  <!-- Retour -->
-  <div class="detail-nav">
-    <a routerLink="/rendez-vous" class="back-btn">
-      <span>← Retour aux rendez-vous</span>
-    </a>
-  </div>
+  <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="nc__layout">
 
-  <div class="form-container pro-card">
-    <header class="form-header">
-      <span class="pro-header__tag">Pratique Clinique</span>
-      <h1 class="form-title">Enregistrement d'une Consultation</h1>
-      <p class="form-desc">Saisissez les constantes médicales, diagnostics et ordonnances pour le dossier obstétrical.</p>
-    </header>
-
-    <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="form-body">
-
-      <!-- Dossier Grossesse -->
-      <div class="form-section">
-        <h3 class="form-section__title">1. Référence de la Grossesse</h3>
-        <div class="field-item">
-          <label for="grossesseId">Numéro de dossier grossesse (ID)</label>
-          <input id="grossesseId" type="number" formControlName="grossesseId" placeholder="ex. 12" />
-          <span class="field-hint">Rempli automatiquement si initié depuis un rendez-vous planifié.</span>
+    <!-- ═══════════ Colonne formulaire ═══════════ -->
+    <div class="nc__main">
+      <section class="card nc__intro">
+        <span class="nc__intro-icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="24" /></span>
+        <div>
+          <h2 class="section-title">Nouvelle consultation</h2>
+          <p>Saisissez les constantes et vos conclusions. Seule la patiente est obligatoire.</p>
         </div>
-      </div>
+      </section>
 
-      <!-- Constantes Vitales -->
-      <div class="form-section">
-        <h3 class="form-section__title">2. Constantes Vitales & Biomécaniques</h3>
-        <div class="fields-grid-3">
-          <div class="field-item">
-            <label for="poidsKg">Poids actuel (kg)</label>
-            <input id="poidsKg" type="number" step="0.1" formControlName="poidsKg" placeholder="ex. 64.5" />
+      <!-- 1. Patiente -->
+      <section class="card block" aria-labelledby="t-patiente">
+        <h3 id="t-patiente" class="block__title"><span class="block__num">1</span> Patiente et lieu</h3>
+        <div class="field-row">
+          <div class="field">
+            <label for="grossesseId">Patiente *</label>
+            <select id="grossesseId" formControlName="grossesseId" [attr.aria-invalid]="invalide('grossesseId')" aria-describedby="aide-patiente">
+              <option [ngValue]="null" disabled>Choisir une patiente suivie…</option>
+              @for (g of patientes(); track g.id) {
+                <option [ngValue]="g.id">{{ g.femmeEnceinteNomComplet }} — semaine {{ g.semaineActuelle }}</option>
+              }
+            </select>
+            @if (invalide('grossesseId')) { <span class="field-error">Choisissez la patiente.</span> }
+            <span class="field-hint" id="aide-patiente">Nouvelle patiente ? <a routerLink="/grossesses/recherche" class="lien-texte">Rattachez-la d’abord</a>.</span>
           </div>
-          <div class="field-item">
+          <div class="field">
+            <label for="etablissementId">Établissement</label>
+            <select id="etablissementId" formControlName="etablissementId">
+              <option [ngValue]="null">Établissement du rendez-vous ou de suivi</option>
+              @for (e of etablissements(); track e.id) { <option [ngValue]="e.id">{{ e.nom }}</option> }
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Constantes -->
+      <section class="card block" aria-labelledby="t-constantes">
+        <h3 id="t-constantes" class="block__title"><span class="block__num">2</span> Constantes</h3>
+        <div class="vitals">
+          <div class="field">
             <label for="tensionArterielle">Tension artérielle</label>
-            <input id="tensionArterielle" type="text" formControlName="tensionArterielle" placeholder="ex. 12/8" />
+            <div class="unit"><input id="tensionArterielle" type="text" inputmode="numeric" formControlName="tensionArterielle" placeholder="120/80"
+                   [attr.aria-invalid]="invalide('tensionArterielle')" aria-describedby="aide-ta" /><span>mmHg</span></div>
+            <span class="field-hint" id="aide-ta" [class.field-error]="invalide('tensionArterielle')">En mmHg : 120/80 et non 12/8.</span>
           </div>
-          <div class="field-item">
-            <label for="temperatureC">Température (°C)</label>
-            <input id="temperatureC" type="number" step="0.1" formControlName="temperatureC" placeholder="ex. 37.1" />
+          <div class="field">
+            <label for="poidsKg">Poids</label>
+            <div class="unit"><input id="poidsKg" type="number" step="0.1" min="20" max="250" formControlName="poidsKg" placeholder="64.5" [attr.aria-invalid]="invalide('poidsKg')" /><span>kg</span></div>
+            @if (invalide('poidsKg')) { <span class="field-error">Entre 20 et 250 kg.</span> }
           </div>
-          <div class="field-item">
-            <label for="hauteurUterineCm">Hauteur utérine (cm)</label>
-            <input id="hauteurUterineCm" type="number" step="0.1" formControlName="hauteurUterineCm" placeholder="ex. 28" />
+          <div class="field">
+            <label for="temperatureC">Température</label>
+            <div class="unit"><input id="temperatureC" type="number" step="0.1" min="25" max="45" formControlName="temperatureC" placeholder="37.1" [attr.aria-invalid]="invalide('temperatureC')" /><span>°C</span></div>
+            @if (invalide('temperatureC')) { <span class="field-error">Entre 25 et 45 °C.</span> }
           </div>
-          <div class="field-item">
-            <label for="battementsCoeurFoetal">BCF (bpm fœtus)</label>
-            <input id="battementsCoeurFoetal" type="number" formControlName="battementsCoeurFoetal" placeholder="ex. 140" />
+          <div class="field">
+            <label for="hauteurUterineCm">Hauteur utérine</label>
+            <div class="unit"><input id="hauteurUterineCm" type="number" step="0.1" min="0" max="50" formControlName="hauteurUterineCm" placeholder="28" [attr.aria-invalid]="invalide('hauteurUterineCm')" /><span>cm</span></div>
+            @if (invalide('hauteurUterineCm')) { <span class="field-error">Entre 0 et 50 cm.</span> }
+          </div>
+          <div class="field">
+            <label for="battementsCoeurFoetal">Bruits du cœur fœtal</label>
+            <div class="unit"><input id="battementsCoeurFoetal" type="number" min="0" max="300" formControlName="battementsCoeurFoetal" placeholder="140" [attr.aria-invalid]="invalide('battementsCoeurFoetal')" /><span>/min</span></div>
+            @if (invalide('battementsCoeurFoetal')) { <span class="field-error">Entre 0 et 300 /min.</span> }
           </div>
         </div>
-      </div>
+        <p class="block__note">
+          <yay360-icon name="activity" [size]="16" aria-hidden="true" />
+          <span>À l’enregistrement, les constantes sont comparées aux règles de vigilance (tension, fièvre, rythme cardiaque fœtal, hauteur utérine, poids). Une valeur hors seuil crée une alerte tracée ; ce n’est pas un diagnostic.</span>
+        </p>
+      </section>
 
-      <!-- Examen Médical & Prescription -->
-      <div class="form-section">
-        <h3 class="form-section__title">3. Examen Clinique & Ordonnance</h3>
-        <div class="field-item">
+      <!-- 3. Examen -->
+      <section class="card block" aria-labelledby="t-examen">
+        <h3 id="t-examen" class="block__title"><span class="block__num">3</span> Examen et conduite à tenir</h3>
+        <div class="field">
           <label for="observations">Observations cliniques</label>
-          <textarea id="observations" rows="3" formControlName="observations" placeholder="État général, examen obstétrical, œdèmes..."></textarea>
+          <textarea id="observations" rows="3" formControlName="observations" placeholder="État général, examen obstétrical…"></textarea>
+        </div>
+        <div class="field">
+          <label for="diagnostic">Diagnostic</label>
+          <textarea id="diagnostic" rows="2" formControlName="diagnostic"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="traitement">Traitement</label>
+            <textarea id="traitement" rows="2" formControlName="traitement"></textarea>
+          </div>
+          <div class="field">
+            <label for="prescriptions">Examens prescrits</label>
+            <textarea id="prescriptions" rows="2" formControlName="prescriptions"></textarea>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════ Récapitulatif ═══════════ -->
+    <aside class="nc__side">
+      <section class="card recap" aria-labelledby="t-recap">
+        <h3 id="t-recap" class="recap__title">Récapitulatif</h3>
+
+        @if (patiente(); as g) {
+          <div class="recap__patient" [class.recap__patient--risk]="g.grossesseARisque">
+            <span class="avatar" [class.avatar--orange]="g.grossesseARisque" aria-hidden="true">{{ initiales(g.femmeEnceinteNomComplet) }}</span>
+            <div>
+              <strong>{{ g.femmeEnceinteNomComplet }}</strong>
+              <small>Semaine {{ g.semaineActuelle }} · {{ g.trimestre }}</small>
+            </div>
+            @if (g.grossesseARisque) { <span class="badge badge--warning">À risque</span> }
+          </div>
+          <a [routerLink]="['/grossesses', g.id]" class="recap__link" target="_blank" rel="noopener">Voir la fiche grossesse <yay360-icon name="arrow-right" [size]="14" aria-hidden="true" /></a>
+        } @else {
+          <p class="recap__empty"><yay360-icon name="user" [size]="16" aria-hidden="true" /> Aucune patiente choisie.</p>
+        }
+
+        @if (rendezVousId()) {
+          <p class="recap__rdv"><yay360-icon name="calendar" [size]="16" aria-hidden="true" /> Liée au rendez-vous n° {{ rendezVousId() }}</p>
+        }
+
+        <div class="recap__vitals">
+          <p>Constantes saisies <strong>{{ nombreConstantes() }} / 5</strong></p>
+          <ul>
+            @for (c of constantes(); track c.libelle) {
+              <li [class.ok]="c.ok"><span aria-hidden="true">@if (c.ok) { <yay360-icon name="check" [size]="12" /> }</span>{{ c.libelle }}<span class="sr-only">{{ c.ok ? ' : saisie' : ' : non saisie' }}</span></li>
+            }
+          </ul>
         </div>
 
-        <div class="field-item">
-          <label for="diagnostic">Diagnostic obstétrical</label>
-          <textarea id="diagnostic" rows="2" formControlName="diagnostic" placeholder="Conclusion clinique de la visite..."></textarea>
-        </div>
+        @if (erreur()) {
+          <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreur() }}</span></div>
+        }
 
-        <div class="field-item">
-          <label for="traitement">Traitement administré ou préconisé</label>
-          <textarea id="traitement" rows="2" formControlName="traitement" placeholder="Suppléments en fer, acide folique, repos..."></textarea>
-        </div>
-
-        <div class="field-item">
-          <label for="prescriptions">Prescriptions d'examens complémentaires</label>
-          <textarea id="prescriptions" rows="2" formControlName="prescriptions" placeholder="Échographie morphologique, NFS, glycémie..."></textarea>
-        </div>
-      </div>
-
-      @if (erreur()) {
-        <div class="form-alert">
-          <p>{{ erreur() }}</p>
-        </div>
-      }
-
-      <div class="form-actions">
-        <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
-          <span>{{ enregistrement() ? 'Enregistrement en cours…' : 'Valider et Enregistrer la Consultation' }}</span>
+        <button type="submit" class="pro-btn pro-btn--accent pro-btn--block" [disabled]="enregistrement()">
+          @if (enregistrement()) { <span class="btn-spinner" aria-hidden="true"></span> Enregistrement… }
+          @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Enregistrer la consultation }
         </button>
-      </div>
-
-    </form>
-  </div>
-
+      </section>
+    </aside>
+  </form>
 </div>

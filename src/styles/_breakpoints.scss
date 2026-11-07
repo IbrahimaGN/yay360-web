@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Points de rupture YAY360 — 4 paliers seulement.
+   Usage dans un composant :
+     @use 'breakpoints' as bp;
+     .x { @include bp.down(md) { … } }
+   ========================================================================== */
+@use 'sass:map';
+
+$breakpoints: (
+  sm: 480px,   // grand téléphone
+  md: 768px,   // tablette portrait
+  lg: 1024px,  // tablette paysage / petit portable
+  xl: 1280px,  // bureau
+);
+
+/// Écrans plus petits que le palier (max-width exclusif).
+@mixin down($name) {
+  @media (max-width: map.get($breakpoints, $name) - 0.02px) { @content; }
+}
+
+/// Écrans au moins aussi larges que le palier.
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) { @content; }
+}

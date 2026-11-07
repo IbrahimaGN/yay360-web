@@ -20,6 +20,8 @@ export interface ConsultationDto {
   traitement: string | null;
   prescriptions: string | null;
   dateCreation: string;
+  /** Signaux détectés automatiquement par le moteur de règles sur les constantes. */
+  signauxCliniques: string[];
 }
 
 export interface EnregistrerConsultationRequest {

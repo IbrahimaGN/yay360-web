@@ -1,0 +1,164 @@
+<main class="auth-bg">
+  <yay360-theme-toggle class="auth-theme" />
+  <div class="auth-split reg">
+
+    <!-- ═══════════ Présentation ═══════════ -->
+    <section class="auth-intro reg__intro">
+      <a routerLink="/" class="auth-logo" aria-label="YAY360 — accueil">
+        <img src="yay360-logo.png" alt="" width="52" height="52" />
+        <span>YaY°360</span>
+      </a>
+      <h1 class="auth-intro__title">Créez votre<br />espace maman</h1>
+      <p class="auth-intro__text">
+        Un seul dossier pour suivre votre grossesse avec votre conjoint et votre équipe de santé.
+      </p>
+
+      <ol class="reg-steps" aria-label="Étapes après l’inscription">
+        <li class="reg-steps__item reg-steps__item--current">
+          <span class="reg-steps__num" aria-hidden="true">1</span>
+          <div><strong>Créer votre compte</strong><span>Vous êtes ici</span></div>
+        </li>
+        <li class="reg-steps__item">
+          <span class="reg-steps__num" aria-hidden="true">2</span>
+          <div><strong>Déclarer votre grossesse</strong><span>La date des dernières règles suffit</span></div>
+        </li>
+        <li class="reg-steps__item">
+          <span class="reg-steps__num" aria-hidden="true">3</span>
+          <div><strong>Choisir votre structure</strong><span>Et inviter votre conjoint si vous le souhaitez</span></div>
+        </li>
+      </ol>
+
+      <p class="reg-pro">
+        <yay360-icon name="info" [size]="18" aria-hidden="true" />
+        <span>Médecin ou sage-femme ? Votre compte est créé par l’administrateur de votre structure.</span>
+      </p>
+    </section>
+
+    <!-- ═══════════ Formulaire ═══════════ -->
+    <section class="auth-card auth-card--wide reg__card" aria-labelledby="titre-inscription">
+      <a routerLink="/" class="reg__back"><yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> Accueil</a>
+
+      <div class="auth-head">
+        <span class="auth-kicker">Votre accompagnement commence ici</span>
+        <h2 id="titre-inscription">Créer mon espace</h2>
+        <p>Tous les champs sont obligatoires.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+
+        <!-- Identité -->
+        <fieldset class="reg-group">
+          <legend class="reg-group__title"><span class="reg-group__icon"><yay360-icon name="user" [size]="16" aria-hidden="true" /></span> Identité</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" type="text" formControlName="prenom" autocomplete="given-name" placeholder="Votre prénom"
+                     [attr.aria-invalid]="invalide('prenom')" aria-describedby="prenom-erreur" />
+              @if (invalide('prenom')) { <span class="field-error" id="prenom-erreur">Au moins 2 lettres (tiret et apostrophe acceptés).</span> }
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input id="nom" type="text" formControlName="nom" autocomplete="family-name" placeholder="Votre nom"
+                     [attr.aria-invalid]="invalide('nom')" aria-describedby="nom-erreur" />
+              @if (invalide('nom')) { <span class="field-error" id="nom-erreur">Au moins 2 lettres (tiret et apostrophe acceptés).</span> }
+            </div>
+          </div>
+          <div class="field">
+            <label for="dateNaissance">Date de naissance</label>
+            <input id="dateNaissance" type="date" formControlName="dateNaissance" [max]="anneeNaissanceMax" autocomplete="bday"
+                   [attr.aria-invalid]="invalide('dateNaissance')" aria-describedby="naissance-erreur" />
+            @if (invalide('dateNaissance')) { <span class="field-error" id="naissance-erreur">Choisissez une date de naissance valide.</span> }
+          </div>
+        </fieldset>
+
+        <!-- Coordonnées -->
+        <fieldset class="reg-group">
+          <legend class="reg-group__title"><span class="reg-group__icon reg-group__icon--orange"><yay360-icon name="phone" [size]="16" aria-hidden="true" /></span> Coordonnées</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="email">Adresse e-mail</label>
+              <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="nom@exemple.sn"
+                     [attr.aria-invalid]="invalide('email')" aria-describedby="email-erreur" />
+              @if (invalide('email')) { <span class="field-error" id="email-erreur">Saisissez une adresse e-mail valide.</span> }
+            </div>
+            <div class="field">
+              <label for="telephone">Téléphone</label>
+              <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" inputmode="tel" placeholder="+221771234567"
+                     [attr.aria-invalid]="invalide('telephone')" aria-describedby="telephone-aide" />
+              @if (invalide('telephone')) {
+                <span class="field-error" id="telephone-aide">{{ aideTelephone }}</span>
+              } @else {
+                <span class="field-hint" id="telephone-aide">+221 puis 9 chiffres, sans espace</span>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Sécurité -->
+        <fieldset class="reg-group">
+          <legend class="reg-group__title"><span class="reg-group__icon reg-group__icon--lilac"><yay360-icon name="shield" [size]="16" aria-hidden="true" /></span> Sécurité</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="password">Mot de passe</label>
+              <div class="pwd">
+                <input id="password" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="password"
+                       autocomplete="new-password" [attr.aria-invalid]="invalide('password')" aria-describedby="regles-mdp" />
+                <button type="button" (click)="motDePasseVisible.set(!motDePasseVisible())"
+                        [attr.aria-label]="motDePasseVisible() ? 'Masquer les mots de passe' : 'Afficher les mots de passe'"
+                        [attr.aria-pressed]="motDePasseVisible()">
+                  <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="confirmation">Confirmation</label>
+              <input id="confirmation" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="confirmation"
+                     autocomplete="new-password" placeholder="Saisir à nouveau"
+                     [attr.aria-invalid]="invalide('confirmation')" aria-describedby="confirmation-erreur" />
+              @if (form.controls.confirmation.touched && form.controls.confirmation.errors?.['mismatch']) {
+                <span class="field-error" id="confirmation-erreur">Les mots de passe ne correspondent pas.</span>
+              } @else if (invalide('confirmation')) {
+                <span class="field-error" id="confirmation-erreur">Confirmez votre mot de passe.</span>
+              }
+            </div>
+          </div>
+
+          <ul class="pwd-rules" id="regles-mdp" aria-label="Règles du mot de passe">
+            @for (r of reglesMotDePasse(); track r.libelle) {
+              <li [class.pwd-rules__ok]="r.ok" [class.pwd-rules__ko]="!r.ok && form.controls.password.touched">
+                <span class="pwd-rules__mark" aria-hidden="true">
+                  @if (r.ok) { <yay360-icon name="check" [size]="12" /> }
+                </span>
+                {{ r.libelle }}<span class="sr-only">{{ r.ok ? ' : respecté' : ' : non respecté' }}</span>
+              </li>
+            }
+          </ul>
+        </fieldset>
+
+        @if (erreur()) {
+          <div class="pro-notice pro-notice--error" role="alert">
+            <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+            <span>{{ erreur() }}</span>
+          </div>
+        }
+
+        <p class="reg-privacy">
+          <yay360-icon name="shield" [size]="16" aria-hidden="true" />
+          <span>Vos informations servent uniquement à votre suivi. YAY360 ne remplace pas l’avis d’un professionnel de santé.</span>
+        </p>
+
+        <button type="submit" class="pro-btn pro-btn--accent pro-btn--block auth-submit" [disabled]="chargement()">
+          @if (chargement()) {
+            <span class="btn-spinner" aria-hidden="true"></span> Création en cours…
+          } @else {
+            Créer mon compte <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" />
+          }
+        </button>
+      </form>
+
+      <p class="auth-foot">Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a></p>
+    </section>
+  </div>
+
+  <yay360-feuillage class="auth-bg__leaves" />
+</main>

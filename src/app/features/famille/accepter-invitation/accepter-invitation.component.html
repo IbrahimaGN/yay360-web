@@ -1,76 +1,153 @@
-<div class="login-shell">
-  <section class="brand-panel">
-    <div class="brand-panel__bg"></div>
-    <div class="brand-panel__content">
-      <div class="brand-logo">
-        <img src="yay360-logo.png" class="brand-logo__image" alt="Logo YAY360">
-      </div>
-      <h1 class="brand-name">YaY°360</h1>
-      <p class="brand-sub">Un suivi maternel partagé pendant la grossesse.</p>
-    </div>
-  </section>
+<main class="auth-bg">
+  <yay360-theme-toggle class="auth-theme" />
+  <div class="auth-split inv">
 
-  <section class="form-panel">
-    <div class="form-panel__inner">
-      <div class="form-top">
-        <button type="button" class="theme-btn" (click)="themeService.toggle()"
-                [attr.aria-label]="themeService.isDark() ? 'Mode clair' : 'Mode sombre'">
-          @if (themeService.isDark()) {
-            <yay360-icon name="sun" [size]="16" />
-          } @else {
-            <yay360-icon name="moon" [size]="16" />
-          }
-        </button>
+    <!-- ═══════════ Présentation ═══════════ -->
+    <section class="auth-intro inv__intro">
+      <a routerLink="/" class="auth-logo" aria-label="YAY360 — accueil">
+        <img src="yay360-logo.png" alt="" width="52" height="52" />
+        <span>YaY°360</span>
+      </a>
+      <h1 class="auth-intro__title">Vous êtes invité<br />à rejoindre le suivi</h1>
+      <p class="auth-intro__text">
+        Votre conjointe vous a invité à accompagner sa grossesse sur YAY360. Créez votre compte conjoint personnel.
+      </p>
+
+      <ul class="inv-perks" aria-label="Ce que permet le compte conjoint">
+        <li>
+          <span class="inv-perks__icon"><yay360-icon name="heart" [size]="18" aria-hidden="true" /></span>
+          <div><strong>Suivi prénatal partagé</strong><span>Suivez l’évolution de la grossesse de votre conjointe.</span></div>
+        </li>
+        <li>
+          <span class="inv-perks__icon inv-perks__icon--orange"><yay360-icon name="users" [size]="18" aria-hidden="true" /></span>
+          <div><strong>Dossier familial</strong><span>Accédez au dossier associé à l’invitation.</span></div>
+        </li>
+        <li>
+          <span class="inv-perks__icon inv-perks__icon--lilac"><yay360-icon name="shield" [size]="18" aria-hidden="true" /></span>
+          <div><strong>Accès limité et personnel</strong><span>Votre compte ne donne accès qu’à ce dossier.</span></div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ═══════════ Formulaire ═══════════ -->
+    <section class="auth-card auth-card--wide inv__card" aria-labelledby="titre-invitation">
+      <div class="auth-head">
+        <span class="auth-kicker">Compte conjoint</span>
+        <h2 id="titre-invitation">Rejoindre le dossier familial</h2>
+        <p>Tous les champs sont obligatoires.</p>
       </div>
-      <div class="form-box">
-        <div class="form-box__header">
-          <h2>Rejoindre le dossier familial</h2>
-          <p>Créez votre compte conjoint personnel pour accéder au dossier partagé.</p>
-        </div>
-        <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
-          <div class="field">
-            <label for="token">Code d’invitation</label>
-            <input id="token" formControlName="token" autocomplete="one-time-code" />
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+
+        <!-- Invitation -->
+        <fieldset class="inv-group">
+          <legend class="inv-group__title">
+            <span class="inv-group__icon"><yay360-icon name="mail" [size]="16" aria-hidden="true" /></span> Invitation
+            @if (invitationDetectee) {
+              <span class="badge badge--success inv__detected"><yay360-icon name="check" [size]="12" aria-hidden="true" /> Détectée depuis le lien</span>
+            }
+          </legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="token">Code d’invitation</label>
+              <input id="token" formControlName="token" autocomplete="one-time-code" placeholder="Code reçu"
+                     [attr.aria-invalid]="invalide('token')" aria-describedby="err-token" />
+              @if (invalide('token')) { <span class="field-error" id="err-token">Saisissez le code reçu.</span> }
+            </div>
+            <div class="field">
+              <label for="email">E-mail invité</label>
+              <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="nom@exemple.sn"
+                     [attr.aria-invalid]="invalide('email')" aria-describedby="err-email" />
+              @if (invalide('email')) { <span class="field-error" id="err-email">Saisissez l’adresse e-mail invitée.</span> }
+            </div>
           </div>
-          <div class="field">
-            <label for="email">Email invité</label>
-            <input id="email" type="email" formControlName="email" autocomplete="email" />
-          </div>
+        </fieldset>
+
+        <!-- Identité -->
+        <fieldset class="inv-group">
+          <legend class="inv-group__title">
+            <span class="inv-group__icon inv-group__icon--orange"><yay360-icon name="user" [size]="16" aria-hidden="true" /></span> Vous
+          </legend>
           <div class="field-row">
             <div class="field">
               <label for="prenom">Prénom</label>
-              <input id="prenom" formControlName="prenom" autocomplete="given-name" />
+              <input id="prenom" formControlName="prenom" autocomplete="given-name" placeholder="Votre prénom"
+                     [attr.aria-invalid]="invalide('prenom')" aria-describedby="err-prenom" />
+              @if (invalide('prenom')) { <span class="field-error" id="err-prenom">Lettres uniquement, 2 à 50 caractères.</span> }
             </div>
             <div class="field">
               <label for="nom">Nom</label>
-              <input id="nom" formControlName="nom" autocomplete="family-name" />
+              <input id="nom" formControlName="nom" autocomplete="family-name" placeholder="Votre nom"
+                     [attr.aria-invalid]="invalide('nom')" aria-describedby="err-nom" />
+              @if (invalide('nom')) { <span class="field-error" id="err-nom">Lettres uniquement, 2 à 50 caractères.</span> }
             </div>
-          </div>
-          <div class="field">
-            <label for="password">Mot de passe</label>
-            <input id="password" type="password" formControlName="password" autocomplete="new-password"
-                   placeholder="Au moins 6 caractères, une lettre et un chiffre" />
           </div>
           <div class="field-row">
             <div class="field">
               <label for="telephone">Téléphone</label>
-              <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" />
+              <input id="telephone" type="tel" inputmode="tel" formControlName="telephone" autocomplete="tel" placeholder="+221771234567"
+                     [attr.aria-invalid]="invalide('telephone')" aria-describedby="aide-tel" />
+              @if (invalide('telephone')) {
+                <span class="field-error" id="aide-tel">{{ aideTelephone }}</span>
+              } @else {
+                <span class="field-hint" id="aide-tel">+221 puis 9 chiffres, sans espace</span>
+              }
             </div>
             <div class="field">
               <label for="dateNaissance">Date de naissance</label>
-              <input id="dateNaissance" type="date" formControlName="dateNaissance" autocomplete="bday" />
+              <input id="dateNaissance" type="date" formControlName="dateNaissance" [max]="dateNaissanceMax" autocomplete="bday"
+                     [attr.aria-invalid]="invalide('dateNaissance')" aria-describedby="err-naissance" />
+              @if (invalide('dateNaissance')) { <span class="field-error" id="err-naissance">Date de naissance obligatoire.</span> }
             </div>
           </div>
-          @if (erreur()) {
-            <div class="form-err" role="alert">{{ erreur() }}</div>
+        </fieldset>
+
+        <!-- Sécurité -->
+        <fieldset class="inv-group">
+          <legend class="inv-group__title">
+            <span class="inv-group__icon inv-group__icon--lilac"><yay360-icon name="shield" [size]="16" aria-hidden="true" /></span> Mot de passe
+          </legend>
+          <div class="field">
+            <label for="password">Choisissez un mot de passe</label>
+            <div class="pwd">
+              <input id="password" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="password" autocomplete="new-password"
+                     [attr.aria-invalid]="invalide('password')" aria-describedby="regles-mdp" />
+              <button type="button" (click)="motDePasseVisible.set(!motDePasseVisible())"
+                      [attr.aria-label]="motDePasseVisible() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                      [attr.aria-pressed]="motDePasseVisible()">
+                <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+              </button>
+            </div>
+            <ul class="pwd-rules" id="regles-mdp" aria-label="Règles du mot de passe">
+              @for (r of reglesMotDePasse(); track r.libelle) {
+                <li [class.pwd-rules__ok]="r.ok" [class.pwd-rules__ko]="!r.ok && form.controls.password.touched">
+                  <span class="pwd-rules__mark" aria-hidden="true">@if (r.ok) { <yay360-icon name="check" [size]="12" /> }</span>
+                  {{ r.libelle }}<span class="sr-only">{{ r.ok ? ' : respecté' : ' : non respecté' }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </fieldset>
+
+        @if (erreur()) {
+          <div class="pro-notice pro-notice--error" role="alert">
+            <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+            <span>{{ erreur() }}</span>
+          </div>
+        }
+
+        <button type="submit" class="pro-btn pro-btn--accent pro-btn--block auth-submit" [disabled]="chargement()">
+          @if (chargement()) {
+            <span class="btn-spinner" aria-hidden="true"></span> Création du compte…
+          } @else {
+            Rejoindre le dossier <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" />
           }
-          <button type="submit" class="submit-btn" [disabled]="chargement()">
-            @if (chargement()) { <span class="btn-spinner"></span><span>Création du compte…</span> }
-            @else { <span>Créer mon compte</span> }
-          </button>
-        </form>
-      </div>
-      <p class="privacy-note">Le compte est personnel et ne donne accès qu’au dossier familial associé à l’invitation.</p>
-    </div>
-  </section>
-</div>
+        </button>
+      </form>
+
+      <p class="auth-foot">Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a></p>
+    </section>
+  </div>
+
+  <yay360-feuillage class="auth-bg__leaves" />
+</main>

@@ -1,5 +1,6 @@
-import { DatePipe, LowerCasePipe, TitleCasePipe } from '@angular/common';
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { DatePipe, TitleCasePipe } from '@angular/common';
+import { StatutPipe } from '../../../shared/pipes/statut.pipe';
+import { Component, computed, HostListener, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AlerteDto } from '../../../core/models/alerte.model';
 import {
@@ -10,24 +11,55 @@ import {
 import { RendezVousDto } from '../../../core/models/rendez-vous.model';
 import { ConsultationDto } from '../../../core/models/consultation.model';
 import { AlerteService } from '../../../core/services/alerte.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { EtablissementService } from '../../../core/services/etablissement.service';
+import { EtablissementDto } from '../../../core/models/etablissement.model';
+import { PlanCpnDto } from '../../../core/models/grossesse.model';
+import { messageErreur } from '../../../core/utils/message-erreur';
+import { TYPES_RENDEZ_VOUS, TYPES_SYMPTOME, libelleSymptome, libelleTypeRendezVous } from '../../../core/utils/libelles';
+import { PlanCpnComponent } from '../../../shared/components/plan-cpn/plan-cpn.component';
 import { ConsultationService } from '../../../core/services/consultation.service';
 import { GrossesseService } from '../../../core/services/grossesse.service';
 import { RendezVousService } from '../../../core/services/rendez-vous.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { RingChartComponent, RingSegment } from '../../../shared/components/ring-chart/ring-chart.component';
 
 @Component({
   selector: 'yay360-suivi-prenatal',
   standalone: true,
-  imports: [DatePipe, LowerCasePipe, TitleCasePipe, ReactiveFormsModule, IconComponent],
+  imports: [StatutPipe, DatePipe, TitleCasePipe, ReactiveFormsModule, IconComponent, PlanCpnComponent, RingChartComponent],
   templateUrl: './suivi-prenatal.component.html',
   styleUrl: './suivi-prenatal.component.scss',
 })
-export class SuiviPrenatalComponent {
+export class SuiviPrenatalComponent implements OnInit {
+  /** Ouverture directe d'une action depuis l'accueil : ?action=alerte | rendez-vous. */
+  readonly action = input<string>();
+
+  ngOnInit(): void {
+    const a = this.action();
+    if (a === 'alerte' || a === 'rendez-vous') this.ouvrirAction(a);
+  }
+
   private readonly fb = inject(FormBuilder);
   private readonly grossesseService = inject(GrossesseService);
   private readonly rendezVousService = inject(RendezVousService);
   private readonly consultationService = inject(ConsultationService);
   private readonly alerteService = inject(AlerteService);
+  private readonly authService = inject(AuthService);
+  private readonly etablissementService = inject(EtablissementService);
+
+  readonly typesSymptome = TYPES_SYMPTOME;
+  readonly typesRendezVous = TYPES_RENDEZ_VOUS;
+  readonly libelleSymptome = libelleSymptome;
+  readonly libelleType = libelleTypeRendezVous;
+  /** Seule la femme enceinte déclare la grossesse et choisit son établissement (le conjoint suit). */
+  readonly estFemme = computed(() => this.authService.hasRole('FEMME_ENCEINTE'));
+  readonly etablissements = signal<EtablissementDto[]>([]);
+  readonly planCpn = signal<PlanCpnDto | null>(null);
+  /** Réponse du triage au dernier signalement : consigne immédiate à afficher (§4.7). */
+  readonly derniereAlerte = signal<AlerteDto | null>(null);
+  readonly etablissementChoisi = signal<number | null>(null);
+  readonly envoiEtablissement = signal(false);
 
   readonly chargement = signal(true);
   readonly envoiGrossesse = signal(false);
@@ -82,13 +114,25 @@ export class SuiviPrenatalComponent {
       .slice(0, 3);
   });
 
+  /** Anneau d'avancement sur 40 semaines. */
+  readonly anneau = computed<RingSegment[]>(() => {
+    const g = this.grossesseActive();
+    if (!g) return [];
+    const s = Math.min(g.semaineActuelle, 40);
+    return [
+      { label: 'Semaines écoulées', value: s, color: g.grossesseARisque ? 'var(--viz-2)' : 'var(--viz-1)' },
+      { label: 'Semaines restantes', value: 40 - s, color: 'transparent' },
+    ];
+  });
+
   readonly grossesseActive = computed(
     () => this.grossesses().find((grossesse) => grossesse.statut === 'EN_COURS') ?? null
   );
   readonly formGrossesse = this.fb.group({
     dateDernieresRegles: ['', Validators.required],
     nombreGrossessesPrecedentes: [0, [Validators.required, Validators.min(0), Validators.max(20)]],
-    antecedents: [''],
+    antecedents: ['', [Validators.maxLength(2000)]],
+    etablissementId: [null as number | null],
   });
 
   readonly formRendezVous = this.fb.group({
@@ -101,11 +145,33 @@ export class SuiviPrenatalComponent {
   readonly formAlerte = this.fb.group({
     grossesseId: [null as number | null, Validators.required],
     typeSymptome: ['', Validators.required],
-    description: [''],
+    description: ['', [Validators.maxLength(1000)]],
   });
 
   constructor() {
     this.charger();
+    this.etablissementService.listerActifs().subscribe({
+      next: (liste) => this.etablissements.set(liste),
+    });
+  }
+
+  choisirEtablissement(): void {
+    const id = this.etablissementChoisi();
+    if (!id) return;
+    this.envoiEtablissement.set(true);
+    this.erreur.set(null);
+    this.message.set(null);
+    this.grossesseService.choisirEtablissement({ etablissementId: id }).subscribe({
+      next: () => {
+        this.envoiEtablissement.set(false);
+        this.message.set('Votre établissement de suivi a été enregistré : ses soignants peuvent désormais vous suivre.');
+        this.charger();
+      },
+      error: (err) => {
+        this.envoiEtablissement.set(false);
+        this.erreur.set(messageErreur(err, "Impossible d'enregistrer cet établissement."));
+      },
+    });
   }
 
   ouvrirAction(action: 'rendez-vous' | 'alerte' | 'dossier-medical'): void {
@@ -198,17 +264,18 @@ export class SuiviPrenatalComponent {
         dateDernieresRegles: value.dateDernieresRegles!,
         nombreGrossessesPrecedentes: value.nombreGrossessesPrecedentes ?? 0,
         antecedents: value.antecedents?.trim() || undefined,
+        etablissementId: value.etablissementId,
       })
       .subscribe({
         next: () => {
           this.envoiGrossesse.set(false);
           this.message.set('La grossesse a été déclarée dans le dossier familial.');
-          this.formGrossesse.reset({ dateDernieresRegles: '', nombreGrossessesPrecedentes: 0, antecedents: '' });
+          this.formGrossesse.reset({ dateDernieresRegles: '', nombreGrossessesPrecedentes: 0, antecedents: '', etablissementId: null });
           this.charger();
         },
         error: (error) => {
           this.envoiGrossesse.set(false);
-          this.erreur.set(error?.error?.message ?? 'Impossible de déclarer cette grossesse. Vérifiez la date saisie.');
+          this.erreur.set(messageErreur(error, 'Impossible de déclarer cette grossesse. Vérifiez la date saisie.'));
         },
       });
   }
@@ -244,7 +311,7 @@ export class SuiviPrenatalComponent {
         },
         error: (error) => {
           this.envoiRendezVous.set(false);
-          this.erreur.set(error?.error?.message ?? 'Impossible de prendre ce rendez-vous. Vérifiez la date choisie.');
+          this.erreur.set(messageErreur(error, 'Impossible de prendre ce rendez-vous. Vérifiez la date choisie.'));
         },
       });
   }
@@ -266,9 +333,9 @@ export class SuiviPrenatalComponent {
         description: value.description?.trim() || undefined,
       })
       .subscribe({
-        next: () => {
+        next: (alerte) => {
           this.envoiAlerte.set(false);
-          this.message.set('Le symptôme a été transmis à l’équipe de suivi.');
+          this.derniereAlerte.set(alerte);
           this.fermerAction();
           this.formAlerte.reset({
             grossesseId: this.grossesseActive()?.id ?? null,
@@ -279,7 +346,7 @@ export class SuiviPrenatalComponent {
         },
         error: (error) => {
           this.envoiAlerte.set(false);
-          this.erreur.set(error?.error?.message ?? 'Impossible de transmettre ce symptôme. Réessayez.');
+          this.erreur.set(messageErreur(error, 'Impossible de transmettre ce symptôme. En cas d’urgence, rendez-vous immédiatement dans un établissement de santé.'));
         },
       });
   }
@@ -288,6 +355,9 @@ export class SuiviPrenatalComponent {
     this.grossesseService.obtenirMonCalendrier().subscribe({
       next: (calendrier) => this.calendrier.set(calendrier),
       error: () => this.erreur.set('Impossible de charger le calendrier de grossesse.'),
+    });
+    this.grossesseService.monPlanCpn().subscribe({
+      next: (plan) => this.planCpn.set(plan),
     });
     this.grossesseService.obtenirMonSuivi().subscribe({
       next: (suivi) => this.suivi.set(suivi),

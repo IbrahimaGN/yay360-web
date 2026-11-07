@@ -1,109 +1,199 @@
-﻿<div class="pro-fade-in">
+﻿<div class="rdv">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Organisation des soins maternels</span>
-      <h1 class="pro-header__title">Rendez-vous & Visites</h1>
-      <p class="pro-header__desc">Consultez et gérez les rendez-vous liés au suivi de grossesse.</p>
-    </div>
-  </header>
-
-  <!-- Filtres par statut -->
-  <div class="filter-bar pro-card">
-    <div class="filter-tabs">
-      @for (onglet of onglets(); track onglet.cle) {
-        <button type="button"
-                class="filter-tab"
-                [class.filter-tab--active]="ongletActif() === onglet.cle"
-                (click)="changerOnglet(onglet.cle)">
-          <span>{{ onglet.label }}</span>
-        </button>
-      }
-    </div>
-  </div>
-
-  @if (chargement()) {
-    <div class="rdv-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement des rendez-vous…</p>
-    </div>
-  } @else if (erreur()) {
-    <div class="rdv-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
-  } @else if (rendezVousGrossesse().length === 0) {
-    <div class="rdv-empty pro-card">
-      <div class="rdv-empty__circle">
-        <span>0</span>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card rdv__head">
+    <div class="rdv__intro">
+      <span class="rdv__intro-icon" aria-hidden="true"><yay360-icon name="calendar" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">{{ estProfessionnel() ? 'Mon planning' : 'Rendez-vous' }}</h2>
+        <p>
+          @if (estProfessionnel()) { Votre planning et les rendez-vous de vos patientes. }
+          @else { Vue de supervision des rendez-vous de la plateforme. }
+        </p>
       </div>
-      <h3>Aucun rendez-vous</h3>
-      <p>Aucun rendez-vous enregistré pour cette catégorie.</p>
     </div>
-  } @else {
-    <div class="rdv-cards-grid">
-      @for (rdv of rendezVousGrossesse(); track rdv.id) {
-        <div class="rdv-card pro-card">
-          <div class="rdv-card__top">
-            <div class="date-badge">
-              <span class="date-badge__day">{{ rdv.dateHeure | date: 'dd' }}</span>
-              <span class="date-badge__month">{{ rdv.dateHeure | date: 'MMM' }}</span>
-            </div>
-            <div class="rdv-card__patient">
-              <strong>{{ rdv.femmeEnceinteNomComplet }}</strong>
-              <span class="rdv-card__type">{{ rdv.type }} · {{ rdv.dateHeure | date: 'HH:mm' }}</span>
-            </div>
-            <div class="rdv-card__badge">
-              <span class="pro-badge" [class.pro-badge--primary]="rdv.statut === 'CONFIRME'">{{ rdv.statut }}</span>
-            </div>
-          </div>
+    @if (estProfessionnel()) {
+      <button type="button" class="pro-btn pro-btn--accent" (click)="planificationOuverte.set(true)">
+        <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouveau rendez-vous
+      </button>
+    }
+  </section>
 
-          <div class="rdv-card__details">
-            @if (rdv.etablissementNom) {
-              <div class="rdv-card__detail-line">
-                <span class="detail-label">Lieu :</span>
-                <span>{{ rdv.etablissementNom }}</span>
-              </div>
-            }
-            @if (rdv.motif) {
-              <div class="rdv-card__detail-line">
-                <span class="detail-label">Motif :</span>
-                <span>{{ rdv.motif }}</span>
-              </div>
-            }
-          </div>
-
-          @if (rdv.statut === 'PLANIFIE' || rdv.statut === 'CONFIRME') {
-            <div class="rdv-card__actions">
-              @if (rdv.statut === 'PLANIFIE') {
-                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
-                        [disabled]="idEnAction() === rdv.id" (click)="confirmer(rdv)">
-                  Confirmer
-                </button>
-              }
-              @if (rdv.statut === 'CONFIRME') {
-                <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm"
-                        [disabled]="idEnAction() === rdv.id" (click)="marquerTermine(rdv)">
-                  Terminé
-                </button>
-                <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm"
-                        [disabled]="idEnAction() === rdv.id" (click)="marquerAbsent(rdv)">
-                  Absente
-                </button>
-              }
-              <button type="button" class="pro-btn pro-btn--primary pro-btn--sm" (click)="enregistrerConsultation(rdv)">
-                Fiche consultation
-              </button>
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm"
-                      [disabled]="idEnAction() === rdv.id" (click)="annuler(rdv)">
-                Annuler
-              </button>
-            </div>
-          }
-        </div>
-      }
+  @if (estProfessionnel() && ongletActif() === 'MON_PLANNING' && !chargement() && !erreur() && indicateurs().aCloturer > 0) {
+    <div class="pro-notice pro-notice--warning cloture" role="status">
+      <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+      <span>{{ indicateurs().aCloturer }} rendez-vous passé{{ indicateurs().aCloturer > 1 ? 's' : '' }} encore ouvert{{ indicateurs().aCloturer > 1 ? 's' : '' }} : marquez-{{ indicateurs().aCloturer > 1 ? 'les' : 'le' }} « Terminé » ou « Absente ».</span>
+      <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="seulementACloturer.set(!seulementACloturer())">
+        {{ seulementACloturer() ? 'Tout afficher' : 'Les afficher' }}
+      </button>
     </div>
   }
 
+  @if (succes()) {
+    <div class="pro-notice pro-notice--success" role="status">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succes() }}</span>
+      <button type="button" class="notice-close" (click)="succes.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+
+  <!-- ═══════════ Filtres ═══════════ -->
+  <section class="card filters" aria-label="Filtres">
+    <div class="filters__top">
+      <div class="status-tabs" role="tablist" aria-label="Statut des rendez-vous">
+        @for (o of onglets(); track o.cle) {
+          <button type="button" role="tab" class="status-tab" [attr.data-cle]="o.cle"
+                  [class.status-tab--active]="ongletActif() === o.cle" [attr.aria-selected]="ongletActif() === o.cle"
+                  (click)="changerOnglet(o.cle)">
+            <yay360-icon [name]="o.icone" [size]="16" aria-hidden="true" /> {{ o.label }}
+          </button>
+        }
+      </div>
+      @if (!chargement() && !erreur() && filtresActifs()) {
+        <p class="filters__count" role="status">
+          <strong>{{ nombreAffiches() }}</strong> sur {{ rendezVous().length }} ·
+          <button type="button" class="filters__reset" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+        </p>
+      }
+    </div>
+
+    @if (estProfessionnel() && ongletActif() === 'MON_PLANNING' && !chargement() && !erreur()) {
+      <div class="filters__week">
+        <span class="filters__label">Jour</span>
+        <div class="week__days" role="group" aria-label="Jours">
+        @for (d of semaine(); track d.cle; let first = $first) {
+          <button type="button" class="day-btn" [class.day-btn--active]="jourChoisi() === d.cle" [class.day-btn--today]="first"
+                  [attr.aria-pressed]="jourChoisi() === d.cle" (click)="basculerJour(d.cle)"
+                  [attr.aria-label]="(d.date | date: 'EEEE d MMMM') + ' : ' + d.nombre + ' rendez-vous'">
+            <span class="day-btn__name">{{ first ? 'Auj.' : (d.date | date: 'EEE') }}</span>
+            <strong class="day-btn__num">{{ d.date | date: 'd' }}</strong>
+            <span class="day-btn__count" [class.day-btn__count--zero]="!d.nombre">{{ d.nombre }}</span>
+          </button>
+        }
+      </div>
+      </div>
+    }
+
+    <div class="filters__tools">
+      <div class="input-ico tools__search">
+        <yay360-icon name="search" [size]="18" aria-hidden="true" />
+        <input type="search" placeholder="Patiente, établissement, soignant…" aria-label="Rechercher un rendez-vous"
+               [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
+      </div>
+      <label class="tools__type">
+        <span class="sr-only">Type de rendez-vous</span>
+        <select class="select" [value]="filtreType()" (change)="filtreType.set($any($event.target).value)">
+          <option value="">Tous les types</option>
+          @for (t of typesRendezVous; track t.valeur) { <option [value]="t.valeur">{{ t.libelle }}</option> }
+        </select>
+      </label>
+    </div>
+  </section>
+
+  @if (erreurAction()) {
+    <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+  }
+
+  <!-- ═══════════ Agenda ═══════════ -->
+  @if (chargement()) {
+    <div class="day">
+      @for (i of [1, 2, 3]; track i) { <div class="pro-skeleton rdv__skeleton" aria-hidden="true"></div> }
+    </div>
+    <span class="sr-only" role="status">Chargement des rendez-vous…</span>
+  } @else if (erreur()) {
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (jours().length === 0) {
+    <yay360-state type="vide" titre="Aucun rendez-vous"
+                  [message]="filtresActifs() ? 'Aucun rendez-vous ne correspond à ces filtres.' : 'Aucun rendez-vous dans cette catégorie.'">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      }
+    </yay360-state>
+  } @else {
+    @for (j of jours(); track j.cle) {
+      <section class="day" [attr.aria-label]="(libelleJour(j.date) || '') + ' ' + (j.date | date: 'EEEE d MMMM y')">
+        <h3 class="day__title">
+          @if (libelleJour(j.date)) { <span class="day__rel">{{ libelleJour(j.date) }}</span> }
+          <span>{{ j.date | date: 'EEEE d MMMM y' }}</span>
+          <span class="day__count">{{ j.items.length }}</span>
+        </h3>
+
+        <ul class="list">
+          @for (rdv of j.items; track rdv.id) {
+            <li class="item" [attr.data-statut]="rdv.statut">
+              <div class="item__time">
+                <strong>{{ rdv.dateHeure | date: 'HH:mm' }}</strong>
+              </div>
+
+              <div class="item__main">
+                <div class="item__head">
+                  <span class="item__type-icon" aria-hidden="true"><yay360-icon [name]="iconeType(rdv.type)" [size]="18" /></span>
+                  <div class="item__who">
+                    <a [routerLink]="['/grossesses', rdv.grossesseId]" class="item__name">{{ rdv.femmeEnceinteNomComplet }}</a>
+                    <span class="item__type">{{ libelleType(rdv.type) }}</span>
+                  </div>
+                  <span class="status" [attr.data-statut]="rdv.statut">{{ rdv.statut | statut }}</span>
+                </div>
+
+                <ul class="item__meta">
+                  @if (rdv.etablissementNom) { <li><yay360-icon name="map-pin" [size]="14" aria-hidden="true" /> {{ rdv.etablissementNom }}</li> }
+                  @if (rdv.professionnelNomComplet) { <li><yay360-icon name="user" [size]="14" aria-hidden="true" /> {{ rdv.professionnelNomComplet }}</li> }
+                  @if (rdv.motif) { <li><yay360-icon name="info" [size]="14" aria-hidden="true" /> {{ rdv.motif }}</li> }
+                </ul>
+                @if (rdv.notesAnnulation) {
+                  <p class="item__cancel"><yay360-icon name="x" [size]="14" aria-hidden="true" /> Annulation : {{ rdv.notesAnnulation }}</p>
+                }
+
+                @if (estProfessionnel() && estActif(rdv)) {
+                  <div class="item__actions">
+                    <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" (click)="enregistrerConsultation(rdv)">
+                      <yay360-icon name="plus" [size]="16" aria-hidden="true" /> Saisir la consultation
+                    </button>
+                    @if (rdv.statut === 'PLANIFIE') {
+                      <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="confirmer(rdv)">
+                        <yay360-icon name="check" [size]="16" aria-hidden="true" /> Confirmer
+                      </button>
+                    }
+                    @if (estPasse(rdv)) {
+                      <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="marquerTermine(rdv)">Terminé</button>
+                      <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="marquerAbsent(rdv)">Absente</button>
+                    }
+                    <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="ouvrirEdition(rdv, 'reporter')">Reporter</button>
+                    <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="ouvrirEdition(rdv, 'annuler')">Annuler</button>
+                  </div>
+
+                  @if (edition()?.id === rdv.id) {
+                    <div class="edit">
+                      @if (edition()?.mode === 'reporter') {
+                        <div class="field">
+                          <label [for]="'date-' + rdv.id">Nouvelle date et heure</label>
+                          <input [id]="'date-' + rdv.id" type="datetime-local" [value]="nouvelleDate()" (input)="nouvelleDate.set($any($event.target).value)" />
+                        </div>
+                        <div class="edit__buttons">
+                          <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="confirmerReport(rdv)">Valider le report</button>
+                          <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="edition.set(null)">Fermer</button>
+                        </div>
+                      } @else {
+                        <div class="field">
+                          <label [for]="'motif-' + rdv.id">Motif de l’annulation <small>(transmis à la patiente, facultatif)</small></label>
+                          <input [id]="'motif-' + rdv.id" type="text" maxlength="500" [value]="motifAnnulation()" (input)="motifAnnulation.set($any($event.target).value)" />
+                        </div>
+                        <div class="edit__buttons">
+                          <button type="button" class="pro-btn pro-btn--danger pro-btn--sm" [disabled]="idEnAction() === rdv.id" (click)="confirmerAnnulation(rdv)">Confirmer l’annulation</button>
+                          <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="edition.set(null)">Fermer</button>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
 </div>
+
+@if (planificationOuverte()) {
+  <yay360-planifier-rendez-vous (cree)="rendezVousPlanifie()" (annule)="planificationOuverte.set(false)" />
+}

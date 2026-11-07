@@ -1,0 +1,92 @@
+import { Role } from '../models/utilisateur.model';
+
+/** Libellés partagés (une seule source pour toute l'interface). */
+
+export const LIBELLES_ROLE: Record<Role, string> = {
+  ADMIN: 'Administrateur',
+  MEDECIN: 'Médecin',
+  SAGE_FEMME: 'Sage-femme',
+  FEMME_ENCEINTE: 'Femme enceinte',
+  CONJOINT: 'Conjoint',
+};
+
+export function libelleRole(role: Role | null | undefined): string {
+  return role ? LIBELLES_ROLE[role] ?? role : '';
+}
+
+/** Types de symptôme acceptés par l'API (DeclarerSymptomeRequest). */
+export const TYPES_SYMPTOME: { valeur: string; libelle: string }[] = [
+  { valeur: 'SAIGNEMENTS', libelle: 'Saignements' },
+  { valeur: 'DOULEURS_ABDOMINALES', libelle: 'Douleurs abdominales intenses' },
+  { valeur: 'PERTE_LIQUIDE', libelle: 'Perte de liquide' },
+  { valeur: 'DIMINUTION_MOUVEMENTS_BEBE', libelle: 'Le bébé bouge moins' },
+  { valeur: 'FIEVRE_ELEVEE', libelle: 'Fièvre élevée' },
+  { valeur: 'CONVULSIONS', libelle: 'Convulsions' },
+  { valeur: 'MAUX_DE_TETE_INTENSES', libelle: 'Maux de tête intenses' },
+  { valeur: 'TROUBLES_VISUELS', libelle: 'Troubles de la vue' },
+  { valeur: 'OEDEMES_SOUDAINS', libelle: 'Gonflement soudain (visage, mains)' },
+  { valeur: 'VOMISSEMENTS_SEVERES', libelle: 'Vomissements sévères' },
+  { valeur: 'AUTRE', libelle: 'Autre symptôme' },
+];
+
+export function libelleSymptome(type: string | null | undefined): string {
+  if (type === 'CONSTANTES_ANORMALES') {
+    return 'Constantes anormales (consultation)';
+  }
+  return TYPES_SYMPTOME.find((t) => t.valeur === type)?.libelle ?? type ?? '';
+}
+
+/** Types de rendez-vous acceptés par l'API. */
+export const TYPES_RENDEZ_VOUS: { valeur: string; libelle: string }[] = [
+  { valeur: 'CONSULTATION_PRENATALE', libelle: 'Consultation prénatale (CPN)' },
+  { valeur: 'ECHOGRAPHIE', libelle: 'Échographie' },
+  { valeur: 'VACCINATION', libelle: 'Vaccination' },
+  { valeur: 'EXAMEN_LABORATOIRE', libelle: 'Examen de laboratoire' },
+  { valeur: 'AUTRE', libelle: 'Autre' },
+];
+
+export function libelleTypeRendezVous(type: string | null | undefined): string {
+  return TYPES_RENDEZ_VOUS.find((t) => t.valeur === type)?.libelle ?? type ?? '';
+}
+
+/** Niveaux de gravité des alertes (définis par les règles de triage du backend). */
+export const LIBELLES_GRAVITE: Record<string, string> = {
+  URGENT: 'Urgent',
+  ELEVE: 'Élevé',
+  MODERE: 'Modéré',
+};
+
+export function libelleGravite(niveau: string | null | undefined): string {
+  return niveau ? LIBELLES_GRAVITE[niveau] ?? niveau : '';
+}
+
+export const LIBELLES_STATUT_ALERTE: Record<string, string> = {
+  NOUVELLE: 'Nouvelle',
+  PRISE_EN_CHARGE: 'Prise en charge',
+  RESOLUE: 'Résolue',
+};
+
+export function libelleStatutAlerte(statut: string | null | undefined): string {
+  return statut ? LIBELLES_STATUT_ALERTE[statut] ?? statut : '';
+}
+
+/** Statuts (rendez-vous, grossesse, contact CPN, alerte) → libellés lisibles. */
+const LIBELLES_STATUT: Record<string, string> = {
+  ...LIBELLES_STATUT_ALERTE,
+  ...LIBELLES_GRAVITE,
+  PLANIFIE: 'Planifié',
+  CONFIRME: 'Confirmé',
+  TERMINE: 'Terminé',
+  ANNULE: 'Annulé',
+  ABSENT: 'Absence',
+  EN_COURS: 'En cours',
+  TERMINEE: 'Terminée',
+  INTERROMPUE: 'Interrompue',
+  REALISE: 'Réalisé',
+  A_VENIR: 'À venir',
+  EN_RETARD: 'En retard',
+};
+
+export function libelleStatut(statut: string | null | undefined): string {
+  return statut ? LIBELLES_STATUT[statut] ?? statut : '';
+}

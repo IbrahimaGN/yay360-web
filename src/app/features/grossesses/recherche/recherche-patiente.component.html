@@ -1,0 +1,142 @@
+<div class="rp">
+  <a routerLink="/grossesses" class="rp__back"><yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> Retour aux grossesses</a>
+
+  <!-- ═══════════ En-tête + étapes ═══════════ -->
+  <section class="card rp__head">
+    <div class="rp__intro">
+      <span class="rp__intro-icon" aria-hidden="true"><yay360-icon name="search" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Une patiente se présente ?</h2>
+        <p>Retrouvez son dossier par son téléphone ou son e-mail exact, puis rattachez-le à votre établissement pour la suivre.</p>
+      </div>
+    </div>
+    <ol class="steps" aria-label="Étapes">
+      <li [class.steps--on]="etape() >= 1" [attr.aria-current]="etape() === 1 ? 'step' : null"><span>1</span> Rechercher</li>
+      <li [class.steps--on]="etape() >= 2" [attr.aria-current]="etape() === 2 ? 'step' : null"><span>2</span> Choisir le dossier</li>
+      <li [class.steps--on]="etape() >= 3" [attr.aria-current]="etape() === 3 ? 'step' : null"><span>3</span> Rattacher</li>
+    </ol>
+  </section>
+
+  <!-- ═══════════ Recherche ═══════════ -->
+  <section class="card rp__search" aria-labelledby="titre-recherche">
+    <h3 id="titre-recherche" class="rp__title">Rechercher par</h3>
+    <div class="segmented" role="group" aria-label="Critère de recherche">
+      <button type="button" [attr.aria-pressed]="mode() === 'telephone'" (click)="changerMode('telephone')"><yay360-icon name="phone" [size]="14" aria-hidden="true" /> Téléphone</button>
+      <button type="button" [attr.aria-pressed]="mode() === 'email'" (click)="changerMode('email')"><yay360-icon name="mail" [size]="14" aria-hidden="true" /> E-mail</button>
+    </div>
+
+    <form [formGroup]="formRecherche" (ngSubmit)="rechercher()" class="rp__form" novalidate>
+      <div class="input-ico rp__input">
+        <yay360-icon [name]="mode() === 'telephone' ? 'phone' : 'mail'" [size]="18" aria-hidden="true" />
+        <label for="valeur" class="sr-only">{{ mode() === 'telephone' ? 'Téléphone de la patiente' : 'E-mail de la patiente' }}</label>
+        <input id="valeur" formControlName="valeur" [type]="mode() === 'telephone' ? 'tel' : 'email'"
+               [attr.inputmode]="mode() === 'telephone' ? 'tel' : 'email'"
+               [placeholder]="mode() === 'telephone' ? '+221771234567' : 'patiente@exemple.sn'"
+               [attr.aria-invalid]="formRecherche.controls.valeur.invalid && formRecherche.controls.valeur.touched" />
+      </div>
+      <button type="submit" class="pro-btn pro-btn--accent" [disabled]="recherche()">
+        @if (recherche()) { <span class="btn-spinner" aria-hidden="true"></span> Recherche… }
+        @else { <yay360-icon name="search" [size]="18" aria-hidden="true" /> Rechercher }
+      </button>
+    </form>
+    @if (formRecherche.controls.valeur.invalid && formRecherche.controls.valeur.touched) {
+      <span class="field-error">Saisissez {{ mode() === 'telephone' ? 'un numéro de téléphone' : 'une adresse e-mail' }}.</span>
+    }
+    @if (erreur()) {
+      <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreur() }}</span></div>
+    }
+    <p class="rp__privacy"><yay360-icon name="shield" [size]="14" aria-hidden="true" /> Recherche exacte. Aucune donnée médicale n’est affichée avant le rattachement.</p>
+  </section>
+
+  <!-- ═══════════ Résultats ═══════════ -->
+  @if (resultats(); as liste) {
+    @if (liste.length === 0) {
+      <yay360-state type="vide" titre="Aucun dossier trouvé"
+                    message="Aucune grossesse en cours ne correspond. Vérifiez la saisie : la recherche est exacte." />
+    } @else {
+      <section aria-labelledby="titre-resultats">
+        <h3 id="titre-resultats" class="rp__count" role="status">{{ liste.length }} dossier{{ liste.length > 1 ? 's' : '' }} trouvé{{ liste.length > 1 ? 's' : '' }}</h3>
+        <ul class="results">
+          @for (p of liste; track p.grossesseId) {
+            <li class="card result" [class.result--selected]="selection()?.grossesseId === p.grossesseId">
+              <span class="avatar" [class.avatar--orange]="!p.dejaSuivie" aria-hidden="true">{{ initiales(p) }}</span>
+              <div class="result__body">
+                <strong>{{ p.prenom }} {{ p.nom }}</strong>
+                <span class="result__meta">
+                  <span><yay360-icon name="heart" [size]="14" aria-hidden="true" /> Semaine {{ p.semaineActuelle }}</span>
+                  <span><yay360-icon name="building" [size]="14" aria-hidden="true" /> {{ p.etablissementSuiviNom || 'Aucun établissement' }}</span>
+                </span>
+              </div>
+              @if (p.dejaSuivie) {
+                <span class="badge badge--success"><yay360-icon name="check" [size]="12" aria-hidden="true" /> Déjà suivie</span>
+              } @else {
+                <span class="badge badge--orange">À rattacher</span>
+              }
+              <button type="button" class="pro-btn pro-btn--sm" [class.pro-btn--secondary]="p.dejaSuivie" [class.pro-btn--accent]="!p.dejaSuivie" (click)="choisir(p)">
+                {{ p.dejaSuivie ? 'Ouvrir le dossier' : 'Rattacher' }} <yay360-icon name="arrow-right" [size]="14" aria-hidden="true" />
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>
+
+<!-- ═══════════ Fenêtre : rattachement ═══════════ -->
+@if (selection(); as p) {
+  <div class="pro-modal-backdrop" (click)="selection.set(null)">
+    <section class="pro-modal" role="dialog" aria-modal="true" aria-labelledby="titre-rattacher" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="building" [size]="22" /></span>
+        <div class="rp__modal-title">
+          <h2 id="titre-rattacher">Rattacher le dossier</h2>
+          <p>{{ p.prenom }} {{ p.nom }} · semaine {{ p.semaineActuelle }}</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="selection.set(null)" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
+      </header>
+
+      @if (etablissements().length === 0) {
+        <div class="pro-notice pro-notice--warning" role="alert">
+          <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+          <span>Vous n’êtes affecté(e) à aucun établissement. Demandez à un administrateur de vous y affecter.</span>
+        </div>
+        <div class="pro-modal__foot"><button type="button" class="pro-btn pro-btn--ghost" (click)="selection.set(null)">Fermer</button></div>
+      } @else {
+        <form [formGroup]="formRattacher" (ngSubmit)="rattacher()" class="rp__modal-form" novalidate>
+          <div class="field">
+            <label for="etablissementId">Établissement de suivi *</label>
+            <select id="etablissementId" formControlName="etablissementId">
+              <option [ngValue]="null" disabled>Choisir…</option>
+              @for (e of etablissements(); track e.id) {
+                <option [ngValue]="e.id">{{ e.nom }}{{ e.ville ? ' — ' + e.ville : '' }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="telephonePatiente">Téléphone de la patiente *</label>
+            <div class="input-ico">
+              <yay360-icon name="phone" [size]="18" aria-hidden="true" />
+              <input id="telephonePatiente" type="tel" formControlName="telephonePatiente" placeholder="+221771234567" aria-describedby="aide-presence"
+                     [attr.aria-invalid]="formRattacher.controls.telephonePatiente.invalid && formRattacher.controls.telephonePatiente.touched" />
+            </div>
+            <span class="field-hint" id="aide-presence">Preuve de présence : demandez-le à la patiente, il doit correspondre à son compte.</span>
+          </div>
+
+          @if (erreurRattachement()) {
+            <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurRattachement() }}</span></div>
+          }
+
+          <div class="pro-modal__foot">
+            <button type="button" class="pro-btn pro-btn--ghost" (click)="selection.set(null)">Annuler</button>
+            <button type="submit" class="pro-btn pro-btn--accent" [disabled]="rattachement()">
+              @if (rattachement()) { <span class="btn-spinner" aria-hidden="true"></span> Rattachement… }
+              @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Rattacher et ouvrir le dossier }
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  </div>
+}

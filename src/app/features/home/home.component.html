@@ -1,65 +1,337 @@
-<div class="pro-fade-in">
+<div class="home">
 
-  <!-- Héro Médical Exécutif -->
-  <section class="hero pro-card">
-    <img class="hero__bg" src="illustrations/hero-medical.svg" alt="" aria-hidden="true" />
-    <div class="hero__overlay"></div>
-
-    <div class="hero__content">
-      <div class="hero__tag-wrap">
-        <span class="hero__tag">Espace de Santé Maternelle YAY360</span>
-        <span class="hero__role-badge">{{ libelleRole() }}</span>
-      </div>
-
-      <h1 class="hero__title">{{ salutation() }}, {{ premierPrenom() }}</h1>
-
-      <p class="hero__subtitle">
-        Plateforme intelligente dédiée au suivi de la santé maternelle des femmes enceintes.
+  <!-- ═══════════ Bandeau de bienvenue ═══════════ -->
+  <section class="welcome" aria-labelledby="titre-accueil">
+    <div class="welcome__text">
+      <span class="welcome__date">{{ aujourdhui | date: 'EEEE d MMMM y' }}</span>
+      <h2 id="titre-accueil" class="welcome__title">{{ salutation() }}, {{ premierPrenom() }} !</h2>
+      <p class="welcome__lead">
+        @if (estAdmin()) {
+          Voici l’essentiel de la plateforme YAY360 aujourd’hui.
+        } @else if (estSoignant()) {
+          Voici votre journée : rendez-vous, alertes et patientes suivies.
+        } @else if (estFamille() && grossesse()) {
+          {{ estFemme() ? 'Voici où en est votre grossesse.' : 'Voici où en est la grossesse de votre conjointe.' }}
+        } @else {
+          Bienvenue dans votre espace YAY360.
+        }
       </p>
-
-      <div class="hero__highlights">
-        <div class="hero__highlight-item">
-          <span class="highlight-dot"></span>
-          <span>Suivi de grossesse personnalisé et continu</span>
-        </div>
-        <div class="hero__highlight-item">
-          <span class="highlight-dot"></span>
-          <span>Prévention et détection des risques maternels</span>
-        </div>
-        <div class="hero__highlight-item">
-          <span class="highlight-dot"></span>
-          <span>Dossier Clinique & Familial Partagé</span>
-        </div>
+      <div class="welcome__actions">
+        <span class="welcome__role"><yay360-icon name="shield" [size]="14" aria-hidden="true" /> {{ libelleRole() }}</span>
+        @if (estAdmin()) {
+          <a routerLink="/tableau-de-bord" class="pro-btn pro-btn--accent">Voir le tableau de bord <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+        }
+        @if (estSoignant()) {
+          <a routerLink="/grossesses/recherche" class="pro-btn pro-btn--accent"><yay360-icon name="search" [size]="18" aria-hidden="true" /> Rechercher une patiente</a>
+        }
+        @if (estFamille() && grossesse()) {
+          <a routerLink="/suivi-prenatal" [queryParams]="{ action: 'alerte' }" class="pro-btn pro-btn--accent"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /> Signaler un symptôme</a>
+        }
       </div>
+    </div>
+    <div class="welcome__art" aria-hidden="true">
+      <span class="welcome__circle welcome__circle--1"></span>
+      <span class="welcome__circle welcome__circle--2"></span>
+      <span class="welcome__badge"><yay360-icon name="heart" [size]="34" /></span>
     </div>
   </section>
 
-  <!-- Section Accès Rapides -->
-  <div class="quick-section">
-    <div class="pro-header">
-      <div class="pro-header__left">
-        <span class="pro-header__tag">Navigation Rapide</span>
-        <h2 class="pro-header__title">Modules & Outils Cliniques</h2>
-        <p class="pro-header__desc">Accédez en un clic à vos espaces de travail selon vos privilèges.</p>
+  @if (estAdmin()) {
+    <!-- ═══════════ À traiter ═══════════ -->
+    <section aria-labelledby="titre-a-traiter">
+      <div class="section-head home__head">
+        <h2 id="titre-a-traiter" class="section-title">À traiter en priorité</h2>
+        @if (stats(); as s) {
+          <span class="home__updated">Mis à jour à {{ s.dateGeneration | date: 'HH:mm' }}</span>
+        }
       </div>
-    </div>
 
-    <div class="quick-grid">
-      @for (lien of accesRapides(); track lien.path) {
-        <a class="quick-card pro-card" [routerLink]="lien.path">
-          <div class="quick-card__icon-box">
+      @if (chargementStats()) {
+        <div class="todo">
+          @for (i of [1, 2, 3]; track i) { <div class="todo__item pro-skeleton" aria-hidden="true"></div> }
+        </div>
+        <span class="sr-only" role="status">Chargement des indicateurs…</span>
+      } @else if (erreurStats()) {
+        <yay360-state type="erreur" [compact]="true" [message]="erreurStats()" (reessayer)="chargerStats()" />
+      } @else if (stats(); as s) {
+        <div class="todo">
+          @for (t of aTraiter(); track t.libelle) {
+            <a class="todo__item" [routerLink]="t.lien" [attr.data-ton]="t.ton" [class.todo__item--calme]="t.valeur === 0">
+              <span class="todo__icon" aria-hidden="true"><yay360-icon [name]="t.icone" [size]="22" /></span>
+              <span class="todo__value">{{ t.valeur }}</span>
+              <span class="todo__label">{{ t.libelle }}</span>
+              <span class="todo__go">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></span>
+            </a>
+          }
+        </div>
+
+        <!-- ═══════════ Plateforme en chiffres ═══════════ -->
+        <div class="platform card" aria-label="La plateforme en chiffres">
+          <div class="platform__item">
+            <span class="platform__icon"><yay360-icon name="heart" [size]="18" aria-hidden="true" /></span>
+            <div><strong>{{ s.nombreFemmesEnceintes | number }}</strong><span>Patientes</span></div>
+          </div>
+          <div class="platform__item">
+            <span class="platform__icon platform__icon--orange"><yay360-icon name="users" [size]="18" aria-hidden="true" /></span>
+            <div><strong>{{ s.nombreMedecins + s.nombreSagesFemmes | number }}</strong><span>Professionnels de santé</span></div>
+          </div>
+          <div class="platform__item">
+            <span class="platform__icon platform__icon--lilac"><yay360-icon name="activity" [size]="18" aria-hidden="true" /></span>
+            <div><strong>{{ s.nombreGrossessesActives | number }}</strong><span>Grossesses en cours</span></div>
+          </div>
+          <div class="platform__item">
+            <span class="platform__icon"><yay360-icon name="building" [size]="18" aria-hidden="true" /></span>
+            <div><strong>{{ s.nombreEtablissementsActifs | number }}</strong><span>Établissements actifs</span></div>
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  @if (estSoignant()) {
+    <!-- ═══════════ Aujourd'hui (soignant) ═══════════ -->
+    <section aria-labelledby="titre-jour">
+      <div class="section-head home__head">
+        <h2 id="titre-jour" class="section-title">Aujourd’hui</h2>
+        <button type="button" class="home__refresh" (click)="chargerSoignant()" [disabled]="chargementSoignant()">
+          <yay360-icon name="activity" [size]="14" aria-hidden="true" /> Actualiser
+        </button>
+      </div>
+
+      @if (chargementSoignant()) {
+        <div class="todo">
+          @for (i of [1, 2, 3]; track i) { <div class="todo__item pro-skeleton" aria-hidden="true"></div> }
+        </div>
+        <span class="sr-only" role="status">Chargement de votre journée…</span>
+      } @else {
+        <div class="todo">
+          <a class="todo__item" routerLink="/rendez-vous" data-ton="teal" [class.todo__item--calme]="!erreursSoignant().planning && rdvAujourdhui().length === 0">
+            <span class="todo__icon" aria-hidden="true"><yay360-icon name="calendar" [size]="22" /></span>
+            <span class="todo__value">{{ erreursSoignant().planning ? '—' : rdvAujourdhui().length }}</span>
+            <span class="todo__label">Rendez-vous prévus aujourd’hui</span>
+            <span class="todo__go">Mon planning <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></span>
+          </a>
+          <a class="todo__item" routerLink="/alertes" [attr.data-ton]="nombreUrgentes() ? 'danger' : 'orange'" [class.todo__item--calme]="!erreursSoignant().alertes && alertesNouvelles().length === 0">
+            <span class="todo__icon" aria-hidden="true"><yay360-icon name="alert-triangle" [size]="22" /></span>
+            <span class="todo__value">{{ erreursSoignant().alertes ? '—' : alertesNouvelles().length }}</span>
+            <span class="todo__label">
+              Nouvelles alertes à prendre en charge
+              @if (nombreUrgentes()) { <strong class="home__urgent">· {{ nombreUrgentes() }} urgente{{ nombreUrgentes() > 1 ? 's' : '' }}</strong> }
+            </span>
+            <span class="todo__go">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></span>
+          </a>
+          <a class="todo__item" routerLink="/grossesses" data-ton="lilac">
+            <span class="todo__icon" aria-hidden="true"><yay360-icon name="heart" [size]="22" /></span>
+            <span class="todo__value">{{ erreursSoignant().grossesses ? '—' : grossessesSuivies().length }}</span>
+            <span class="todo__label">
+              Patientes suivies
+              @if (nombreARisque()) { <strong class="home__risk">· {{ nombreARisque() }} à risque</strong> }
+            </span>
+            <span class="todo__go">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></span>
+          </a>
+        </div>
+
+        <div class="duo">
+          <!-- Planning -->
+          <section class="card duo__panel" aria-labelledby="titre-planning">
+            <header class="duo__head">
+              <h3 id="titre-planning">Prochains rendez-vous</h3>
+              <a routerLink="/rendez-vous" class="duo__link">Tout voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
+            </header>
+            @if (erreursSoignant().planning) {
+              <yay360-state type="erreur" [compact]="true" message="Planning indisponible." (reessayer)="chargerSoignant()" />
+            } @else if (prochainsRdv().length === 0) {
+              <p class="duo__empty"><yay360-icon name="check" [size]="16" aria-hidden="true" /> Aucun rendez-vous à venir.</p>
+            } @else {
+              <ul class="agenda">
+                @for (r of prochainsRdv(); track r.id) {
+                  <li class="agenda__row">
+                    <span class="agenda__time">
+                      <strong>{{ r.dateHeure | date: 'HH:mm' }}</strong>
+                      <small>{{ r.dateHeure | date: 'd MMM' }}</small>
+                    </span>
+                    <span class="agenda__body">
+                      <a [routerLink]="['/grossesses', r.grossesseId]">{{ r.femmeEnceinteNomComplet }}</a>
+                      <small>{{ libelleTypeRendezVous(r.type) }}{{ r.etablissementNom ? ' · ' + r.etablissementNom : '' }}</small>
+                    </span>
+                    <a class="pro-btn pro-btn--ghost pro-btn--sm" [routerLink]="['/consultations/nouvelle']"
+                       [queryParams]="{ grossesseId: r.grossesseId, rendezVousId: r.id }" [attr.aria-label]="'Saisir la consultation de ' + r.femmeEnceinteNomComplet">
+                      <yay360-icon name="plus" [size]="14" aria-hidden="true" /> Consultation
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <!-- Alertes -->
+          <section class="card duo__panel" aria-labelledby="titre-alertes-jour">
+            <header class="duo__head">
+              <h3 id="titre-alertes-jour">Alertes à traiter</h3>
+              <a routerLink="/alertes" class="duo__link">Tout voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
+            </header>
+            @if (erreursSoignant().alertes) {
+              <yay360-state type="erreur" [compact]="true" message="Alertes indisponibles." (reessayer)="chargerSoignant()" />
+            } @else if (alertesATraiter().length === 0) {
+              <p class="duo__empty"><yay360-icon name="check" [size]="16" aria-hidden="true" /> Aucune nouvelle alerte.</p>
+            } @else {
+              <ul class="alist">
+                @for (a of alertesATraiter(); track a.id) {
+                  <li>
+                    <a class="alist__row" routerLink="/alertes" [attr.data-g]="a.niveauGravite">
+                      <yay360-niveau-gravite [niveau]="a.niveauGravite" />
+                      <span class="alist__body">
+                        <strong>{{ libelleSymptome(a.typeSymptome) }}</strong>
+                        <small>{{ a.femmeEnceinteNomComplet }} · {{ depuis(a.dateDeclaration) }}</small>
+                      </span>
+                      <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" />
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        </div>
+      }
+    </section>
+  }
+
+  @if (estFamille()) {
+    <!-- ═══════════ Ma grossesse (patiente, conjoint) ═══════════ -->
+    @if (chargementFamille()) {
+      <div class="fam">
+        <div class="pro-skeleton fam__skeleton" aria-hidden="true"></div>
+        <div class="pro-skeleton fam__skeleton" aria-hidden="true"></div>
+      </div>
+      <span class="sr-only" role="status">Chargement de votre suivi…</span>
+    } @else if (erreurFamille()) {
+      <yay360-state type="erreur" [message]="erreurFamille()" (reessayer)="chargerFamille()" />
+    } @else if (!grossesse()) {
+      <section class="card fam-empty" aria-labelledby="titre-declarer">
+        <span class="fam-empty__icon" aria-hidden="true"><yay360-icon name="heart" [size]="28" /></span>
+        <div>
+          <h2 id="titre-declarer">{{ estFemme() ? 'Déclarez votre grossesse' : 'Aucune grossesse en cours' }}</h2>
+          <p>
+            @if (estFemme()) { La date de vos dernières règles suffit pour calculer votre terme et votre calendrier de consultations. }
+            @else { Le suivi apparaîtra ici dès que votre conjointe aura déclaré sa grossesse. }
+          </p>
+        </div>
+        @if (estFemme()) {
+          <a routerLink="/suivi-prenatal" class="pro-btn pro-btn--accent">Déclarer ma grossesse <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+        }
+      </section>
+    } @else {
+      @let g = grossesse()!;
+      <div class="fam">
+        <!-- Ma grossesse -->
+        <section class="card fam__card fam__preg" aria-labelledby="titre-preg">
+          <header class="fam__head">
+            <h2 id="titre-preg">{{ estFemme() ? 'Ma grossesse' : 'La grossesse' }}</h2>
+            @if (g.grossesseARisque) { <span class="badge badge--warning"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> Suivi renforcé</span> }
+          </header>
+          <div class="fam__preg-body">
+            <yay360-ring-chart [data]="anneauGrossesse()" [size]="132" [epaisseur]="18" [centerValue]="g.semaineActuelle" centerLabel="semaines" />
+            <dl class="fam__facts">
+              <div><dt>Trimestre</dt><dd>{{ g.trimestre }}</dd></div>
+              <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+              <div><dt>Encore</dt><dd>{{ g.joursRestants }} jours</dd></div>
+              <div><dt>Suivie à</dt><dd class="fam__place">{{ g.etablissementSuiviNom || 'À choisir' }}</dd></div>
+            </dl>
+          </div>
+          <a routerLink="/suivi-prenatal" class="cta-link">{{ estFemme() ? 'Mon suivi prénatal' : 'Suivi prénatal' }} <span class="cta-link__box"><yay360-icon name="arrow-right" [size]="16" aria-hidden="true" /></span></a>
+        </section>
+
+        <!-- Prochain rendez-vous -->
+        <section class="card fam__card" aria-labelledby="titre-rdv-fam">
+          <header class="fam__head"><h2 id="titre-rdv-fam">Prochain rendez-vous</h2></header>
+          @if (prochainRdv(); as r) {
+            <div class="next">
+              <span class="next__date"><strong>{{ r.dateHeure | date: 'd' }}</strong><small>{{ r.dateHeure | date: 'MMM' }}</small></span>
+              <div class="next__body">
+                <strong>{{ libelleTypeRendezVous(r.type) }}</strong>
+                <span><yay360-icon name="calendar" [size]="14" aria-hidden="true" /> {{ r.dateHeure | date: 'EEEE d MMMM à HH:mm' }}</span>
+                @if (r.etablissementNom) { <span><yay360-icon name="map-pin" [size]="14" aria-hidden="true" /> {{ r.etablissementNom }}</span> }
+                <span class="badge" [class.badge--success]="r.statut === 'CONFIRME'" [class.badge--orange]="r.statut === 'PLANIFIE'">{{ r.statut === 'CONFIRME' ? 'Confirmé' : 'En attente de confirmation' }}</span>
+              </div>
+            </div>
+          } @else {
+            <p class="fam__empty"><yay360-icon name="calendar" [size]="16" aria-hidden="true" /> Aucun rendez-vous prévu.</p>
+          }
+          @if (estFamille()) {
+            <a routerLink="/suivi-prenatal" [queryParams]="{ action: 'rendez-vous' }" class="pro-btn pro-btn--secondary pro-btn--sm fam__btn">
+              <yay360-icon name="plus" [size]="16" aria-hidden="true" /> Demander un rendez-vous
+            </a>
+          }
+        </section>
+
+        <!-- Consultations prénatales -->
+        <section class="card fam__card" aria-labelledby="titre-cpn-fam">
+          <header class="fam__head"><h2 id="titre-cpn-fam">Consultations prénatales</h2></header>
+          @if (planCpn(); as p) {
+            <div class="cpnmini">
+              <strong>{{ p.nombreRealises }}<small> / {{ p.contacts.length }}</small></strong>
+              <span>réalisées</span>
+            </div>
+            <ol class="cpnmini__dots" aria-hidden="true">
+              @for (c of p.contacts; track c.numero) {
+                <li [class.done]="c.statut === 'REALISE'" [class.late]="c.statut === 'EN_RETARD'" [class.next]="prochaineCpn()?.numero === c.numero"></li>
+              }
+            </ol>
+            @if (prochaineCpn(); as c) {
+              <p class="cpnmini__next">Prochaine : <strong>{{ c.semaineCible }} SA</strong>, vers le {{ c.dateCible | date: 'd MMMM' }}</p>
+            }
+            @if (p.nombreEnRetard > 0) {
+              <p class="cpnmini__late"><yay360-icon name="alert-triangle" [size]="14" aria-hidden="true" /> {{ p.nombreEnRetard }} consultation{{ p.nombreEnRetard > 1 ? 's' : '' }} en retard : parlez-en à votre sage-femme.</p>
+            }
+          } @else {
+            <p class="fam__empty">Calendrier indisponible pour le moment.</p>
+          }
+        </section>
+      </div>
+
+      <!-- Cette semaine -->
+      @if (suiviSemaine(); as s) {
+        <section class="card week-tips" aria-labelledby="titre-semaine-fam">
+          <header class="fam__head">
+            <h2 id="titre-semaine-fam">Conseils de la semaine</h2>
+            <a routerLink="/suivi-prenatal" class="duo__link">Tous les conseils <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
+          </header>
+          <div class="tips">
+            <article class="tip"><span class="tip__icon"><yay360-icon name="heart" [size]="18" aria-hidden="true" /></span><div><h3>Le bébé</h3><p>{{ s.developpementBebe || '—' }}</p></div></article>
+            <article class="tip tip--orange"><span class="tip__icon"><yay360-icon name="sun" [size]="18" aria-hidden="true" /></span><div><h3>Alimentation</h3><p>{{ s.conseilsAlimentation || '—' }}</p></div></article>
+            <article class="tip tip--danger"><span class="tip__icon"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /></span><div><h3>Signes d’alerte</h3><p>{{ s.signesAlerte || '—' }}</p></div></article>
+          </div>
+          <p class="pro-disclaimer"><yay360-icon name="info" [size]="14" aria-hidden="true" /><span>{{ s.avertissement }}</span></p>
+        </section>
+      }
+    }
+
+    <p class="pro-notice pro-notice--warning fam__urgence">
+      <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+      <span>En cas d’urgence (saignements, perte de liquide, convulsions, forte fièvre…), rendez-vous immédiatement dans la structure de santé la plus proche.</span>
+    </p>
+  }
+
+  <!-- ═══════════ Accès rapides ═══════════ -->
+  @if (!estFamille()) {
+  <section aria-labelledby="titre-acces">
+    <div class="section-head home__head">
+      <h2 id="titre-acces" class="section-title">Accès rapides</h2>
+    </div>
+    <div class="quick">
+      @for (lien of accesRapides(); track lien.path; let i = $index) {
+        <a class="quick__card" [routerLink]="lien.path">
+          <span class="quick__icon" [class.quick__icon--orange]="i % 3 === 1" [class.quick__icon--lilac]="i % 3 === 2" aria-hidden="true">
             <yay360-icon [name]="lien.icon" [size]="22" />
-          </div>
-          <div class="quick-card__body">
-            <strong class="quick-card__title">{{ lien.label }}</strong>
-            <span class="quick-card__desc">{{ lien.description }}</span>
-          </div>
-          <div class="quick-card__arrow">
-            →
-          </div>
+          </span>
+          <span class="quick__body">
+            <strong>{{ lien.label }}</strong>
+            <span>{{ lien.description }}</span>
+          </span>
+          <span class="quick__arrow" aria-hidden="true"><yay360-icon name="arrow-right" [size]="16" /></span>
         </a>
       }
     </div>
-  </div>
-
+  </section>
+  }
 </div>

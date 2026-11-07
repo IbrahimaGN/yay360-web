@@ -1,259 +1,306 @@
-<div class="pro-fade-in">
+<div class="ce">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Éducation thérapeutique</span>
-      <h1 class="pro-header__title">Conseils & étapes de la grossesse</h1>
-      <p class="pro-header__desc">Référentiel pour accompagner la santé de la femme enceinte tout au long de sa grossesse.</p>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card ce__head">
+    <div class="ce__intro">
+      <span class="ce__intro-icon" aria-hidden="true"><yay360-icon name="book" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Conseils et étapes de la grossesse</h2>
+        <p>Contenu proposé aux patientes selon leur semaine de grossesse. Ces informations ne remplacent pas un avis médical.</p>
+      </div>
     </div>
-  </header>
+    @if (vue() === 'CONSEILS') {
+      <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreationConseil()">
+        <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouveau conseil
+      </button>
+    }
+  </section>
 
-  <!-- Navigation par onglets -->
-  <div class="filter-bar pro-card">
-    <div class="filter-tabs">
-      <button type="button"
-              class="filter-tab"
-              [class.filter-tab--active]="vue() === 'ETAPES'"
-              (click)="changerVue('ETAPES')">
-        <span>Parcours gestationnel (1 → {{ dureeGrossesseSemaines }} semaines)</span>
-      </button>
-      <button type="button"
-              class="filter-tab"
-              [class.filter-tab--active]="vue() === 'CONSEILS'"
-              (click)="changerVue('CONSEILS')">
-        <span>Bibliothèque de Conseils</span>
-      </button>
+  <!-- ═══════════ Contenu et filtres ═══════════ -->
+  <section class="card filters" aria-label="Contenu et filtres">
+    <div class="filters__top">
+      <div class="status-tabs" role="tablist" aria-label="Contenu">
+        <button type="button" role="tab" class="status-tab" [class.status-tab--active]="vue() === 'ETAPES'" [attr.aria-selected]="vue() === 'ETAPES'" (click)="changerVue('ETAPES')">
+          <yay360-icon name="calendar" [size]="16" aria-hidden="true" /> Étapes semaine par semaine
+        </button>
+        <button type="button" role="tab" class="status-tab" [class.status-tab--active]="vue() === 'CONSEILS'" [attr.aria-selected]="vue() === 'CONSEILS'" (click)="changerVue('CONSEILS')">
+          <yay360-icon name="book" [size]="16" aria-hidden="true" /> Bibliothèque de conseils
+          <span class="status-tab__count">{{ conseils().length }}</span>
+        </button>
+      </div>
+      @if (vue() === 'CONSEILS' && filtresActifs()) {
+        <p class="filters__count" role="status">
+          <strong>{{ conseilsFiltres().length }}</strong> sur {{ conseils().length }} ·
+          <button type="button" class="filters__reset" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+        </p>
+      }
     </div>
-  </div>
+    @if (vue() === 'CONSEILS') {
+      <div class="filters__tools">
+    <div class="input-ico tools__search">
+      <yay360-icon name="search" [size]="18" aria-hidden="true" />
+      <input type="search" placeholder="Titre ou contenu…" aria-label="Rechercher un conseil" [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
+    </div>
+    <label class="tools__select">
+      <span class="sr-only">Catégorie</span>
+      <select class="select" [value]="filtreCategorie()" (change)="filtreCategorie.set($any($event.target).value)">
+        <option value="">Toutes les catégories</option>
+        @for (c of categories; track c.value) { <option [value]="c.value">{{ c.label }}</option> }
+      </select>
+    </label>
+    <div class="segmented" role="group" aria-label="Statut">
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'TOUS'" (click)="filtreStatut.set('TOUS')">Tous</button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'ACTIFS'" (click)="filtreStatut.set('ACTIFS')">Actifs</button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'INACTIFS'" (click)="filtreStatut.set('INACTIFS')">Inactifs</button>
+    </div>
+    </div>
+    }
+  </section>
 
-  <!-- ==================== VUE ÉTAPES ==================== -->
+  @if (succes()) {
+    <div class="pro-notice pro-notice--success" role="status">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succes() }}</span>
+      <button type="button" class="notice-close" (click)="succes.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+  @if (erreurAction() && !formulaireConseilOuvert()) {
+    <div class="pro-notice pro-notice--error" role="alert">
+      <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span>
+      <button type="button" class="notice-close" (click)="erreurAction.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+
+  <!-- ══════════════════════ ÉTAPES ══════════════════════ -->
   @if (vue() === 'ETAPES') {
     @if (chargementEtapes()) {
-      <div class="conseils-loading">
-        <div class="pro-spinner"></div>
-        <p>Chargement des étapes de la grossesse…</p>
-      </div>
+      <div class="pro-skeleton ce__skeleton" aria-hidden="true"></div>
+      <span class="sr-only" role="status">Chargement des étapes…</span>
+    } @else if (etapes().length === 0) {
+      <yay360-state type="vide" titre="Aucune étape" message="Les étapes de la grossesse ne sont pas encore disponibles." />
     } @else {
-      <!-- Légende des trimestres -->
-      <div class="trimesters-legend pro-card">
-        <div class="legend-item">
-          <span class="legend-indicator legend-indicator--t1"></span>
-          <span class="legend-text"><strong>1<sup>er</sup> Trimestre</strong> (Semaines 1 à 13)</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-indicator legend-indicator--t2"></span>
-          <span class="legend-text"><strong>2<sup>e</sup> Trimestre</strong> (Semaines 14 à 27)</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-indicator legend-indicator--t3"></span>
-          <span class="legend-text"><strong>3<sup>e</sup> Trimestre</strong> (Semaines 28 à {{ dureeGrossesseSemaines }})</span>
-        </div>
-      </div>
+      <div class="steps-layout">
+        <!-- Grille des semaines -->
+        <section class="card weeks-panel" aria-label="Choisir une semaine">
+          <div class="weeks-panel__head">
+            <h3 class="panel-title">Semaines</h3>
+            <span class="weeks-panel__done"><strong>{{ semainesCompletes() }}</strong> / {{ etapes().length }} complètes</span>
+          </div>
+          @for (t of trimestres(); track t.cle) {
+            <div class="trim">
+              <p class="trim__title"><span class="trim__dot" [attr.data-t]="t.cle" aria-hidden="true"></span> {{ t.titre }} <small>{{ t.plage }}</small></p>
+              <div class="trim__grid">
+                @for (e of t.etapes; track e.id) {
+                  <button type="button" class="wk" [attr.data-t]="t.cle" [class.wk--active]="semaineOuverte() === e.semaine"
+                          [attr.aria-pressed]="semaineOuverte() === e.semaine"
+                          [attr.aria-label]="'Semaine ' + e.semaine + ', ' + remplissage(e) + ' rubriques sur ' + nombreChamps"
+                          (click)="ouvrirSemaine(e); allerEditeur()">
+                    <span class="wk__num">{{ e.semaine }}</span>
+                    <span class="wk__fill" aria-hidden="true">
+                      <i [style.width.%]="(remplissage(e) / nombreChamps) * 100"></i>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          <p class="weeks-panel__legend"><span class="wk__fill wk__fill--demo" aria-hidden="true"><i></i></span> Barre : rubriques renseignées</p>
+        </section>
 
-      <!-- Grille des semaines de suivi prénatal -->
-      <div class="semaines-grid">
-        @for (etape of etapes(); track etape.id) {
-          <button type="button"
-                  class="semaine-chip"
-                  [attr.data-t]="etape.trimestre"
-                  [class.semaine-chip--active]="semaineOuverte() === etape.semaine"
-                  (click)="ouvrirSemaine(etape)">
-            <span class="semaine-chip__label">SA</span>
-            <span class="semaine-chip__num">{{ etape.semaine }}</span>
-            <span class="semaine-chip__trimestre">{{ etape.trimestre }}</span>
-          </button>
+        <!-- Éditeur de la semaine -->
+        @if (etapeActive(); as etape) {
+          <section class="card editor" [attr.aria-labelledby]="'titre-semaine-' + etape.semaine">
+            <header class="editor__head">
+              <div class="editor__week" [attr.data-t]="etape.trimestre">
+                <span>SA</span><strong>{{ etape.semaine }}</strong>
+              </div>
+              <div class="editor__title">
+                <h3 [id]="'titre-semaine-' + etape.semaine">Semaine {{ etape.semaine }}</h3>
+                <p>{{ etape.trimestre }} · {{ remplissage(etape) }} / {{ nombreChamps }} rubriques renseignées</p>
+              </div>
+              <div class="editor__nav">
+                <button type="button" class="icon-btn" (click)="semaineVoisine(-1)" [disabled]="etape.semaine <= 1" aria-label="Semaine précédente"><yay360-icon name="chevron-left" [size]="18" aria-hidden="true" /></button>
+                <button type="button" class="icon-btn" (click)="semaineVoisine(1)" [disabled]="etape.semaine >= dureeGrossesseSemaines" aria-label="Semaine suivante"><yay360-icon name="chevron-right" [size]="18" aria-hidden="true" /></button>
+              </div>
+            </header>
+
+            <form [formGroup]="formEtape" (ngSubmit)="enregistrerEtape(etape)" novalidate class="editor__form">
+              <fieldset class="group">
+                <legend><span class="group__icon"><yay360-icon name="heart" [size]="16" aria-hidden="true" /></span> Bébé et maman</legend>
+                <div class="field-row">
+                  <div class="field"><label for="dev">Développement du bébé</label><textarea id="dev" rows="3" formControlName="developpementBebe"></textarea></div>
+                  <div class="field"><label for="mere">Changements chez la mère</label><textarea id="mere" rows="3" formControlName="changementsMere"></textarea></div>
+                </div>
+              </fieldset>
+
+              <fieldset class="group">
+                <legend><span class="group__icon group__icon--lilac"><yay360-icon name="clipboard" [size]="16" aria-hidden="true" /></span> Suivi médical</legend>
+                <div class="field-row">
+                  <div class="field"><label for="obj">Objectifs de santé</label><textarea id="obj" rows="2" formControlName="objectifsSante"></textarea></div>
+                  <div class="field"><label for="exam">Examens recommandés</label><textarea id="exam" rows="2" formControlName="examensRecommandes"></textarea></div>
+                </div>
+              </fieldset>
+
+              <fieldset class="group">
+                <legend><span class="group__icon group__icon--orange"><yay360-icon name="sun" [size]="16" aria-hidden="true" /></span> Hygiène de vie</legend>
+                <div class="field-row">
+                  <div class="field"><label for="alim">Alimentation</label><textarea id="alim" rows="2" formControlName="conseilsAlimentation"></textarea></div>
+                  <div class="field"><label for="hydra">Hydratation</label><textarea id="hydra" rows="2" formControlName="conseilsHydratation"></textarea></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="sport">Activité physique</label><textarea id="sport" rows="2" formControlName="exercicesPhysiques"></textarea></div>
+                  <div class="field"><label for="som">Sommeil</label><textarea id="som" rows="2" formControlName="conseilsSommeil"></textarea></div>
+                </div>
+              </fieldset>
+
+              <fieldset class="group group--danger">
+                <legend><span class="group__icon group__icon--danger"><yay360-icon name="alert-triangle" [size]="16" aria-hidden="true" /></span> Vigilance</legend>
+                <div class="field"><label for="prec">Précautions</label><textarea id="prec" rows="2" formControlName="precautions"></textarea></div>
+                <div class="field"><label for="alerte">Signes d’alerte (consulter en urgence)</label><textarea id="alerte" rows="2" formControlName="signesAlerte"></textarea></div>
+              </fieldset>
+
+              <div class="editor__foot">
+                @if (formEtape.dirty) { <span class="editor__unsaved"><span class="dot dot--orange" aria-hidden="true"></span> Modifications non enregistrées</span> }
+                <button type="submit" class="pro-btn pro-btn--accent" [disabled]="enregistrementEtape() || formEtape.pristine">
+                  @if (enregistrementEtape()) { <span class="btn-spinner" aria-hidden="true"></span> Enregistrement… }
+                  @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Enregistrer la semaine }
+                </button>
+              </div>
+            </form>
+          </section>
         }
       </div>
-
-      <!-- Panneau d'édition de la semaine sélectionnée -->
-      @if (etapeActive(); as etape) {
-        <div class="semaine-modal" role="presentation" (click)="fermerSemaine()">
-        <section class="semaine-panel pro-card" role="dialog" aria-modal="true"
-                 [attr.aria-labelledby]="'titre-semaine-' + etape.semaine"
-                 tabindex="-1" (click)="$event.stopPropagation()">
-          <div class="semaine-panel__header">
-            <div class="semaine-panel__title-wrap">
-              <h2 class="pro-badge pro-badge--primary" [id]="'titre-semaine-' + etape.semaine">Semaine {{ etape.semaine }} SA</h2>
-              <span class="semaine-panel__trimestre-badge">{{ etape.trimestre }} ({{ etape.semaine <= 13 ? '1er Trimestre' : (etape.semaine <= 27 ? '2e Trimestre' : '3e Trimestre') }})</span>
-            </div>
-            <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" autofocus (click)="fermerSemaine()">
-              ✕ Fermer
-            </button>
-          </div>
-
-          <form [formGroup]="formEtape" (ngSubmit)="enregistrerEtape(etape)" novalidate>
-            <div class="field-grid">
-              <div class="field-group">
-                <label class="field-label">Développement fœtal & anatomie</label>
-                <textarea rows="3" class="field-input" formControlName="developpementBebe" placeholder="Taille estimée, organogenèse, mouvements fœtaux..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Changements physiologiques maternels</label>
-                <textarea rows="3" class="field-input" formControlName="changementsMere" placeholder="Symptômes, modifications hormonales, utérus..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Objectifs cliniques & santé</label>
-                <textarea rows="2" class="field-input" formControlName="objectifsSante" placeholder="Prise de poids attendue, suivi tensionnel..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Examens & bilans recommandés</label>
-                <textarea rows="2" class="field-input" formControlName="examensRecommandes" placeholder="Échographies, sérologies, dépistages..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Conseils nutritionnels</label>
-                <textarea rows="2" class="field-input" formControlName="conseilsAlimentation" placeholder="Fer, folates, vitamines, aliments à éviter..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Hydratation & hygiène de vie</label>
-                <textarea rows="2" class="field-input" formControlName="conseilsHydratation" placeholder="Apport hydrique recommandé, repos..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Activité physique adaptée</label>
-                <textarea rows="2" class="field-input" formControlName="exercicesPhysiques" placeholder="Marche, gymnastique prénatale, étirements..."></textarea>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label">Sommeil & récupération</label>
-                <textarea rows="2" class="field-input" formControlName="conseilsSommeil" placeholder="Positions conseillées, siestes réparatrices..."></textarea>
-              </div>
-
-              <div class="field-group field-group--full">
-                <label class="field-label">Précautions & contre-indications</label>
-                <textarea rows="2" class="field-input" formControlName="precautions" placeholder="Traitements proscrits, efforts violents, postures..."></textarea>
-              </div>
-
-              <div class="field-group field-group--full field-group--alert">
-                <label class="field-label alert-label">⚠️ Signes de gravité nécessitant une consultation d'urgence</label>
-                <textarea rows="2" class="field-input field-input--alert" formControlName="signesAlerte" placeholder="Métrorragies, contractions douloureuses, céphalées persistantes, diminution des mouvements fœtaux..."></textarea>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementEtape()">
-                {{ enregistrementEtape() ? 'Enregistrement…' : 'Enregistrer les protocoles' }}
-              </button>
-              <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerSemaine()">
-                Annuler
-              </button>
-            </div>
-          </form>
-        </section>
-        </div>
-      }
     }
   }
 
-  <!-- ==================== VUE CONSEILS ==================== -->
+  <!-- ══════════════════════ CONSEILS ══════════════════════ -->
   @if (vue() === 'CONSEILS') {
-    <div class="toolbar-box pro-card">
-      <div class="toolbar-box__info">
-        <h3>Bibliothèque Médicale de Conseils</h3>
-        <p>Conseils ciblés proposés automatiquement aux patientes selon leur terme d'aménorrhée.</p>
-      </div>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreationConseil()">
-        + Nouveau conseil
-      </button>
-    </div>
-
-    @if (formulaireConseilOuvert()) {
-      <div class="pro-card form-panel">
-        <div class="form-panel__header">
-          <h3 class="form-panel__title">{{ idConseilEnEdition() ? 'Modifier la recommandation' : 'Nouvelle recommandation médicale' }}</h3>
-          <span class="pro-badge pro-badge--primary">{{ idConseilEnEdition() ? 'Édition' : 'Création' }}</span>
-        </div>
-
-        <form [formGroup]="formConseil" (ngSubmit)="soumettreConseil()" novalidate>
-          <div class="field-grid field-grid--conseil">
-            <div class="field-group">
-              <label class="field-label">Semaine début (SA)</label>
-              <input type="number" min="1" [max]="dureeGrossesseSemaines" class="field-input" formControlName="semaineDebut" />
-            </div>
-            <div class="field-group">
-              <label class="field-label">Semaine fin (SA)</label>
-              <input type="number" min="1" [max]="dureeGrossesseSemaines" class="field-input" formControlName="semaineFin" />
-            </div>
-            <div class="field-group">
-              <label class="field-label">Catégorie thématique</label>
-              <select class="field-input" formControlName="categorie">
-                @for (c of categories; track c.value) {
-                  <option [value]="c.value">{{ c.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="field-group field-group--full">
-              <label class="field-label">Titre du conseil</label>
-              <input type="text" class="field-input" formControlName="titre" placeholder="ex. Alimentation équilibrée riche en folates" />
-            </div>
-            <div class="field-group field-group--full">
-              <label class="field-label">Recommandation détaillée</label>
-              <textarea rows="4" class="field-input" formControlName="contenu" placeholder="Détaillez le conseil à destination de la patiente..."></textarea>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrementConseil()">
-              {{ enregistrementConseil() ? 'Enregistrement en cours…' : 'Enregistrer le conseil' }}
-            </button>
-            <button type="button" class="pro-btn pro-btn--secondary" (click)="fermerFormulaireConseil()">
-              Annuler
-            </button>
-          </div>
-        </form>
-      </div>
-    }
 
     @if (chargementConseils()) {
-      <div class="conseils-loading">
-        <div class="pro-spinner"></div>
-        <p>Chargement des conseils médicaux…</p>
+      <div class="advices">
+        @for (i of [1, 2, 3]; track i) { <div class="pro-skeleton ce__skeleton-card" aria-hidden="true"></div> }
       </div>
-    } @else if (conseils().length === 0) {
-      <div class="conseils-empty pro-card">
-        <div class="conseils-empty__circle">
-          <span>0</span>
-        </div>
-        <h3>Aucun conseil répertorié</h3>
-        <p>La base de conseils est actuellement vide. Créez votre première recommandation.</p>
-      </div>
-    } @else {
-      <div class="conseils-grid">
-        @for (c of conseils(); track c.id) {
-          <div class="conseil-card pro-card" [class.conseil-card--inactif]="!c.actif">
-            <div class="conseil-card__header">
-              <div class="conseil-card__badges">
-                <span class="category-pill">{{ libelleCategorie(c.categorie) }}</span>
-                <span class="range-pill">SA {{ c.semaineDebut }} → {{ c.semaineFin }}</span>
-              </div>
-              <span class="pro-badge" [class.pro-badge--primary]="c.actif" [class.pro-badge--subtle]="!c.actif">
-                {{ c.actif ? 'Actif' : 'Inactif' }}
-              </span>
-            </div>
-
-            <h4 class="conseil-card__title">{{ c.titre }}</h4>
-            <p class="conseil-card__content">{{ c.contenu }}</p>
-
-            <div class="conseil-card__actions">
-              <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="ouvrirEditionConseil(c)">
-                Modifier
-              </button>
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="basculerActivation(c)">
-                {{ c.actif ? 'Désactiver' : 'Activer' }}
-              </button>
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm btn-delete" (click)="supprimerConseil(c)">
-                Supprimer
-              </button>
-            </div>
-          </div>
+    } @else if (conseilsFiltres().length === 0) {
+      <yay360-state type="vide" titre="Aucun conseil"
+                    [message]="filtresActifs() ? 'Aucun conseil ne correspond à ces filtres.' : 'Créez le premier conseil proposé aux patientes.'">
+        @if (filtresActifs()) {
+          <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+        } @else {
+          <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreationConseil()">Nouveau conseil</button>
         }
-      </div>
+      </yay360-state>
+    } @else {
+      <ul class="advices">
+        @for (c of conseilsFiltres(); track c.id) {
+          <li class="card advice" [class.advice--off]="!c.actif">
+            <div class="advice__head">
+              <span class="advice__icon" [attr.data-ton]="tonCategorie(c.categorie)" aria-hidden="true"><yay360-icon [name]="iconeCategorie(c.categorie)" [size]="20" /></span>
+              <div class="advice__meta">
+                <span class="advice__cat">{{ libelleCategorie(c.categorie) }}</span>
+                <span class="advice__range">Semaines {{ c.semaineDebut }} à {{ c.semaineFin }}</span>
+              </div>
+              @if (c.actif) { <span class="badge badge--success"><span class="dot" aria-hidden="true"></span> Actif</span> }
+              @else { <span class="badge badge--subtle">Inactif</span> }
+            </div>
+
+            <div class="advice__bar" aria-hidden="true">
+              <i [style.left.%]="((c.semaineDebut - 1) / dureeGrossesseSemaines) * 100" [style.width.%]="((c.semaineFin - c.semaineDebut + 1) / dureeGrossesseSemaines) * 100"></i>
+            </div>
+
+            <h3 class="advice__title">{{ c.titre }}</h3>
+            <p class="advice__text">{{ c.contenu }}</p>
+            @if (c.auteurNomComplet) { <p class="advice__author"><yay360-icon name="user" [size]="12" aria-hidden="true" /> {{ c.auteurNomComplet }}</p> }
+
+            <div class="advice__actions">
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="ouvrirEditionConseil(c)"><yay360-icon name="edit" [size]="16" aria-hidden="true" /> Modifier</button>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="basculerActivation(c)">{{ c.actif ? 'Désactiver' : 'Activer' }}</button>
+              <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm advice__delete" (click)="supprimerConseil(c)" [attr.aria-label]="'Supprimer ' + c.titre" title="Supprimer">
+                <yay360-icon name="trash" [size]="16" aria-hidden="true" />
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
     }
   }
-
 </div>
+
+<!-- ═══════════ Fenêtre : conseil ═══════════ -->
+@if (formulaireConseilOuvert()) {
+  <div class="pro-modal-backdrop" (click)="fermerFormulaireConseil()">
+    <section class="pro-modal" role="dialog" aria-modal="true" aria-labelledby="titre-form-conseil" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="book" [size]="22" /></span>
+        <div class="ce__modal-title">
+          <h2 id="titre-form-conseil">{{ idConseilEnEdition() ? 'Modifier le conseil' : 'Nouveau conseil' }}</h2>
+          <p>Le conseil sera proposé aux patientes pendant les semaines choisies.</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="fermerFormulaireConseil()" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
+      </header>
+
+      <form [formGroup]="formConseil" (ngSubmit)="soumettreConseil()" novalidate class="ce__form">
+        <div class="field">
+          <label for="titre">Titre *</label>
+          <input id="titre" formControlName="titre" [attr.aria-invalid]="invalideConseil('titre')" />
+          @if (invalideConseil('titre')) { <span class="field-error">Le titre est obligatoire.</span> }
+        </div>
+        <div class="field">
+          <label for="categorie">Catégorie *</label>
+          <select id="categorie" formControlName="categorie">
+            @for (c of categories; track c.value) { <option [value]="c.value">{{ c.label }}</option> }
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="debut">Semaine de début *</label>
+            <input id="debut" type="number" min="1" [max]="dureeGrossesseSemaines" formControlName="semaineDebut" [attr.aria-invalid]="invalideConseil('semaineDebut')" />
+          </div>
+          <div class="field">
+            <label for="fin">Semaine de fin *</label>
+            <input id="fin" type="number" min="1" [max]="dureeGrossesseSemaines" formControlName="semaineFin" [attr.aria-invalid]="invalideConseil('semaineFin')" />
+          </div>
+        </div>
+        @if (invalideConseil('semaineDebut') || invalideConseil('semaineFin')) {
+          <span class="field-error">Semaines entre 1 et {{ dureeGrossesseSemaines }}.</span>
+        }
+        <div class="field">
+          <label for="contenu">Contenu *</label>
+          <textarea id="contenu" rows="5" formControlName="contenu" [attr.aria-invalid]="invalideConseil('contenu')"></textarea>
+          @if (invalideConseil('contenu')) { <span class="field-error">Le contenu est obligatoire.</span> }
+        </div>
+
+        @if (erreurAction()) {
+          <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+        }
+
+        <div class="pro-modal__foot">
+          <button type="button" class="pro-btn pro-btn--ghost" (click)="fermerFormulaireConseil()">Annuler</button>
+          <button type="submit" class="pro-btn pro-btn--accent" [disabled]="enregistrementConseil()">
+            @if (enregistrementConseil()) { <span class="btn-spinner" aria-hidden="true"></span> Enregistrement… }
+            @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> Enregistrer }
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+<!-- ═══════════ Fenêtre : suppression ═══════════ -->
+@if (conseilASupprimer(); as c) {
+  <div class="pro-modal-backdrop" (click)="conseilASupprimer.set(null)">
+    <section class="pro-modal pro-modal--sm" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppr" aria-describedby="texte-suppr" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon pro-modal__icon--danger" aria-hidden="true"><yay360-icon name="trash" [size]="22" /></span>
+        <div class="ce__modal-title">
+          <h2 id="titre-suppr">Supprimer ce conseil ?</h2>
+          <p id="texte-suppr">« {{ c.titre }} » ne sera plus proposé aux patientes. Pour le masquer temporairement, préférez « Désactiver ».</p>
+        </div>
+      </header>
+      <div class="pro-modal__foot">
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="conseilASupprimer.set(null)">Annuler</button>
+        <button type="button" class="pro-btn pro-btn--danger" [disabled]="suppressionEnCours()" (click)="confirmerSuppression()">
+          @if (suppressionEnCours()) { <span class="btn-spinner" aria-hidden="true"></span> } Supprimer
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,106 +1,122 @@
-﻿<div class="login-shell">
+﻿<main class="auth-bg">
+  <yay360-theme-toggle class="auth-theme" />
+  <div class="auth-split">
 
-  <!-- Panneau gauche -->
-  <section class="brand-panel">
-    <div class="brand-panel__bg"></div>
-    <div class="brand-panel__content">
-      <div class="brand-logo">
-        <img src="yay360-logo.png" class="brand-logo__image" alt="Logo YAY360">
+    <!-- ═══════════ Présentation ═══════════ -->
+    <section class="auth-intro">
+      <a routerLink="/" class="auth-logo" aria-label="YAY360 — accueil">
+        <img src="yay360-logo.png" alt="" width="52" height="52" />
+        <span>YaY°360</span>
+      </a>
+      <h1 class="auth-intro__title">Suivi de la<br />santé maternelle</h1>
+      <p class="auth-intro__text">
+        Patientes, conjoints, sages-femmes, médecins et administration partagent un même dossier de grossesse.
+      </p>
+
+      <ul class="auth-roles" aria-label="Profils pouvant se connecter">
+        @for (r of profils; track r.libelle) {
+          <li><span aria-hidden="true"><yay360-icon [name]="r.icone" [size]="14" /></span>{{ r.libelle }}</li>
+        }
+      </ul>
+
+      <dl class="auth-stats">
+        <div class="auth-stat">
+          <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="users" [size]="18" /></span>5</dt>
+          <dd>Profils d’accès</dd>
+        </div>
+        <div class="auth-stat auth-stat--orange">
+          <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="18" /></span>8</dt>
+          <dd>Consultations prénatales (OMS)</dd>
+        </div>
+        <div class="auth-stat auth-stat--lilac">
+          <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="calendar" [size]="18" /></span>40</dt>
+          <dd>Semaines suivies</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- ═══════════ Formulaire ═══════════ -->
+    <section class="auth-card" aria-labelledby="titre-connexion">
+      <a routerLink="/" class="login__back"><yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> Accueil</a>
+
+      <div class="auth-head">
+        <span class="auth-head__icon"><yay360-icon name="user" [size]="26" aria-hidden="true" /></span>
+        <span class="auth-kicker">Bon retour parmi nous</span>
+        <h2 id="titre-connexion">Connexion</h2>
+        <p>Accédez à votre espace avec votre adresse e-mail.</p>
       </div>
-      <h1 class="brand-name">YaY°360</h1>
-      <p class="brand-sub">Plateforme intelligente de suivi de la santé maternelle destinée aux femmes enceintes.</p>
 
-      <div class="brand-stats">
-        <div class="stat">
-          <span class="stat__num">40</span>
-          <span class="stat__label">Semaines</span>
+      @if (sessionExpiree) {
+        <div class="pro-notice pro-notice--warning login__notice" role="status">
+          <yay360-icon name="info" [size]="18" aria-hidden="true" />
+          <span>Votre session a expiré. Reconnectez-vous pour continuer.</span>
         </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat__num">360°</span>
-          <span class="stat__label">Santé maternelle</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat__num">24/7</span>
-          <span class="stat__label">Alertes</span>
-        </div>
-      </div>
-    </div>
-  </section>
+      }
 
-  <!-- Panneau formulaire -->
-  <section class="form-panel">
-    <div class="form-panel__inner">
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+        <div class="field">
+          <label for="email">Adresse e-mail</label>
+          <div class="input-ico">
+            <yay360-icon name="mail" [size]="18" aria-hidden="true" />
+            <input id="email" type="email" formControlName="email" placeholder="nom@exemple.sn" autocomplete="email"
+                   [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
+                   aria-describedby="email-erreur" />
+          </div>
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <span class="field-error" id="email-erreur">Saisissez une adresse e-mail valide.</span>
+          }
+        </div>
 
-      <div class="form-top">
-        <button type="button" class="theme-btn" (click)="themeService.toggle()"
-                [attr.aria-label]="themeService.isDark() ? 'Mode clair' : 'Mode sombre'">
-          @if (themeService.isDark()) {
-            <yay360-icon name="sun" [size]="16" />
+        <div class="field">
+          <div class="auth-row">
+            <label for="password">Mot de passe</label>
+            <a routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a>
+          </div>
+          <div class="pwd input-ico">
+            <yay360-icon name="shield" [size]="18" aria-hidden="true" />
+            <input id="password" [type]="motDePasseVisible() ? 'text' : 'password'" formControlName="password"
+                   placeholder="Votre mot de passe" autocomplete="current-password"
+                   [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
+                   aria-describedby="password-erreur" />
+            <button type="button" (click)="basculerVisibiliteMotDePasse()"
+                    [attr.aria-label]="motDePasseVisible() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                    [attr.aria-pressed]="motDePasseVisible()">
+              <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="18" aria-hidden="true" />
+            </button>
+          </div>
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <span class="field-error" id="password-erreur">Saisissez votre mot de passe.</span>
+          }
+        </div>
+
+        @if (erreur()) {
+          <div class="pro-notice pro-notice--error" role="alert">
+            <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+            <span>{{ erreur() }}</span>
+          </div>
+        }
+
+        <button type="submit" class="pro-btn pro-btn--accent pro-btn--block auth-submit" [disabled]="chargement()">
+          @if (chargement()) {
+            <span class="btn-spinner" aria-hidden="true"></span> Connexion…
           } @else {
-            <yay360-icon name="moon" [size]="16" />
+            Se connecter <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" />
           }
         </button>
-      </div>
+      </form>
 
-      <div class="form-box">
-        <div class="form-box__header">
-          <h2>Connexion</h2>
-          <p>Espace réservé à l’administration, aux médecins et aux sages-femmes</p>
-        </div>
+      <div class="login__divider" aria-hidden="true"><span>Pas encore de compte ?</span></div>
 
-        <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+      <a routerLink="/inscription" class="pro-btn pro-btn--secondary pro-btn--block">
+        <yay360-icon name="heart" [size]="18" aria-hidden="true" /> Je suis future maman, je crée mon espace
+      </a>
 
-          <div class="field">
-            <label for="email">Email</label>
-            <input id="email" type="email" formControlName="email"
-                   placeholder="nom@yay360.sn"
-                   autocomplete="email"
-                   [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched" />
-            @if (form.controls.email.invalid && form.controls.email.touched) {
-              <span class="field-err">Email invalide</span>
-            }
-          </div>
+      <p class="auth-note">
+        <yay360-icon name="info" [size]="16" aria-hidden="true" />
+        <span>Conjoint : utilisez le lien d’invitation reçu. Professionnels : votre compte est créé par l’administrateur.</span>
+      </p>
+    </section>
+  </div>
 
-          <div class="field">
-            <div class="field__label-row">
-              <label for="password">Mot de passe</label>
-              <a routerLink="/mot-de-passe-oublie" class="forgot-link">Oublié ?</a>
-            </div>
-            <div class="field__input-wrap">
-              <input id="password"
-                     [type]="motDePasseVisible() ? 'text' : 'password'"
-                     formControlName="password"
-                     placeholder="••••••••"
-                     autocomplete="current-password"
-                     [class.is-invalid]="form.controls.password.invalid && form.controls.password.touched" />
-              <button type="button" class="eye-btn" (click)="basculerVisibiliteMotDePasse()">
-                <yay360-icon [name]="motDePasseVisible() ? 'eye-off' : 'eye'" [size]="16" />
-              </button>
-            </div>
-            @if (form.controls.password.invalid && form.controls.password.touched) {
-              <span class="field-err">Champ requis</span>
-            }
-          </div>
-
-          @if (erreur()) {
-            <div class="form-err" role="alert">{{ erreur() }}</div>
-          }
-
-          <button type="submit" class="submit-btn" [disabled]="chargement()">
-            @if (chargement()) {
-              <span class="btn-spinner"></span>
-              <span>Connexion…</span>
-            } @else {
-              <span>Se connecter</span>
-            }
-          </button>
-
-        </form>
-      </div>
-
-    </div>
-  </section>
-
-</div>
+  <yay360-feuillage class="auth-bg__leaves" />
+</main>

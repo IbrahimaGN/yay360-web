@@ -1,38 +1,86 @@
-<div class="pro-fade-in">
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Centre d’information</span>
-      <h2 class="pro-header__title">Notifications</h2>
-      <p class="pro-header__desc">Rappels, alertes et informations liés à votre dossier.</p>
-    </div>
-    @if (notifications().some(n => !n.lue)) {
-      <button type="button" class="mark-all" [disabled]="enAction()" (click)="toutMarquerLu()">Tout marquer comme lu</button>
-    }
-  </header>
+<div class="notifs">
 
-  @if (erreur()) { <div class="notice notice--error" role="alert">{{ erreur() }}</div> }
-  @if (chargement()) {
-    <div class="empty-state pro-card">Chargement des notifications…</div>
-  } @else if (notifications().length === 0) {
-    <div class="empty-state pro-card">Vous n’avez aucune notification pour le moment.</div>
-  } @else {
-    <div class="notification-list">
-      @for (notification of notifications(); track notification.id) {
-        <article class="notification-card pro-card" [class.notification-card--unread]="!notification.lue">
-          <div class="notification-card__marker" aria-hidden="true"></div>
-          <div class="notification-card__body">
-            <div class="notification-card__top">
-              <span class="notification-type">{{ notification.type.replaceAll('_', ' ') }}</span>
-              <time>{{ notification.dateEnvoi | date:'d MMM y, HH:mm' }}</time>
-            </div>
-            <h3>{{ notification.titre }}</h3>
-            <p>{{ notification.message }}</p>
-            @if (!notification.lue) {
-              <button type="button" class="mark-one" [disabled]="enAction()" (click)="marquerLue(notification)">Marquer comme lue</button>
-            }
-          </div>
-        </article>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card notifs__head">
+    <div class="notifs__summary">
+      <span class="notifs__bell" aria-hidden="true">
+        <yay360-icon name="bell" [size]="24" />
+        @if (nonLues()) { <span class="notifs__bell-count">{{ nonLues() }}</span> }
+      </span>
+      <div>
+        <h2 class="section-title">Centre de notifications</h2>
+        <p>
+          @if (chargement()) { Chargement… }
+          @else if (nonLues()) { {{ nonLues() }} notification{{ nonLues() > 1 ? 's' : '' }} non lue{{ nonLues() > 1 ? 's' : '' }} }
+          @else { Vous êtes à jour. }
+        </p>
+      </div>
+    </div>
+    <button type="button" class="pro-btn pro-btn--secondary" [disabled]="!nonLues() || enAction()" (click)="toutMarquerLu()">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /> Tout marquer comme lu
+    </button>
+  </section>
+
+  @if (!chargement() && !erreur() && notifications().length) {
+    <div class="filters" role="group" aria-label="Filtrer les notifications">
+      @for (f of filtres(); track f.cle) {
+        @if (f.nombre || f.cle === 'toutes' || f.cle === 'non-lues') {
+          <button type="button" class="filters__btn" [class.filters__btn--active]="filtre() === f.cle"
+                  [attr.aria-pressed]="filtre() === f.cle" (click)="filtre.set(f.cle)">
+            {{ f.libelle }} <span class="filters__count">{{ f.nombre }}</span>
+          </button>
+        }
       }
     </div>
+  }
+
+  @if (erreurAction()) {
+    <div class="pro-notice pro-notice--error" role="alert">
+      <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span>
+    </div>
+  }
+
+  <!-- ═══════════ Liste ═══════════ -->
+  @if (chargement()) {
+    <yay360-state type="chargement" message="Chargement des notifications…" />
+  } @else if (erreur()) {
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (notifications().length === 0) {
+    <yay360-state type="vide" titre="Aucune notification" message="Vos rappels, alertes et conseils apparaîtront ici." />
+  } @else if (groupes().length === 0) {
+    <yay360-state type="vide" titre="Rien dans ce filtre" message="Aucune notification ne correspond à ce filtre.">
+      <button type="button" class="pro-btn pro-btn--ghost" (click)="filtre.set('toutes')">Voir toutes les notifications</button>
+    </yay360-state>
+  } @else {
+    @for (g of groupes(); track g.cle) {
+      <section class="day" [attr.aria-label]="g.titre || (g.items[0].dateEnvoi | date: 'EEEE d MMMM y')">
+        <h3 class="day__title">{{ g.titre || (g.items[0].dateEnvoi | date: 'EEEE d MMMM y') }}</h3>
+        <ul class="list">
+          @for (n of g.items; track n.id) {
+            <li class="item" [class.item--unread]="!n.lue" [attr.data-famille]="apparence(n).famille">
+              <span class="item__icon" aria-hidden="true"><yay360-icon [name]="apparence(n).icone" [size]="20" /></span>
+              <div class="item__body">
+                <div class="item__top">
+                  <span class="item__type">{{ apparence(n).libelle }}</span>
+                  <time [attr.datetime]="n.dateEnvoi">{{ n.dateEnvoi | date: 'HH:mm' }}</time>
+                </div>
+                <h4 class="item__title">
+                  @if (!n.lue) { <span class="item__dot" aria-hidden="true"></span><span class="sr-only">Non lue : </span> }
+                  {{ n.titre }}
+                </h4>
+                <p class="item__msg">{{ n.message }}</p>
+              </div>
+              @if (!n.lue) {
+                <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm item__action" [disabled]="enAction()" (click)="marquerLue(n)">
+                  <yay360-icon name="check" [size]="16" aria-hidden="true" /> Marquer comme lue
+                </button>
+              } @else {
+                <span class="item__read"><yay360-icon name="check" [size]="14" aria-hidden="true" /> Lue</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
   }
 </div>

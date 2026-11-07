@@ -1,100 +1,90 @@
-﻿<div class="pro-fade-in">
-
-  <!-- Retour -->
-  <div class="detail-nav">
-    <a routerLink="/consultations" class="back-btn">
-      <span>← Retour aux consultations</span>
-    </a>
-  </div>
+﻿<div class="cd">
+  <a routerLink="/consultations" class="cd__back no-print"><yay360-icon name="chevron-left" [size]="16" aria-hidden="true" /> Retour aux consultations</a>
 
   @if (chargement()) {
-    <div class="consult-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement du compte-rendu clinique…</p>
-    </div>
+    <div class="pro-skeleton cd__skeleton" aria-hidden="true"></div>
+    <span class="sr-only" role="status">Chargement de la consultation…</span>
   } @else if (erreur()) {
-    <div class="consult-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
   } @else if (consultation(); as c) {
 
-    <!-- En-tête Consultation -->
-    <header class="consult-hero pro-card">
-      <div class="consult-hero__avatar">{{ c.femmeEnceinteNomComplet.charAt(0) }}</div>
-      <div class="consult-hero__meta">
-        <div class="consult-hero__tags">
-          <span class="pro-badge pro-badge--primary">Examen Médical</span>
-          @if (c.etablissementNom) {
-            <span class="pro-badge">{{ c.etablissementNom }}</span>
-          }
+    <!-- ═══════════ En-tête ═══════════ -->
+    <header class="card hero">
+      <div class="hero__id">
+        <span class="avatar avatar--lg" aria-hidden="true">{{ initiales(c.femmeEnceinteNomComplet) }}</span>
+        <div class="hero__who">
+          <span class="badge badge--primary"><yay360-icon name="clipboard" [size]="12" aria-hidden="true" /> Consultation n° {{ c.id }}</span>
+          <h2>{{ c.femmeEnceinteNomComplet }}</h2>
+          <ul class="hero__meta">
+            <li><yay360-icon name="calendar" [size]="14" aria-hidden="true" /> {{ c.dateConsultation | date: 'EEEE d MMMM y à HH:mm' }}</li>
+            <li><yay360-icon name="user" [size]="14" aria-hidden="true" /> {{ c.professionnelNomComplet }}</li>
+            @if (c.etablissementNom) { <li><yay360-icon name="building" [size]="14" aria-hidden="true" /> {{ c.etablissementNom }}</li> }
+          </ul>
         </div>
-        <h1 class="consult-hero__title">{{ c.femmeEnceinteNomComplet }}</h1>
-        <p class="consult-hero__sub">
-          Consultation effectuée le {{ c.dateConsultation | date: 'dd MMMM yyyy à HH:mm' }}
-          · par <strong>{{ c.professionnelNomComplet }}</strong>
-        </p>
+      </div>
+      <div class="hero__actions no-print">
+        <a class="pro-btn pro-btn--secondary" [routerLink]="['/grossesses', c.grossesseId]"><yay360-icon name="heart" [size]="18" aria-hidden="true" /> Fiche grossesse</a>
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="imprimer()"><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Imprimer</button>
       </div>
     </header>
 
-    <!-- Constantes Médicales -->
-    <section class="constants-card pro-card">
-      <div class="constants-card__header">
-        <h3>Constantes & Signes Vitaux</h3>
-        <span class="pro-badge pro-badge--subtle">Mesures enregistrées</span>
-      </div>
-
-      <div class="constants-grid">
-        <div class="constant-tile">
-          <span class="constant-tile__label">Poids</span>
-          <strong class="constant-tile__value">{{ c.poidsKg ? (c.poidsKg + ' kg') : '—' }}</strong>
-        </div>
-        <div class="constant-tile">
-          <span class="constant-tile__label">Tension Artérielle</span>
-          <strong class="constant-tile__value">{{ c.tensionArterielle || '—' }}</strong>
-        </div>
-        <div class="constant-tile">
-          <span class="constant-tile__label">Température</span>
-          <strong class="constant-tile__value">{{ c.temperatureC ? (c.temperatureC + ' °C') : '—' }}</strong>
-        </div>
-        <div class="constant-tile">
-          <span class="constant-tile__label">Hauteur Utérine</span>
-          <strong class="constant-tile__value">{{ c.hauteurUterineCm ? (c.hauteurUterineCm + ' cm') : '—' }}</strong>
-        </div>
-        <div class="constant-tile">
-          <span class="constant-tile__label">Rythme Cardiaque Fœtal (BCF)</span>
-          <strong class="constant-tile__value">{{ c.battementsCoeurFoetal ? (c.battementsCoeurFoetal + ' bpm') : '—' }}</strong>
-        </div>
-      </div>
+    <!-- ═══════════ Constantes ═══════════ -->
+    <section class="card panel" aria-labelledby="t-constantes">
+      <h3 id="t-constantes" class="panel__title">Constantes relevées</h3>
+      <dl class="vitals">
+        @for (k of constantes(c); track k.libelle) {
+          <div class="vital" [class.vital--empty]="!k.valeur">
+            <dt><yay360-icon [name]="k.icone" [size]="16" aria-hidden="true" /> {{ k.libelle }}</dt>
+            <dd>
+              @if (k.valeur) { <strong>{{ k.valeur }}</strong> <span>{{ k.unite }}</span> }
+              @else { <span class="vital__none">Non mesuré</span> }
+            </dd>
+          </div>
+        }
+      </dl>
     </section>
 
-    <!-- Observations & Diagnostic -->
-    <div class="notes-grid">
-      <div class="pro-card note-card">
-        <span class="note-card__tag">Évaluation Clinique</span>
-        <h4>Observations</h4>
-        <p>{{ c.observations || 'Aucune observation consignée.' }}</p>
-      </div>
+    <!-- ═══════════ Analyse des règles ═══════════ -->
+    @if (c.signauxCliniques.length > 0) {
+      <section class="card signals" role="status" aria-labelledby="t-signaux">
+        <header class="signals__head">
+          <span class="signals__icon" aria-hidden="true"><yay360-icon name="alert-triangle" [size]="20" /></span>
+          <div>
+            <h3 id="t-signaux">{{ c.signauxCliniques.length }} signal{{ c.signauxCliniques.length > 1 ? 'aux' : '' }} détecté{{ c.signauxCliniques.length > 1 ? 's' : '' }} par les règles</h3>
+            <p>Une alerte tracée a été créée. La décision clinique appartient au soignant.</p>
+          </div>
+          <a routerLink="/alertes" class="pro-btn pro-btn--secondary pro-btn--sm no-print">Voir les alertes</a>
+        </header>
+        <ul class="signals__list">
+          @for (s of c.signauxCliniques; track $index) {
+            <li [class.signals__urgent]="s.startsWith('[URGENT]')"><yay360-icon name="info" [size]="16" aria-hidden="true" /> {{ s }}</li>
+          }
+        </ul>
+      </section>
+    } @else {
+      <p class="pro-notice pro-notice--success"><yay360-icon name="check" [size]="18" aria-hidden="true" /><span>Aucune valeur hors des seuils de vigilance sur les constantes saisies.</span></p>
+    }
 
-      <div class="pro-card note-card">
-        <span class="note-card__tag">Avis Médical</span>
-        <h4>Diagnostic</h4>
-        <p>{{ c.diagnostic || 'Aucun diagnostic spécifique enregistré.' }}</p>
-      </div>
+    <!-- ═══════════ Compte rendu ═══════════ -->
+    <section class="notes" aria-label="Compte rendu">
+      <article class="card note">
+        <h3><span class="note__icon"><yay360-icon name="search" [size]="16" aria-hidden="true" /></span> Observations</h3>
+        <p [class.note__empty]="!c.observations">{{ c.observations || 'Aucune observation consignée.' }}</p>
+      </article>
+      <article class="card note">
+        <h3><span class="note__icon note__icon--lilac"><yay360-icon name="clipboard" [size]="16" aria-hidden="true" /></span> Diagnostic</h3>
+        <p [class.note__empty]="!c.diagnostic">{{ c.diagnostic || 'Aucun diagnostic enregistré.' }}</p>
+      </article>
+      <article class="card note">
+        <h3><span class="note__icon note__icon--orange"><yay360-icon name="heart" [size]="16" aria-hidden="true" /></span> Traitement</h3>
+        <p [class.note__empty]="!c.traitement">{{ c.traitement || 'Aucun traitement prescrit.' }}</p>
+      </article>
+      <article class="card note">
+        <h3><span class="note__icon"><yay360-icon name="book" [size]="16" aria-hidden="true" /></span> Examens prescrits</h3>
+        <p [class.note__empty]="!c.prescriptions">{{ c.prescriptions || 'Aucun examen prescrit.' }}</p>
+      </article>
+    </section>
 
-      <div class="pro-card note-card">
-        <span class="note-card__tag">Protocole</span>
-        <h4>Traitement</h4>
-        <p>{{ c.traitement || 'Aucun traitement prescrit.' }}</p>
-      </div>
-
-      <div class="pro-card note-card">
-        <span class="note-card__tag">Ordonnance</span>
-        <h4>Prescriptions & Recommandations</h4>
-        <p>{{ c.prescriptions || 'Aucune prescription rédigée.' }}</p>
-      </div>
-    </div>
-
+    <p class="cd__footer">Enregistrée le {{ c.dateCreation | date: 'd MMMM y à HH:mm' }}</p>
   }
-
 </div>

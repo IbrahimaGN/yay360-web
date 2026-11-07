@@ -18,6 +18,12 @@ import { IconName } from '../../../core/models/nav-item.model';
           <circle cx="12" cy="12" r="8.2" opacity="0.35" />
           <path d="M12 3.8 A8.2 8.2 0 0 1 19.6 14" />
         }
+        @case ('activity') { <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /> }
+        @case ('arrow-right') { <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /> }
+        @case ('mail') { <rect x="3" y="5" width="18" height="14" rx="2" /><polyline points="3 7 12 13 21 7" /> }
+        @case ('phone') { <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z" /> }
+        @case ('map-pin') { <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /> }
+        @case ('shield') { <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /> }
         @case ('heart') {
           <path d="M20.8 8.8c0 5.3-8.8 11-8.8 11s-8.8-5.7-8.8-11A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8.8 2.8Z" />
         }
@@ -50,10 +56,6 @@ import { IconName } from '../../../core/models/nav-item.model';
         @case ('book') {
           <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5Z" />
           <line x1="4" y1="19" x2="20" y2="19" />
-        }
-        @case ('chat') {
-          <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8.3 8.3 0 0 1-3.6-.8L4 20l1.3-4.2a7.5 7.5 0 1 1 14.7-4.3Z" />
-          <path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" />
         }
         @case ('users') {
           <circle cx="9" cy="8" r="3.2" />

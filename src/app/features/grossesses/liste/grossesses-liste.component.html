@@ -1,92 +1,235 @@
-﻿<div class="pro-fade-in">
+﻿<div class="gl">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Santé maternelle</span>
-      <h1 class="pro-header__title">Suivi des grossesses</h1>
-      <p class="pro-header__desc">Suivi de la santé des femmes enceintes et de l’évolution de leur grossesse.</p>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card gl__head">
+    <div class="gl__intro">
+      <span class="gl__intro-icon" aria-hidden="true"><yay360-icon name="heart" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">{{ estSoignant() ? 'Mes patientes' : 'Grossesses en cours' }}</h2>
+        <p>
+          @if (estSoignant()) {
+            Les patientes que vous suivez : celles de vos établissements et celles que vous avez déjà prises en charge.
+          } @else {
+            Vue de supervision de toutes les grossesses en cours sur la plateforme.
+          }
+        </p>
+      </div>
     </div>
-  </header>
+    @if (estSoignant()) {
+      <a routerLink="/grossesses/recherche" class="pro-btn pro-btn--accent gl__cta"><yay360-icon name="search" [size]="18" aria-hidden="true" /> Rechercher une patiente</a>
+    }
+  </section>
 
-  <!-- Recherche des grossesses en cours -->
-  <div class="filter-bar pro-card">
-    <div class="search-box">
-      <input
-        type="search"
-        class="search-input"
-        placeholder="Rechercher par nom de patiente…"
-        [value]="recherche()"
-        (input)="recherche.set($any($event.target).value)"
-      />
+  @if (estSoignant() && !chargement() && !erreur() && onglet() === 'TOUTES') {
+
+    @if (termesProches().length) {
+      <!-- ═══════════ Termes proches ═══════════ -->
+      <section class="card prio" aria-labelledby="titre-prio">
+        <header class="prio__head">
+          <h3 id="titre-prio"><yay360-icon name="calendar" [size]="18" aria-hidden="true" /> Terme dans moins de 4 semaines</h3>
+          <span>{{ termesProches().length }} patiente{{ termesProches().length > 1 ? 's' : '' }} à préparer pour l’accouchement</span>
+        </header>
+        <ul class="prio__list">
+          @for (g of termesProches(); track g.id) {
+            <li>
+              <a class="prio__item" [routerLink]="['/grossesses', g.id]" [class.prio__item--risk]="g.grossesseARisque">
+                <span class="avatar avatar--sm" [class.avatar--orange]="g.grossesseARisque" aria-hidden="true">{{ initiales(g.femmeEnceinteNomComplet) }}</span>
+                <span class="prio__body">
+                  <strong>{{ g.femmeEnceinteNomComplet }}</strong>
+                  <small>
+                    @if (g.grossesseARisque) { <span class="prio__risk">À risque</span> · }
+                    Sem. {{ g.semaineActuelle }} · terme dans {{ g.joursRestants }} j
+                  </small>
+                </span>
+                <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" />
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+
+  @if (succes()) {
+    <div class="pro-notice pro-notice--success" role="status">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succes() }}</span>
+      <button type="button" class="notice-close" (click)="succes.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+
+  <!-- ═══════════ Filtres ═══════════ -->
+  <section class="card filters" aria-label="Filtres">
+    <div class="filters__top">
+      <div class="status-tabs" role="tablist" aria-label="Grossesses affichées">
+        <button type="button" role="tab" class="status-tab" [class.status-tab--active]="onglet() === 'TOUTES'"
+                [attr.aria-selected]="onglet() === 'TOUTES'" (click)="changerOnglet('TOUTES')">
+          <yay360-icon name="heart" [size]="16" aria-hidden="true" /> En cours
+          @if (compteEnCours() !== null) { <span class="status-tab__count">{{ compteEnCours() }}</span> }
+        </button>
+        <button type="button" role="tab" class="status-tab status-tab--risk" [class.status-tab--active]="onglet() === 'A_RISQUE'"
+                [attr.aria-selected]="onglet() === 'A_RISQUE'" (click)="changerOnglet('A_RISQUE')">
+          <yay360-icon name="alert-triangle" [size]="16" aria-hidden="true" /> À risque
+          @if (compteARisque() !== null) { <span class="status-tab__count">{{ compteARisque() }}</span> }
+        </button>
+      </div>
+      @if (!chargement() && !erreur() && filtresActifs()) {
+        <p class="filters__count" role="status">
+          <strong>{{ grossessesFiltrees().length }}</strong> sur {{ grossesses().length }} ·
+          <button type="button" class="filters__reset" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+        </p>
+      }
+    </div>
+  <div class="gl__tools">
+    <div class="input-ico gl__search">
+      <yay360-icon name="search" [size]="18" aria-hidden="true" />
+      <input type="search" placeholder="Patiente, établissement…" aria-label="Rechercher une grossesse"
+             [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
+    </div>
+
+    <div class="chips" role="group" aria-label="Filtrer par trimestre">
+      @for (t of trimestres; track t) {
+        <button type="button" class="chip" [class.chip--active]="trimestre() === t" [attr.aria-pressed]="trimestre() === t"
+                (click)="trimestre.set(t)">
+          {{ t === 'TOUS' ? 'Tous' : t }} @if (t !== 'TOUS') { <span class="chip__count">{{ compteTrimestres()[t] }}</span> }
+        </button>
+      }
+    </div>
+
+    <div class="gl__right">
+      <label class="gl__sort">
+        <span class="sr-only">Trier par</span>
+        <select class="select" [value]="tri()" (change)="tri.set($any($event.target).value)">
+          <option value="TERME">Terme le plus proche</option>
+          <option value="SEMAINE">Semaine la plus avancée</option>
+          <option value="NOM">Nom (A → Z)</option>
+        </select>
+      </label>
+      <div class="view-toggle" role="group" aria-label="Affichage">
+        <button type="button" [class.active]="vue() === 'CARTES'" [attr.aria-pressed]="vue() === 'CARTES'" (click)="changerVue('CARTES')" aria-label="Affichage en cartes" title="Cartes">
+          <yay360-icon name="grid" [size]="18" aria-hidden="true" />
+        </button>
+        <button type="button" [class.active]="vue() === 'LISTE'" [attr.aria-pressed]="vue() === 'LISTE'" (click)="changerVue('LISTE')" aria-label="Affichage en liste" title="Liste">
+          <yay360-icon name="clipboard" [size]="18" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   </div>
+  </section>
 
-  <!-- État de chargement -->
+  <!-- ═══════════ Résultats ═══════════ -->
   @if (chargement()) {
-    <div class="list-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement des grossesses…</p>
+    <div class="cards">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) { <div class="pcard pro-skeleton" aria-hidden="true"></div> }
     </div>
+    <span class="sr-only" role="status">Chargement des grossesses…</span>
   } @else if (erreur()) {
-    <div class="list-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
   } @else if (grossessesFiltrees().length === 0) {
-    <div class="list-empty pro-card">
-      <div class="list-empty__circle">
-        <span>0</span>
-      </div>
-      <h3>Aucune grossesse trouvée</h3>
-      <p>Aucune grossesse en cours ne correspond à cette recherche.</p>
-    </div>
+    <yay360-state type="vide" titre="Aucune grossesse trouvée"
+                  [message]="filtresActifs() ? 'Aucune grossesse ne correspond à ces filtres.' : (onglet() === 'A_RISQUE' ? 'Aucune grossesse à risque en cours.' : (estSoignant() ? 'Vous ne suivez encore aucune patiente.' : 'Aucune grossesse en cours.'))">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      } @else if (estSoignant() && onglet() === 'TOUTES') {
+        <a routerLink="/grossesses/recherche" class="pro-btn pro-btn--accent">Retrouver une patiente par téléphone</a>
+      }
+    </yay360-state>
+  } @else if (vue() === 'CARTES') {
+    <ul class="cards">
+      @for (g of grossessesFiltrees(); track g.id) {
+        <li>
+          <a class="pcard" [class.pcard--risk]="g.grossesseARisque" [routerLink]="['/grossesses', g.id]"
+             [attr.aria-label]="'Ouvrir le dossier de ' + g.femmeEnceinteNomComplet">
+            <div class="pcard__top">
+              <span class="avatar" [class.avatar--orange]="g.grossesseARisque" aria-hidden="true">{{ initiales(g.femmeEnceinteNomComplet) }}</span>
+              <div class="pcard__who">
+                <strong>{{ g.femmeEnceinteNomComplet }}</strong>
+                <small>Dossier #{{ g.id }}</small>
+              </div>
+              @if (g.grossesseARisque) {
+                <span class="badge badge--warning"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> À risque</span>
+              }
+            </div>
+
+            <div class="pcard__progress">
+              <div class="pcard__week"><strong>{{ g.semaineActuelle }}</strong><span>sem.</span></div>
+              <div class="pcard__bar-wrap">
+                <div class="pcard__bar" role="progressbar" [attr.aria-valuenow]="g.semaineActuelle" aria-valuemin="0" aria-valuemax="40"
+                     [attr.aria-label]="'Semaine ' + g.semaineActuelle + ' sur 40'">
+                  <span [style.width.%]="progression(g)"></span>
+                  <i class="pcard__mark pcard__mark--t2" aria-hidden="true"></i>
+                  <i class="pcard__mark pcard__mark--t3" aria-hidden="true"></i>
+                </div>
+                <div class="pcard__scale" aria-hidden="true"><span>T1</span><span>T2</span><span>T3</span></div>
+              </div>
+            </div>
+
+            <dl class="pcard__meta">
+              <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+              <div><dt>Jours restants</dt><dd>{{ g.joursRestants }}</dd></div>
+            </dl>
+
+            <div class="pcard__foot">
+              <span class="pcard__place"><yay360-icon name="building" [size]="14" aria-hidden="true" /> {{ g.etablissementSuiviNom || 'Aucun établissement' }}</span>
+              <span class="pcard__go" aria-hidden="true">Dossier <yay360-icon name="arrow-right" [size]="14" /></span>
+            </div>
+          </a>
+          @if (estSoignant()) {
+            <div class="pcard__quick">
+              <a class="pro-btn pro-btn--ghost pro-btn--sm" [routerLink]="['/consultations/nouvelle']" [queryParams]="{ grossesseId: g.id }"
+                 [attr.aria-label]="'Nouvelle consultation pour ' + g.femmeEnceinteNomComplet">
+                <yay360-icon name="plus" [size]="14" aria-hidden="true" /> Consultation
+              </a>
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="planification.set(g)"
+                      [attr.aria-label]="'Planifier un rendez-vous pour ' + g.femmeEnceinteNomComplet">
+                <yay360-icon name="calendar" [size]="14" aria-hidden="true" /> Rendez-vous
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
   } @else {
-    <div class="pro-table-wrapper">
-      <table class="pro-table">
+    <div class="pro-table-wrapper card gl__table">
+      <table class="pro-table pro-table--stack">
         <thead>
           <tr>
-            <th>Patiente</th>
-            <th>Avancement</th>
-            <th>Terme prévu</th>
-            <th>Statut</th>
-            <th>Vigilance</th>
-            <th style="text-align: right;">Action</th>
+            <th scope="col">Patiente</th>
+            <th scope="col">Avancement</th>
+            <th scope="col">Terme prévu</th>
+            <th scope="col">Établissement</th>
+            <th scope="col">Vigilance</th>
+            <th scope="col" class="cell-end"><span class="sr-only">Action</span></th>
           </tr>
         </thead>
         <tbody>
           @for (g of grossessesFiltrees(); track g.id) {
-            <tr [routerLink]="['/grossesses', g.id]" class="patient-row">
-              <td>
-                <div class="patient-identity">
-                  <span class="patient-avatar">{{ g.femmeEnceinteNomComplet.charAt(0) }}</span>
-                  <div class="patient-identity__names">
-                    <strong>{{ g.femmeEnceinteNomComplet }}</strong>
-                    <small>Dossier #{{ g.id }}</small>
-                  </div>
+            <tr>
+              <td data-label="Patiente">
+                <div class="who">
+                  <span class="avatar avatar--sm" [class.avatar--orange]="g.grossesseARisque" aria-hidden="true">{{ initiales(g.femmeEnceinteNomComplet) }}</span>
+                  <div><strong>{{ g.femmeEnceinteNomComplet }}</strong><small>Dossier #{{ g.id }}</small></div>
                 </div>
               </td>
-              <td>
-                <div class="gestation-pill">
-                  <strong>Semaine {{ g.semaineActuelle }} · {{ g.trimestre }}</strong>
-                  <span>{{ g.joursRestants }} jours restants</span>
+              <td data-label="Avancement">Semaine {{ g.semaineActuelle }} · {{ g.trimestre }}<small class="muted-line">{{ g.joursRestants }} jours restants</small></td>
+              <td data-label="Terme prévu">{{ g.datePrevueAccouchement | date: 'd MMM y' }}</td>
+              <td data-label="Établissement">{{ g.etablissementSuiviNom || '—' }}</td>
+              <td data-label="Vigilance">
+                @if (g.grossesseARisque) {
+                  <span class="badge badge--warning"><yay360-icon name="alert-triangle" [size]="12" aria-hidden="true" /> À risque</span>
+                } @else {
+                  <span class="badge badge--subtle">Sans risque déclaré</span>
+                }
+              </td>
+              <td class="cell-end">
+                <div class="row-actions">
+                  @if (estSoignant()) {
+                    <a class="pro-btn pro-btn--ghost pro-btn--sm" [routerLink]="['/consultations/nouvelle']" [queryParams]="{ grossesseId: g.id }" title="Nouvelle consultation"
+                       [attr.aria-label]="'Nouvelle consultation pour ' + g.femmeEnceinteNomComplet"><yay360-icon name="plus" [size]="14" aria-hidden="true" /></a>
+                    <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="planification.set(g)" title="Planifier un rendez-vous"
+                            [attr.aria-label]="'Planifier un rendez-vous pour ' + g.femmeEnceinteNomComplet"><yay360-icon name="calendar" [size]="14" aria-hidden="true" /></button>
+                  }
+                  <a class="pro-btn pro-btn--secondary pro-btn--sm" [routerLink]="['/grossesses', g.id]">Dossier <yay360-icon name="arrow-right" [size]="14" aria-hidden="true" /></a>
                 </div>
-              </td>
-              <td>
-                <div class="gestation-pill">
-                  <strong>DPA {{ g.datePrevueAccouchement | date: 'dd MMM yyyy' }}</strong>
-                </div>
-              </td>
-              <td>
-                <span class="pro-badge pro-badge--primary">En cours</span>
-              </td>
-              <td>
-                <span class="pro-badge" [class.pro-badge--primary]="g.grossesseARisque">
-                  {{ g.grossesseARisque ? 'À risque' : 'Sans risque déclaré' }}
-                </span>
-              </td>
-              <td style="text-align: right;">
-                <span class="row-arrow">Dossier →</span>
               </td>
             </tr>
           }
@@ -94,5 +237,9 @@
       </table>
     </div>
   }
-
 </div>
+
+@if (planification(); as g) {
+  <yay360-planifier-rendez-vous [grossesseId]="g.id" [patienteNom]="g.femmeEnceinteNomComplet"
+                                (cree)="rendezVousPlanifie()" (annule)="planification.set(null)" />
+}

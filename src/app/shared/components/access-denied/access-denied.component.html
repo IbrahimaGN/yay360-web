@@ -1,0 +1,50 @@
+<main class="auth-bg">
+  <yay360-theme-toggle class="auth-theme" />
+  <div class="auth-center denied">
+    <a routerLink="/" class="auth-logo" aria-label="YAY360 — accueil">
+      <img src="yay360-logo.png" alt="" width="52" height="52" />
+      <span>YaY°360</span>
+    </a>
+
+    <section class="auth-card denied__card" aria-labelledby="titre-refus">
+      <div class="denied__visual" aria-hidden="true">
+        <span class="denied__ring"></span>
+        <span class="denied__icon"><yay360-icon name="shield" [size]="34" /></span>
+      </div>
+
+      <span class="badge badge--danger denied__code">Erreur 403 · Accès refusé</span>
+      <h1 id="titre-refus">Cette page ne vous est pas accessible</h1>
+
+      @if (authService.estConnecte()) {
+        <p>
+          Vous êtes connecté en tant que <strong>{{ libelleRole() }}</strong>.
+          Ce profil n’a pas les droits nécessaires pour ouvrir cette page.
+        </p>
+      } @else {
+        <p>Connectez-vous avec un compte autorisé pour accéder à cette page.</p>
+      }
+
+      <div class="denied__actions">
+        @if (authService.estConnecte()) {
+          <a routerLink="/accueil" class="pro-btn pro-btn--accent">
+            <yay360-icon name="home" [size]="18" aria-hidden="true" /> Retour à mon espace
+          </a>
+        } @else {
+          <a routerLink="/connexion" class="pro-btn pro-btn--accent">
+            Se connecter <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" />
+          </a>
+        }
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="retour()">
+          <yay360-icon name="chevron-left" [size]="18" aria-hidden="true" /> Page précédente
+        </button>
+      </div>
+
+      <p class="auth-note denied__note">
+        <yay360-icon name="info" [size]="16" aria-hidden="true" />
+        <span>Vous pensez que c’est une erreur ? Contactez l’administrateur de votre structure.</span>
+      </p>
+    </section>
+  </div>
+
+  <yay360-feuillage class="auth-bg__leaves" />
+</main>

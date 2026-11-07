@@ -1,16 +1,32 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, inviteGuard, motDePasseTemporaireGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/public-home/public-home.component').then((m) => m.PublicHomeComponent),
+    title: 'YAY360 — Votre suivi maternel, à chaque étape',
+  },
+  {
+    path: 'inscription',
+    canActivate: [inviteGuard],
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+    title: 'Inscription — YAY360',
+  },
+  {
     path: 'connexion',
+    canActivate: [inviteGuard],
     loadComponent: () =>
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
     title: 'Connexion — YAY360',
   },
   {
     path: 'mot-de-passe-oublie',
+    canActivate: [inviteGuard],
     loadComponent: () =>
       import('./features/auth/forgot-password/forgot-password.component').then(
         (m) => m.ForgotPasswordComponent
@@ -34,6 +50,15 @@ export const routes: Routes = [
     title: 'Rejoindre un dossier familial — YAY360',
   },
   {
+    path: 'changer-mot-de-passe',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/changer-mot-de-passe/changer-mot-de-passe.component').then(
+        (m) => m.ChangerMotDePasseComponent
+      ),
+    title: 'Choisir mon mot de passe — YAY360',
+  },
+  {
     path: 'acces-refuse',
     loadComponent: () =>
       import('./shared/components/access-denied/access-denied.component').then(
@@ -43,13 +68,17 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [authGuard],
+    canActivate: [authGuard, motDePasseTemporaireGuard],
     loadComponent: () =>
       import('./shared/components/shell/shell.component').then((m) => m.ShellComponent),
     children: [
       {
         path: '',
         pathMatch: 'full',
+        redirectTo: 'accueil',
+      },
+      {
+        path: 'accueil',
         loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
         data: { pageTitle: 'Accueil' },
       },
@@ -69,6 +98,16 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/grossesses/liste/grossesses-liste.component').then(
                 (m) => m.GrossessesListeComponent
+              ),
+          },
+          {
+            // Déclarée avant ':id' pour ne pas être interprétée comme un identifiant
+            path: 'recherche',
+            canActivate: [roleGuard],
+            data: { pageTitle: 'Rechercher une patiente', roles: ['MEDECIN', 'SAGE_FEMME'] },
+            loadComponent: () =>
+              import('./features/grossesses/recherche/recherche-patiente.component').then(
+                (m) => m.RecherchePatienteComponent
               ),
           },
           {
@@ -178,11 +217,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'assistant-ia',
-        redirectTo: '',
-        pathMatch: 'full',
-      },
-      {
         path: 'profil',
         data: { pageTitle: 'Mon profil' },
         loadComponent: () =>
@@ -191,7 +225,8 @@ export const routes: Routes = [
     ],
   },
   {
+    // Utilisateur connecté → accueil ; sinon authGuard redirige vers la connexion
     path: '**',
-    redirectTo: 'connexion',
+    redirectTo: 'accueil',
   },
 ];

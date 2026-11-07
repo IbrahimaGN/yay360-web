@@ -1,4 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { messageErreur } from '../../core/utils/message-erreur';
+import { MOTIF_TELEPHONE_ETABLISSEMENT } from '../../core/validators/validateurs';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { StateComponent } from '../../shared/components/state/state.component';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EtablissementService } from '../../core/services/etablissement.service';
 import { UtilisateurService } from '../../core/services/utilisateur.service';
@@ -8,11 +11,15 @@ import {
   TYPES_ETABLISSEMENT,
 } from '../../core/models/etablissement.model';
 import { Utilisateur } from '../../core/models/utilisateur.model';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { libelleRole } from '../../core/utils/libelles';
+
+type FiltreStatut = 'TOUS' | 'ACTIFS' | 'INACTIFS';
 
 @Component({
   selector: 'yay360-etablissements-liste',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [StateComponent, ReactiveFormsModule, IconComponent],
   templateUrl: './etablissements-liste.component.html',
   styleUrl: './etablissements-liste.component.scss',
 })
@@ -22,29 +29,90 @@ export class EtablissementsListeComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly types = TYPES_ETABLISSEMENT;
+  readonly libelleRole = libelleRole;
   readonly professionnels = signal<Utilisateur[]>([]);
 
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
+  /** Échec d'une action (création, désactivation, affectation…) : toujours affiché. */
+  readonly erreurAction = signal<string | null>(null);
+  readonly succes = signal<string | null>(null);
   readonly etablissements = signal<EtablissementDto[]>([]);
 
   readonly formulaireOuvert = signal(false);
   readonly idEnEdition = signal<number | null>(null);
   readonly enregistrement = signal(false);
   readonly idProfessionnelParEtablissement = signal<Record<number, string>>({});
+  readonly affectationOuverte = signal<number | null>(null);
+
+  /** Confirmation d'une action sensible (remplace la boîte native du navigateur). */
+  readonly confirmation = signal<{ mode: 'desactiver' | 'supprimer'; etablissement: EtablissementDto } | null>(null);
+  readonly actionEnCours = signal(false);
+
+  readonly recherche = signal('');
+  readonly filtreType = signal('');
+  readonly filtreStatut = signal<FiltreStatut>('TOUS');
+
+  readonly stats = computed(() => {
+    const l = this.etablissements();
+    return {
+      total: l.length,
+      actifs: l.filter((e) => e.actif).length,
+      inactifs: l.filter((e) => !e.actif).length,
+      professionnels: l.reduce((n, e) => n + e.professionnels.length, 0),
+    };
+  });
+
+  readonly etablissementsFiltres = computed(() => {
+    const terme = this.recherche().trim().toLowerCase();
+    const type = this.filtreType();
+    const statut = this.filtreStatut();
+    return this.etablissements()
+      .filter((e) =>
+        (!type || e.type === type) &&
+        (statut === 'TOUS' || (statut === 'ACTIFS' ? e.actif : !e.actif)) &&
+        (!terme || e.nom.toLowerCase().includes(terme) || (e.ville ?? '').toLowerCase().includes(terme) || e.adresse.toLowerCase().includes(terme)))
+      .sort((a, b) => Number(b.actif) - Number(a.actif) || a.nom.localeCompare(b.nom, 'fr'));
+  });
+  readonly filtresActifs = computed(() => !!this.recherche().trim() || !!this.filtreType() || this.filtreStatut() !== 'TOUS');
 
   readonly form = this.fb.group({
     nom: ['', [Validators.required]],
     type: ['CENTRE_DE_SANTE', [Validators.required]],
     adresse: ['', [Validators.required]],
     ville: [''],
-    telephone: ['', [Validators.required]],
-    email: [''],
+    telephone: ['', [Validators.required, Validators.pattern(MOTIF_TELEPHONE_ETABLISSEMENT)]],
+    email: ['', [Validators.email]],
   });
 
   constructor() {
     this.charger();
     this.chargerProfessionnels();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEchap(): void {
+    if (this.confirmation()) this.confirmation.set(null);
+    else if (this.formulaireOuvert()) this.fermerFormulaire();
+  }
+
+  libelleType(type: string): string {
+    return this.types.find((t) => t.value === type)?.label ?? type;
+  }
+
+  invalide(nom: 'nom' | 'type' | 'adresse' | 'ville' | 'telephone' | 'email'): boolean {
+    const c = this.form.controls[nom];
+    return c.invalid && c.touched;
+  }
+
+  initiales(nom: string): string {
+    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
+  }
+
+  reinitialiserFiltres(): void {
+    this.recherche.set('');
+    this.filtreType.set('');
+    this.filtreStatut.set('TOUS');
   }
 
   private chargerProfessionnels(): void {
@@ -68,8 +136,8 @@ export class EtablissementsListeComponent {
         this.etablissements.set(liste);
         this.chargement.set(false);
       },
-      error: () => {
-        this.erreur.set('Impossible de charger les établissements.');
+      error: (err) => {
+        this.erreur.set(messageErreur(err, 'Impossible de charger les établissements.'));
         this.chargement.set(false);
       },
     });
@@ -78,6 +146,7 @@ export class EtablissementsListeComponent {
   ouvrirCreation(): void {
     this.idEnEdition.set(null);
     this.form.reset({ type: 'CENTRE_DE_SANTE' });
+    this.erreurAction.set(null);
     this.formulaireOuvert.set(true);
   }
 
@@ -91,6 +160,7 @@ export class EtablissementsListeComponent {
       telephone: etablissement.telephone ?? '',
       email: etablissement.email ?? '',
     });
+    this.erreurAction.set(null);
     this.formulaireOuvert.set(true);
   }
 
@@ -106,14 +176,15 @@ export class EtablissementsListeComponent {
     }
 
     this.enregistrement.set(true);
+    this.erreurAction.set(null);
     const valeurs = this.form.getRawValue();
     const request = {
-      nom: valeurs.nom!,
+      nom: valeurs.nom!.trim(),
       type: valeurs.type!,
-      adresse: valeurs.adresse!,
-      ville: valeurs.ville || undefined,
-      telephone: valeurs.telephone!,
-      email: valeurs.email || undefined,
+      adresse: valeurs.adresse!.trim(),
+      ville: valeurs.ville?.trim() || undefined,
+      telephone: valeurs.telephone!.trim(),
+      email: valeurs.email?.trim() || undefined,
     };
 
     const idEdition = this.idEnEdition();
@@ -125,22 +196,42 @@ export class EtablissementsListeComponent {
       next: () => {
         this.enregistrement.set(false);
         this.fermerFormulaire();
+        this.succes.set(idEdition ? 'Établissement mis à jour.' : 'Établissement créé.');
         this.charger();
       },
-      error: () => this.enregistrement.set(false),
+      error: (err) => {
+        this.enregistrement.set(false);
+        this.erreurAction.set(messageErreur(err, "Impossible d'enregistrer cet établissement."));
+      },
     });
   }
 
-  desactiver(etablissement: EtablissementDto): void {
-    this.etablissementService.desactiver(etablissement.id).subscribe({
-      next: () => this.charger(),
-    });
+  demanderConfirmation(mode: 'desactiver' | 'supprimer', etablissement: EtablissementDto): void {
+    this.erreurAction.set(null);
+    this.confirmation.set({ mode, etablissement });
   }
 
-  supprimer(etablissement: EtablissementDto): void {
-    if (!confirm(`Supprimer définitivement « ${etablissement.nom} » ?`)) return;
-    this.etablissementService.supprimer(etablissement.id).subscribe({
-      next: () => this.charger(),
+  confirmerAction(): void {
+    const c = this.confirmation();
+    if (!c) return;
+    this.actionEnCours.set(true);
+    const requete = c.mode === 'desactiver'
+      ? this.etablissementService.desactiver(c.etablissement.id)
+      : this.etablissementService.supprimer(c.etablissement.id);
+    requete.subscribe({
+      next: () => {
+        this.actionEnCours.set(false);
+        this.confirmation.set(null);
+        this.succes.set(c.mode === 'desactiver' ? `« ${c.etablissement.nom} » a été désactivé.` : `« ${c.etablissement.nom} » a été supprimé.`);
+        this.charger();
+      },
+      error: (err) => {
+        this.actionEnCours.set(false);
+        this.confirmation.set(null);
+        this.erreurAction.set(messageErreur(err, c.mode === 'desactiver'
+          ? 'Impossible de désactiver cet établissement.'
+          : 'Suppression impossible : préférez la désactivation si l’établissement a des données.'));
+      },
     });
   }
 
@@ -154,11 +245,15 @@ export class EtablissementsListeComponent {
     if (!professionnelId) return;
 
     const request: AffecterProfessionnelRequest = { professionnelId };
+    this.erreurAction.set(null);
     this.etablissementService.affecterProfessionnel(etablissement.id, request).subscribe({
       next: () => {
         this.mettreAJourIdProfessionnel(etablissement.id, '');
+        this.affectationOuverte.set(null);
+        this.succes.set(`Professionnel affecté à « ${etablissement.nom} ».`);
         this.charger();
       },
+      error: (err) => this.erreurAction.set(messageErreur(err, "Impossible d'affecter ce professionnel.")),
     });
   }
 }

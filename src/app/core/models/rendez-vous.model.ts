@@ -17,8 +17,25 @@ export interface RendezVousDto {
   dateCreation: string;
 }
 
+/** Statuts qu'un soignant peut appliquer (ANNULE, TERMINE et ABSENT sont finaux). */
+export type StatutCibleRendezVous = 'CONFIRME' | 'ANNULE' | 'TERMINE' | 'ABSENT';
+
 export interface ChangerStatutRendezVousRequest {
-  statut: StatutRendezVous;
+  statut: StatutCibleRendezVous;
+}
+
+/** Rendez-vous planifié par un soignant pour une patiente qu'il suit. */
+export interface PlanifierRendezVousRequest {
+  grossesseId: number;
+  dateHeure: string;
+  type: string;
+  etablissementId?: number | null;
+  motif?: string | null;
+}
+
+export interface ModifierRendezVousRequest {
+  dateHeure: string;
+  motif?: string | null;
 }
 
 export interface AnnulerRendezVousRequest {

@@ -1,135 +1,246 @@
-<div class="pro-fade-in">
+<div class="et">
 
-  <!-- En-tête -->
-  <header class="pro-header">
-    <div class="pro-header__left">
-      <span class="pro-header__tag">Réseau Sanitaire</span>
-      <h1 class="pro-header__title">Établissements de Santé</h1>
-      <p class="pro-header__desc">Gestion des hôpitaux, centres de santé et maternités partenaires.</p>
+  <!-- ═══════════ En-tête ═══════════ -->
+  <section class="card et__head">
+    <div class="et__intro">
+      <span class="et__intro-icon" aria-hidden="true"><yay360-icon name="building" [size]="24" /></span>
+      <div>
+        <h2 class="section-title">Établissements de santé</h2>
+        <p>Structures partenaires où les patientes sont suivies, et soignants qui y exercent.</p>
+      </div>
     </div>
-    <div class="pro-header__actions">
-      <button type="button" class="pro-btn pro-btn--primary" (click)="ouvrirCreation()">
-        + Ajouter un établissement
-      </button>
+    <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreation()">
+      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouvel établissement
+    </button>
+  </section>
+
+  @if (!chargement() && !erreur()) {
+    <dl class="stats">
+      <div class="stat"><dt>Établissements</dt><dd>{{ stats().total }}</dd></div>
+      <div class="stat stat--ok"><dt>Actifs</dt><dd>{{ stats().actifs }}</dd></div>
+      <div class="stat stat--off"><dt>Inactifs</dt><dd>{{ stats().inactifs }}</dd></div>
+      <div class="stat stat--pro"><dt>Soignants affectés</dt><dd>{{ stats().professionnels }}</dd></div>
+    </dl>
+  }
+
+  <!-- Filtres -->
+  <section class="tools" aria-label="Filtres">
+    <div class="input-ico tools__search">
+      <yay360-icon name="search" [size]="18" aria-hidden="true" />
+      <input type="search" placeholder="Nom, ville ou adresse…" aria-label="Rechercher un établissement"
+             [value]="recherche()" (input)="recherche.set($any($event.target).value)" />
     </div>
-  </header>
+    <label class="tools__select">
+      <span class="sr-only">Type</span>
+      <select class="select" [value]="filtreType()" (change)="filtreType.set($any($event.target).value)">
+        <option value="">Tous les types</option>
+        @for (t of types; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+      </select>
+    </label>
+    <div class="segmented" role="group" aria-label="Statut">
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'TOUS'" (click)="filtreStatut.set('TOUS')">Tous</button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'ACTIFS'" (click)="filtreStatut.set('ACTIFS')">Actifs</button>
+      <button type="button" [attr.aria-pressed]="filtreStatut() === 'INACTIFS'" (click)="filtreStatut.set('INACTIFS')">Inactifs</button>
+    </div>
+  </section>
 
-  <!-- Formulaire d'édition / création -->
-  @if (formulaireOuvert()) {
-    <div class="pro-card form-box">
-      <h3 class="form-box__title">{{ idEnEdition() ? 'Modifier le centre médical' : 'Nouvel établissement de santé' }}</h3>
+  @if (succes()) {
+    <div class="pro-notice pro-notice--success" role="status">
+      <yay360-icon name="check" [size]="18" aria-hidden="true" /><span>{{ succes() }}</span>
+      <button type="button" class="notice-close" (click)="succes.set(null)" aria-label="Fermer le message"><yay360-icon name="x" [size]="16" aria-hidden="true" /></button>
+    </div>
+  }
+  @if (erreurAction() && !formulaireOuvert()) {
+    <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+  }
 
-      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
-        <div class="form-grid">
-          <div class="field-item">
-            <label for="nom">Nom de la structure</label>
-            <input id="nom" type="text" formControlName="nom" placeholder="ex. Centre Médical de Dakar" />
+  <!-- ═══════════ Liste ═══════════ -->
+  @if (chargement()) {
+    <div class="grid">
+      @for (i of [1, 2, 3]; track i) { <div class="pro-skeleton et__skeleton" aria-hidden="true"></div> }
+    </div>
+    <span class="sr-only" role="status">Chargement des établissements…</span>
+  } @else if (erreur()) {
+    <yay360-state type="erreur" [message]="erreur()" (reessayer)="charger()" />
+  } @else if (etablissementsFiltres().length === 0) {
+    <yay360-state type="vide" titre="Aucun établissement"
+                  [message]="filtresActifs() ? 'Aucun établissement ne correspond à ces filtres.' : 'Ajoutez la première structure de santé partenaire.'">
+      @if (filtresActifs()) {
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="reinitialiserFiltres()">Effacer les filtres</button>
+      } @else {
+        <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreation()">Nouvel établissement</button>
+      }
+    </yay360-state>
+  } @else {
+    <ul class="grid">
+      @for (e of etablissementsFiltres(); track e.id) {
+        <li class="card etab" [class.etab--off]="!e.actif">
+          <div class="etab__head">
+            <span class="etab__icon" [attr.data-type]="e.type" aria-hidden="true"><yay360-icon name="building" [size]="22" /></span>
+            <div class="etab__title">
+              <h3>{{ e.nom }}</h3>
+              <div class="etab__badges">
+                <span class="badge badge--primary">{{ libelleType(e.type) }}</span>
+                @if (e.actif) { <span class="badge badge--success"><span class="dot" aria-hidden="true"></span> Actif</span> }
+                @else { <span class="badge badge--subtle">Inactif</span> }
+              </div>
+            </div>
           </div>
-          <div class="field-item">
-            <label for="type">Type d'établissement</label>
-            <select id="type" formControlName="type">
-              @for (t of types; track t.value) {
-                <option [value]="t.value">{{ t.label }}</option>
+
+          <ul class="etab__contact">
+            <li><yay360-icon name="map-pin" [size]="16" aria-hidden="true" /> <span>{{ e.adresse }}{{ e.ville ? ', ' + e.ville : '' }}</span></li>
+            @if (e.telephone) { <li><yay360-icon name="phone" [size]="16" aria-hidden="true" /> <a [href]="'tel:' + e.telephone">{{ e.telephone }}</a></li> }
+            @if (e.email) { <li><yay360-icon name="mail" [size]="16" aria-hidden="true" /> <a [href]="'mailto:' + e.email">{{ e.email }}</a></li> }
+          </ul>
+
+          <div class="etab__team">
+            <div class="etab__team-head">
+              <span>Soignants <strong>{{ e.professionnels.length }}</strong></span>
+              @if (e.actif && affectationOuverte() !== e.id) {
+                <button type="button" class="etab__add" (click)="affectationOuverte.set(e.id)">
+                  <yay360-icon name="plus" [size]="14" aria-hidden="true" /> Affecter
+                </button>
               }
+            </div>
+            @if (e.professionnels.length) {
+              <ul class="team">
+                @for (p of e.professionnels; track p) {
+                  <li><span class="avatar avatar--sm" aria-hidden="true">{{ initiales(p) }}</span>{{ p }}</li>
+                }
+              </ul>
+            } @else {
+              <p class="etab__none">Aucun soignant affecté.</p>
+            }
+
+            @if (affectationOuverte() === e.id) {
+              <div class="assign">
+                <label class="sr-only" [for]="'pro-' + e.id">Professionnel à affecter</label>
+                <select class="select" [id]="'pro-' + e.id" [value]="idProfessionnelParEtablissement()[e.id] || ''"
+                        (change)="mettreAJourIdProfessionnel(e.id, $any($event.target).value)">
+                  <option value="">Choisir un médecin ou une sage-femme…</option>
+                  @for (p of professionnels(); track p.id) {
+                    <option [value]="p.id">{{ p.prenom }} {{ p.nom }} — {{ libelleRole(p.role) }}</option>
+                  }
+                </select>
+                <div class="assign__buttons">
+                  <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" [disabled]="!idProfessionnelParEtablissement()[e.id]" (click)="affecterProfessionnel(e)">Affecter</button>
+                  <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="affectationOuverte.set(null)">Annuler</button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="etab__actions">
+            <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="ouvrirEdition(e)">
+              <yay360-icon name="edit" [size]="16" aria-hidden="true" /> Modifier
+            </button>
+            @if (e.actif) {
+              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="demanderConfirmation('desactiver', e)">Désactiver</button>
+            }
+            <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm etab__delete" (click)="demanderConfirmation('supprimer', e)"
+                    [attr.aria-label]="'Supprimer ' + e.nom" title="Supprimer">
+              <yay360-icon name="trash" [size]="16" aria-hidden="true" />
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- ═══════════ Fenêtre : créer / modifier ═══════════ -->
+@if (formulaireOuvert()) {
+  <div class="pro-modal-backdrop" (click)="fermerFormulaire()">
+    <section class="pro-modal" role="dialog" aria-modal="true" aria-labelledby="titre-form-etab" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="building" [size]="22" /></span>
+        <div class="et__modal-title">
+          <h2 id="titre-form-etab">{{ idEnEdition() ? 'Modifier l’établissement' : 'Nouvel établissement' }}</h2>
+          <p>Les champs marqués * sont obligatoires.</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="fermerFormulaire()" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="et__form">
+        <div class="field">
+          <label for="nom">Nom *</label>
+          <input id="nom" formControlName="nom" placeholder="Centre de santé…" [attr.aria-invalid]="invalide('nom')" />
+          @if (invalide('nom')) { <span class="field-error">Le nom est obligatoire.</span> }
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="type">Type *</label>
+            <select id="type" formControlName="type">
+              @for (t of types; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
             </select>
           </div>
-          <div class="field-item field-item--full">
-            <label for="adresse">Adresse géographique</label>
-            <input id="adresse" type="text" formControlName="adresse" placeholder="Quartier, Avenue..." />
-          </div>
-          <div class="field-item">
+          <div class="field">
             <label for="ville">Ville</label>
-            <input id="ville" type="text" formControlName="ville" placeholder="Dakar, Thiès..." />
+            <input id="ville" formControlName="ville" placeholder="Dakar" />
           </div>
-          <div class="field-item">
-            <label for="telephone">Numéro de téléphone</label>
-            <input id="telephone" type="text" placeholder="+221XXXXXXXXX" formControlName="telephone" />
+        </div>
+        <div class="field">
+          <label for="adresse">Adresse *</label>
+          <input id="adresse" formControlName="adresse" [attr.aria-invalid]="invalide('adresse')" />
+          @if (invalide('adresse')) { <span class="field-error">L’adresse est obligatoire.</span> }
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="telephone">Téléphone *</label>
+            <input id="telephone" type="tel" formControlName="telephone" placeholder="+221338000000" [attr.aria-invalid]="invalide('telephone')" aria-describedby="aide-tel-etab" />
+            @if (invalide('telephone')) { <span class="field-error" id="aide-tel-etab">+221 suivi de 9 chiffres, sans espace.</span> }
+            @else { <span class="field-hint" id="aide-tel-etab">+221 puis 9 chiffres</span> }
           </div>
-          <div class="field-item">
-            <label for="email">Email professionnel</label>
-            <input id="email" type="email" formControlName="email" placeholder="contact@structure.sn" />
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" type="email" formControlName="email" placeholder="contact@exemple.sn" [attr.aria-invalid]="invalide('email')" />
+            @if (invalide('email')) { <span class="field-error">Adresse e-mail invalide.</span> }
           </div>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="pro-btn pro-btn--primary" [disabled]="enregistrement()">
-            {{ enregistrement() ? 'Enregistrement…' : 'Enregistrer la structure' }}
-          </button>
+        @if (erreurAction()) {
+          <div class="pro-notice pro-notice--error" role="alert"><yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" /><span>{{ erreurAction() }}</span></div>
+        }
+
+        <div class="pro-modal__foot">
           <button type="button" class="pro-btn pro-btn--ghost" (click)="fermerFormulaire()">Annuler</button>
+          <button type="submit" class="pro-btn pro-btn--accent" [disabled]="enregistrement()">
+            @if (enregistrement()) { <span class="btn-spinner" aria-hidden="true"></span> Enregistrement… }
+            @else { <yay360-icon name="check" [size]="18" aria-hidden="true" /> {{ idEnEdition() ? 'Enregistrer' : 'Créer l’établissement' }} }
+          </button>
         </div>
       </form>
-    </div>
-  }
+    </section>
+  </div>
+}
 
-  @if (chargement()) {
-    <div class="etab-loading">
-      <div class="pro-spinner"></div>
-      <p>Chargement des structures sanitaires…</p>
-    </div>
-  } @else if (erreur()) {
-    <div class="etab-error pro-card">
-      <p>{{ erreur() }}</p>
-      <button type="button" class="pro-btn pro-btn--primary" (click)="charger()">Réessayer</button>
-    </div>
-  } @else if (etablissements().length === 0) {
-    <div class="etab-empty pro-card">
-      <div class="etab-empty__circle">
-        <span>0</span>
-      </div>
-      <h3>Aucun établissement</h3>
-      <p>Aucun établissement de santé n'est enregistré pour le moment.</p>
-    </div>
-  } @else {
-    <div class="etab-cards-grid">
-      @for (etab of etablissements(); track etab.id) {
-        <div class="etab-card pro-card" [class.etab-card--inactive]="!etab.actif">
-          <div class="etab-card__header">
-            <div>
-              <span class="pro-badge">{{ etab.type }}</span>
-              <h3 class="etab-card__name">{{ etab.nom }}</h3>
-            </div>
-            <span class="pro-badge" [class.pro-badge--primary]="etab.actif">
-              {{ etab.actif ? 'Actif' : 'Inactif' }}
-            </span>
-          </div>
-
-          <div class="etab-card__info-list">
-            @if (etab.adresse || etab.ville) {
-              <div class="info-row">
-                <span class="info-label">Localité :</span>
-                <span>{{ etab.adresse }} {{ etab.ville ? '(' + etab.ville + ')' : '' }}</span>
-              </div>
+<!-- ═══════════ Fenêtre : confirmation ═══════════ -->
+@if (confirmation(); as c) {
+  <div class="pro-modal-backdrop" (click)="confirmation.set(null)">
+    <section class="pro-modal pro-modal--sm" role="alertdialog" aria-modal="true" aria-labelledby="titre-confirm" aria-describedby="texte-confirm" (click)="$event.stopPropagation()">
+      <header class="pro-modal__head">
+        <span class="pro-modal__icon" [class.pro-modal__icon--danger]="c.mode === 'supprimer'" [class.pro-modal__icon--warning]="c.mode === 'desactiver'" aria-hidden="true">
+          <yay360-icon [name]="c.mode === 'supprimer' ? 'trash' : 'alert-triangle'" [size]="22" />
+        </span>
+        <div class="et__modal-title">
+          <h2 id="titre-confirm">{{ c.mode === 'supprimer' ? 'Supprimer l’établissement ?' : 'Désactiver l’établissement ?' }}</h2>
+          <p id="texte-confirm">
+            @if (c.mode === 'supprimer') {
+              « {{ c.etablissement.nom }} » sera supprimé définitivement. Si des dossiers y sont rattachés, préférez la désactivation.
+            } @else {
+              « {{ c.etablissement.nom }} » ne sera plus proposé aux patientes. Les données existantes sont conservées.
             }
-            @if (etab.telephone) {
-              <div class="info-row">
-                <span class="info-label">Contact :</span>
-                <span>{{ etab.telephone }}</span>
-              </div>
-            }
-            @if (etab.email) {
-              <div class="info-row">
-                <span class="info-label">Email :</span>
-                <span>{{ etab.email }}</span>
-              </div>
-            }
-          </div>
-
-          <div class="etab-card__actions">
-            <button type="button" class="pro-btn pro-btn--secondary pro-btn--sm" (click)="ouvrirEdition(etab)">
-              Modifier
-            </button>
-            @if (etab.actif) {
-              <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="desactiver(etab)">
-                Désactiver
-              </button>
-            }
-            <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm btn-delete" (click)="supprimer(etab)">
-              Supprimer
-            </button>
-          </div>
+          </p>
         </div>
-      }
-    </div>
-  }
-
-</div>
+      </header>
+      <div class="pro-modal__foot">
+        <button type="button" class="pro-btn pro-btn--ghost" (click)="confirmation.set(null)">Annuler</button>
+        <button type="button" class="pro-btn" [class.pro-btn--danger]="c.mode === 'supprimer'" [class.pro-btn--accent]="c.mode === 'desactiver'"
+                [disabled]="actionEnCours()" (click)="confirmerAction()">
+          @if (actionEnCours()) { <span class="btn-spinner" aria-hidden="true"></span> }
+          {{ c.mode === 'supprimer' ? 'Supprimer' : 'Désactiver' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

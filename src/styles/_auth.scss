@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Pages d'accès (connexion, inscription, mots de passe, invitation)
+   Fond turquoise pâle + feuillage, carte blanche très arrondie.
+   ========================================================================== */
+@use 'breakpoints' as bp;
+
+.auth-bg {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: radial-gradient(circle at 15% 10%, var(--c-glow-1) 0%, transparent 45%), var(--c-bg);
+}
+.auth-bg__leaves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34vh;
+  min-height: 200px;
+  z-index: 0;
+}
+.auth-bg > :not(.auth-bg__leaves) { position: relative; z-index: 1; }
+
+/* ── Gabarit écran partagé : présentation + formulaire ──────────────────── */
+.auth-split {
+  min-height: inherit;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: var(--s-10);
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: var(--s-10) var(--s-8) 28vh;
+  @include bp.down(lg) { grid-template-columns: 1fr; gap: var(--s-6); padding: var(--s-6) var(--s-4) 22vh; }
+}
+
+.auth-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  @include bp.down(lg) { gap: var(--s-3); }
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: fit-content;
+  color: var(--t-main);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  img { width: 52px; height: 52px; border-radius: 50%; background: var(--c-logo-bg); box-shadow: var(--sh-sm); }
+  &:hover { color: var(--t-main); }
+}
+
+.auth-intro__title {
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  @include bp.down(lg) { font-size: var(--fs-2xl); }
+}
+.auth-intro__subtitle {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 400;
+  color: var(--t-main);
+  @include bp.down(lg) { display: none; }
+}
+.auth-intro__text {
+  max-width: 44ch;
+  color: var(--t-muted);
+  @include bp.down(lg) { display: none; }
+}
+
+/* Repères chiffrés façon « 10+ Screens » — uniquement des faits du produit */
+.auth-facts {
+  display: flex;
+  gap: var(--s-10);
+  margin-top: var(--s-4);
+  @include bp.down(lg) { display: none; }
+  div { display: flex; flex-direction: column; }
+  strong { font-size: var(--fs-3xl); font-weight: 400; color: var(--t-main); line-height: 1.1; }
+  span { color: var(--t-muted); font-size: var(--fs-sm); }
+}
+
+/* ── Carte formulaire ───────────────────────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  justify-self: end;
+  padding: var(--s-10);
+  background: var(--c-surface);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--sh-lg);
+  animation: pro-fade-in-up 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  @include bp.down(lg) { justify-self: center; }
+  @include bp.down(sm) { padding: var(--s-6) var(--s-5); border-radius: var(--r-xl); }
+
+  &--wide { max-width: 640px; }
+
+  form { display: flex; flex-direction: column; gap: var(--s-5); }
+}
+
+/* Gabarit carte centrée seule */
+.auth-center {
+  min-height: inherit;
+  display: grid;
+  place-items: center;
+  padding: var(--s-8) var(--s-4) 26vh;
+  .auth-card { justify-self: center; }
+}
+
+.auth-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+  h1, h2 { font-size: var(--fs-2xl); font-weight: 500; }
+  p { color: var(--t-muted); font-size: var(--fs-sm); line-height: 1.6; }
+}
+.auth-head__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-lg);
+  background: var(--c-teal-soft);
+  color: var(--c-teal-ink);
+  margin-bottom: var(--s-2);
+}
+.auth-kicker { color: var(--c-teal-ink); font-size: var(--fs-sm); font-weight: 500; }
+
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  label { font-size: var(--fs-xs); font-weight: 500; color: var(--t-muted); }
+  a { font-size: var(--fs-xs); font-weight: 500; }
+}
+
+.pwd { position: relative; display: flex; align-items: center;
+  input { padding-right: 52px !important; }
+  button { position: absolute; right: 4px; display: grid; place-items: center; width: 44px; height: 40px;
+    color: var(--t-muted); border-radius: var(--r-sm); &:hover { color: var(--c-teal-ink); } } }
+
+.auth-submit { margin-top: var(--s-2); min-height: 52px; font-size: var(--fs-base); }
+
+.auth-foot {
+  margin-top: var(--s-6);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--t-muted);
+  a { font-weight: 500; }
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-6);
+  font-size: var(--fs-sm);
+  color: var(--t-muted);
+  &:hover { color: var(--c-teal-ink); }
+}
+
+.auth-success {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  p { color: var(--t-muted); font-size: var(--fs-sm); }
+}
+.auth-success__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--c-success-soft);
+  color: var(--c-success);
+  margin-bottom: var(--s-2);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+  @include bp.down(sm) { grid-template-columns: 1fr; }
+}
+
+/* ── Règles du mot de passe (inscription, réinitialisation, changement) ──── */
+.pwd-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: var(--s-1) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px var(--s-3) 4px 4px;
+    border: 1.5px solid var(--b-light);
+    border-radius: var(--r-pill);
+    background: var(--c-surface);
+    font-size: var(--fs-xs);
+    color: var(--t-muted);
+    transition: border-color var(--t-fast), background-color var(--t-fast), color var(--t-fast);
+    @media (prefers-reduced-motion: reduce) { transition: none; }
+  }
+}
+.pwd-rules__ok { border-color: var(--c-success-line) !important; background: var(--c-success-soft) !important; color: var(--c-success) !important; }
+.pwd-rules__ko { border-color: var(--c-danger-line) !important; color: var(--c-danger) !important; }
+.pwd-rules__mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  .pwd-rules__ok & { background: var(--c-success-strong); border-color: var(--c-success-strong); color: var(--t-on-strong); }
+}
+
+/* ── Champ avec icône à gauche (e-mail, mot de passe) ───────────────────── */
+.input-ico {
+  position: relative;
+  display: flex;
+  align-items: center;
+  > yay360-icon { position: absolute; left: 14px; z-index: 1; color: var(--t-soft); pointer-events: none; }
+  input { width: 100%; padding-left: 44px !important; }
+  &:focus-within > yay360-icon { color: var(--c-teal-ink); }
+}
+
+/* ── Cartes de repères (panneau de présentation) ────────────────────────── */
+.auth-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  max-width: 480px;
+  margin: var(--s-2) 0 0;
+  @include bp.down(lg) { display: none; }
+}
+.auth-stat {
+  --st-c: var(--c-teal-ink);
+  --st-soft: var(--c-teal-soft);
+  --st-line: var(--c-teal);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-4);
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-teal-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+  &::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--st-line); }
+  &--orange { --st-c: var(--c-orange-ink); --st-soft: var(--c-orange-soft); --st-line: var(--c-orange); }
+  &--lilac { --st-c: var(--c-lilac-ink); --st-soft: var(--c-lilac-soft); --st-line: var(--c-lilac); }
+  dt { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); font-size: var(--fs-2xl); font-weight: 600; line-height: 1.1; color: var(--st-c); }
+  dd { margin: 0; font-size: var(--fs-xs); line-height: 1.35; color: var(--t-muted); }
+}
+.auth-stat__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
+  background: var(--st-soft);
+  color: var(--st-c);
+}
+
+/* Profils sous forme de pastilles */
+.auth-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  @include bp.down(lg) { display: none; }
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px var(--s-3) 6px 6px;
+    border: 1.5px solid var(--c-teal-line);
+    border-radius: var(--r-pill);
+    background: var(--c-glass);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--t-main);
+  }
+  span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--c-teal-soft); color: var(--c-teal-ink); }
+}
+
+/* Encadré d'information discret dans une carte */
+.auth-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: var(--s-5) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1.5px solid var(--c-teal-line);
+  border-radius: var(--r-md);
+  background: var(--c-teal-softer);
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--t-muted);
+  > yay360-icon { flex-shrink: 0; margin-top: 1px; color: var(--c-teal-ink); }
+}
+
+/* Bouton clair / sombre des pages hors connexion */
+.auth-bg > .auth-theme { position: fixed; top: var(--s-4); right: var(--s-4); z-index: 20; }

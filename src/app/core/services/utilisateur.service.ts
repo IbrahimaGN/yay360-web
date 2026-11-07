@@ -2,18 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginResponse } from '../models/auth.model';
-import { Role, Utilisateur } from '../models/utilisateur.model';
-
-export interface CreerCompteRequest {
-  nom: string;
-  prenom: string;
-  email: string;
-  password: string;
-  telephone: string;
-  dateNaissance: string;
-  role: Role;
-}
+import { CreationProfessionnelResponse, CreerProfessionnelRequest, Role, Utilisateur } from '../models/utilisateur.model';
 
 export interface UpdateProfileRequest {
   nom: string;
@@ -25,7 +14,6 @@ export interface UpdateProfileRequest {
 export class UtilisateurService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/utilisateurs`;
-  private readonly authUrl = `${environment.apiUrl}/auth`;
 
   listerTous(role?: Role): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(this.baseUrl, role ? { params: { role } } : {});
@@ -48,12 +36,11 @@ export class UtilisateurService {
   }
 
   /**
-   * Crée un compte via /auth/register SANS passer par AuthService,
-   * pour ne pas remplacer la session de l'admin actuellement connecté
-   * (l'endpoint public renvoie normalement un token de connexion).
+   * Création d'un compte médecin, sage-femme ou administrateur (réservé à l'admin).
+   * Le mot de passe temporaire n'est renvoyé que si aucun email n'a pu le transmettre.
    */
-  creerCompte(request: CreerCompteRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.authUrl}/register`, request);
+  creerProfessionnel(request: CreerProfessionnelRequest): Observable<CreationProfessionnelResponse> {
+    return this.http.post<CreationProfessionnelResponse>(`${this.baseUrl}/professionnels`, request);
   }
 
   obtenirMonProfil(): Observable<Utilisateur> {

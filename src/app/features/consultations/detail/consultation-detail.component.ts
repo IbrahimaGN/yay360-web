@@ -1,17 +1,21 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, inject, input, OnInit, signal } from '@angular/core';
+import { StateComponent } from '../../../shared/components/state/state.component';
+import { messageErreur } from '../../../core/utils/message-erreur';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ConsultationService } from '../../../core/services/consultation.service';
 import { ConsultationDto } from '../../../core/models/consultation.model';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { IconName } from '../../../core/models/nav-item.model';
 
 @Component({
   selector: 'yay360-consultation-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink],
+  imports: [StateComponent, DatePipe, RouterLink, IconComponent],
   templateUrl: './consultation-detail.component.html',
   styleUrl: './consultation-detail.component.scss',
 })
-export class ConsultationDetailComponent {
+export class ConsultationDetailComponent implements OnInit {
   private readonly consultationService = inject(ConsultationService);
 
   readonly id = input.required<string>();
@@ -20,7 +24,27 @@ export class ConsultationDetailComponent {
   readonly erreur = signal<string | null>(null);
   readonly consultation = signal<ConsultationDto | null>(null);
 
-  constructor() {
+  initiales(nom: string): string {
+    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
+  }
+
+  /** Constantes affichées en tuiles (valeur brute, sans interprétation côté interface). */
+  constantes(c: ConsultationDto): { libelle: string; valeur: string | null; unite: string; icone: IconName }[] {
+    return [
+      { libelle: 'Tension artérielle', valeur: c.tensionArterielle, unite: 'mmHg', icone: 'activity' },
+      { libelle: 'Poids', valeur: c.poidsKg !== null ? `${c.poidsKg}` : null, unite: 'kg', icone: 'user' },
+      { libelle: 'Température', valeur: c.temperatureC !== null ? `${c.temperatureC}` : null, unite: '°C', icone: 'sun' },
+      { libelle: 'Hauteur utérine', valeur: c.hauteurUterineCm !== null ? `${c.hauteurUterineCm}` : null, unite: 'cm', icone: 'heart' },
+      { libelle: 'Bruits du cœur fœtal', valeur: c.battementsCoeurFoetal !== null ? `${c.battementsCoeurFoetal}` : null, unite: '/min', icone: 'heart' },
+    ];
+  }
+
+  imprimer(): void {
+    window.print();
+  }
+
+  // L'identifiant de route n'est disponible qu'après l'initialisation des inputs
+  ngOnInit(): void {
     this.charger();
   }
 
@@ -33,8 +57,8 @@ export class ConsultationDetailComponent {
         this.consultation.set(c);
         this.chargement.set(false);
       },
-      error: () => {
-        this.erreur.set('Impossible de charger cette consultation.');
+      error: (err) => {
+        this.erreur.set(messageErreur(err, 'Impossible de charger cette consultation.'));
         this.chargement.set(false);
       },
     });

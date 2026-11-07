@@ -38,7 +38,7 @@ export class AlerteService {
     return this.http.put<AlerteDto>(`${this.baseUrl}/${id}/prendre-en-charge`, {});
   }
 
-  resoudre(id: number, request: PriseEnChargeRequest = {}): Observable<AlerteDto> {
+  resoudre(id: number, request: PriseEnChargeRequest): Observable<AlerteDto> {
     return this.http.put<AlerteDto>(`${this.baseUrl}/${id}/resoudre`, request);
   }
 }

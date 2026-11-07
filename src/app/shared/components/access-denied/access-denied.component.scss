@@ -1,0 +1,65 @@
+@use 'breakpoints' as bp;
+
+:host { display: block; min-height: 100vh; }
+
+.denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-6);
+}
+
+.denied__card {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s-3);
+
+  h1 { font-size: var(--fs-2xl); font-weight: 500; line-height: 1.25; }
+  > p:not(.auth-note) { color: var(--t-muted); font-size: var(--fs-sm); line-height: 1.6; max-width: 38ch; }
+  strong { color: var(--t-main); font-weight: 500; }
+}
+
+/* Pictogramme : bouclier dans un anneau, rappel des anneaux du modèle */
+.denied__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin-bottom: var(--s-2);
+}
+.denied__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--c-orange) 0 28%, var(--c-teal-soft) 28% 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+}
+.denied__icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.denied__code { font-weight: 500; }
+
+.denied__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  width: 100%;
+  .pro-btn { flex: 1 1 180px; }
+  @include bp.down(sm) { flex-direction: column; .pro-btn { flex: none; width: 100%; } }
+}
+
+.denied__note { text-align: left; width: 100%; }

@@ -1,4 +1,6 @@
+import { messageErreur } from '../../core/utils/message-erreur';
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { StateComponent } from '../../shared/components/state/state.component';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EtapeGrossesseService } from '../../core/services/etape-grossesse.service';
 import { ConseilService } from '../../core/services/conseil.service';
@@ -8,17 +10,25 @@ import {
   EtapeGrossesseDto,
 } from '../../core/models/etape-grossesse.model';
 import { ConseilDto } from '../../core/models/grossesse.model';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { IconName } from '../../core/models/nav-item.model';
+
+const CHAMPS_ETAPE = ['developpementBebe', 'changementsMere', 'objectifsSante', 'conseilsAlimentation', 'conseilsHydratation',
+  'exercicesPhysiques', 'conseilsSommeil', 'precautions', 'examensRecommandes', 'signesAlerte'] as const;
 
 type Vue = 'ETAPES' | 'CONSEILS';
 
 @Component({
   selector: 'yay360-conseils-etapes',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [StateComponent, ReactiveFormsModule, IconComponent],
   templateUrl: './conseils-etapes.component.html',
   styleUrl: './conseils-etapes.component.scss',
 })
 export class ConseilsEtapesComponent {
+  /** Échec d'une action : toujours affiché à l'utilisateur. */
+  readonly erreurAction = signal<string | null>(null);
+
   private readonly etapeService = inject(EtapeGrossesseService);
   private readonly conseilService = inject(ConseilService);
   private readonly fb = inject(FormBuilder);
@@ -72,7 +82,7 @@ export class ConseilsEtapesComponent {
 
   changerVue(v: Vue): void {
     this.vue.set(v);
-    this.fermerSemaine();
+    this.succes.set(null);
   }
 
   fermerSemaine(): void {
@@ -81,7 +91,71 @@ export class ConseilsEtapesComponent {
 
   @HostListener('document:keydown.escape')
   fermerSemaineAvecEchap(): void {
-    this.fermerSemaine();
+    if (this.conseilASupprimer()) this.conseilASupprimer.set(null);
+    else if (this.formulaireConseilOuvert()) this.fermerFormulaireConseil();
+  }
+
+  // --- Présentation ---
+  readonly succes = signal<string | null>(null);
+  readonly nombreChamps = CHAMPS_ETAPE.length;
+
+  /** Nombre de rubriques renseignées pour une semaine (indicateur de complétude). */
+  remplissage(etape: EtapeGrossesseDto): number {
+    return CHAMPS_ETAPE.filter((c) => (etape[c] ?? '').toString().trim().length > 0).length;
+  }
+
+  readonly trimestres = computed(() => [
+    { cle: 'T1', titre: '1er trimestre', plage: 'Semaines 1 à 13', etapes: this.etapes().filter((e) => e.semaine <= 13) },
+    { cle: 'T2', titre: '2e trimestre', plage: 'Semaines 14 à 27', etapes: this.etapes().filter((e) => e.semaine >= 14 && e.semaine <= 27) },
+    { cle: 'T3', titre: '3e trimestre', plage: `Semaines 28 à ${DUREE_GROSSESSE_SEMAINES}`, etapes: this.etapes().filter((e) => e.semaine >= 28) },
+  ]);
+  readonly semainesCompletes = computed(() => this.etapes().filter((e) => this.remplissage(e) === CHAMPS_ETAPE.length).length);
+
+  /** Sur petit écran, l'éditeur est sous la grille : on le fait défiler à l'écran. */
+  allerEditeur(): void {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
+    setTimeout(() => document.querySelector('.editor')?.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start',
+    }));
+  }
+
+  semaineVoisine(delta: number): void {
+    const sem = this.semaineOuverte();
+    if (sem === null) return;
+    const cible = this.etapes().find((e) => e.semaine === sem + delta);
+    if (cible) this.ouvrirSemaine(cible);
+  }
+
+  // --- Filtres des conseils ---
+  readonly recherche = signal('');
+  readonly filtreCategorie = signal('');
+  readonly filtreStatut = signal<'TOUS' | 'ACTIFS' | 'INACTIFS'>('TOUS');
+  readonly conseilsFiltres = computed(() => {
+    const terme = this.recherche().trim().toLowerCase();
+    const cat = this.filtreCategorie();
+    const st = this.filtreStatut();
+    return this.conseils()
+      .filter((c) => (!cat || c.categorie === cat) && (st === 'TOUS' || (st === 'ACTIFS' ? c.actif : !c.actif)) &&
+        (!terme || c.titre.toLowerCase().includes(terme) || c.contenu.toLowerCase().includes(terme)))
+      .sort((a, b) => a.semaineDebut - b.semaineDebut || a.titre.localeCompare(b.titre, 'fr'));
+  });
+  readonly filtresActifs = computed(() => !!this.recherche().trim() || !!this.filtreCategorie() || this.filtreStatut() !== 'TOUS');
+  reinitialiserFiltres(): void { this.recherche.set(''); this.filtreCategorie.set(''); this.filtreStatut.set('TOUS'); }
+
+  iconeCategorie(cat: string): IconName {
+    return ({ NUTRITION: 'heart', ACTIVITE_PHYSIQUE: 'activity', SOMMEIL: 'moon', PREVENTION: 'shield', PREPARATION_ACCOUCHEMENT: 'calendar', ALLAITEMENT: 'users', SANTE_MENTALE: 'sun' } as Record<string, IconName>)[cat] ?? 'book';
+  }
+  tonCategorie(cat: string): string {
+    return ({ NUTRITION: 'orange', ACTIVITE_PHYSIQUE: 'teal', SOMMEIL: 'lilac', PREVENTION: 'teal', PREPARATION_ACCOUCHEMENT: 'orange', ALLAITEMENT: 'lilac', SANTE_MENTALE: 'teal' } as Record<string, string>)[cat] ?? 'teal';
+  }
+
+  /** Suppression confirmée dans une fenêtre (remplace la boîte native). */
+  readonly conseilASupprimer = signal<ConseilDto | null>(null);
+  readonly suppressionEnCours = signal(false);
+
+  invalideConseil(nom: 'semaineDebut' | 'semaineFin' | 'categorie' | 'titre' | 'contenu'): boolean {
+    const c = this.formConseil.controls[nom];
+    return c.invalid && c.touched;
   }
 
   // ==================== ÉTAPES ====================
@@ -92,17 +166,18 @@ export class ConseilsEtapesComponent {
       next: (liste) => {
         this.etapes.set(liste.sort((a, b) => a.semaine - b.semaine));
         this.chargementEtapes.set(false);
+        if (this.semaineOuverte() === null && liste.length) this.ouvrirSemaine(liste[0]);
       },
-      error: () => this.chargementEtapes.set(false),
+      error: (err) => {
+        this.chargementEtapes.set(false);
+        this.erreurAction.set(messageErreur(err, "Impossible de charger les étapes de grossesse."));
+      },
     });
   }
 
   ouvrirSemaine(etape: EtapeGrossesseDto): void {
-    if (this.semaineOuverte() === etape.semaine) {
-      this.semaineOuverte.set(null);
-      return;
-    }
     this.semaineOuverte.set(etape.semaine);
+    this.erreurAction.set(null);
     this.formEtape.reset({
       developpementBebe: etape.developpementBebe ?? '',
       changementsMere: etape.changementsMere ?? '',
@@ -125,9 +200,13 @@ export class ConseilsEtapesComponent {
       next: (miseAJour) => {
         this.etapes.update((liste) => liste.map((e) => (e.id === miseAJour.id ? miseAJour : e)));
         this.enregistrementEtape.set(false);
-        this.semaineOuverte.set(null);
+        this.formEtape.markAsPristine();
+        this.succes.set(`Semaine ${miseAJour.semaine} enregistrée.`);
       },
-      error: () => this.enregistrementEtape.set(false),
+      error: (err) => {
+        this.enregistrementEtape.set(false);
+        this.erreurAction.set(messageErreur(err, "Impossible d'enregistrer cette étape."));
+      },
     });
   }
 
@@ -146,11 +225,15 @@ export class ConseilsEtapesComponent {
         this.conseils.set(liste);
         this.chargementConseils.set(false);
       },
-      error: () => this.chargementConseils.set(false),
+      error: (err) => {
+        this.chargementConseils.set(false);
+        this.erreurAction.set(messageErreur(err, "Impossible de charger les conseils."));
+      },
     });
   }
 
   ouvrirCreationConseil(): void {
+    this.erreurAction.set(null);
     this.idConseilEnEdition.set(null);
     this.formConseil.reset({ semaineDebut: 1, semaineFin: 13, categorie: 'NUTRITION' });
     this.formulaireConseilOuvert.set(true);
@@ -197,9 +280,13 @@ export class ConseilsEtapesComponent {
       next: () => {
         this.enregistrementConseil.set(false);
         this.formulaireConseilOuvert.set(false);
+        this.succes.set(idEdition ? 'Conseil mis à jour.' : 'Conseil créé.');
         this.chargerConseils();
       },
-      error: () => this.enregistrementConseil.set(false),
+      error: (err) => {
+        this.enregistrementConseil.set(false);
+        this.erreurAction.set(messageErreur(err, "Impossible d'enregistrer ce conseil."));
+      },
     });
   }
 
@@ -207,13 +294,30 @@ export class ConseilsEtapesComponent {
     this.conseilService.basculerActivation(conseil.id).subscribe({
       next: (miseAJour) =>
         this.conseils.update((liste) => liste.map((c) => (c.id === miseAJour.id ? miseAJour : c))),
+      error: (err) => this.erreurAction.set(messageErreur(err, 'Impossible de modifier ce conseil.')),
     });
   }
 
   supprimerConseil(conseil: ConseilDto): void {
-    if (!confirm(`Supprimer le conseil « ${conseil.titre} » ?`)) return;
+    this.conseilASupprimer.set(conseil);
+  }
+
+  confirmerSuppression(): void {
+    const conseil = this.conseilASupprimer();
+    if (!conseil) return;
+    this.suppressionEnCours.set(true);
     this.conseilService.supprimer(conseil.id).subscribe({
-      next: () => this.chargerConseils(),
+      next: () => {
+        this.suppressionEnCours.set(false);
+        this.conseilASupprimer.set(null);
+        this.succes.set(`Conseil « ${conseil.titre} » supprimé.`);
+        this.chargerConseils();
+      },
+      error: (err) => {
+        this.suppressionEnCours.set(false);
+        this.conseilASupprimer.set(null);
+        this.erreurAction.set(messageErreur(err, 'Impossible de supprimer ce conseil.'));
+      },
     });
   }
 
