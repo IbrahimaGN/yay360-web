@@ -1,0 +1,68 @@
+# Intégration continue du portail web YAY360 (Angular 21, Vitest, Nginx).
+# Construit en production, lance les tests et vérifie l'image Docker.
+# Aucun déploiement ici : la livraison reste une décision humaine.
+
+name: CI web
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-et-tests:
+    name: Build production et tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Installation reproductible à partir de package-lock.json.
+      - run: npm ci
+
+      # Échoue si un budget de taille (angular.json) est dépassé.
+      - name: Build production
+        run: npm run build -- --configuration production
+
+      - name: Tests (Vitest + jsdom)
+        run: npm test
+
+      - name: Archive du build
+        uses: actions/upload-artifact@v4
+        with:
+          name: yay360-web-${{ github.sha }}
+          path: dist/yay360-web/browser/
+          retention-days: 14
+
+  image-docker:
+    name: Construction de l'image Docker
+    runs-on: ubuntu-latest
+    needs: build-et-tests
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Vérifie que le Dockerfile (build Node puis Nginx) construit ; l'image n'est pas publiée.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: yay360-web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
