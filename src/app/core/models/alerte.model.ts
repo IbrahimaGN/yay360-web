@@ -11,7 +11,10 @@ export interface AlerteDto {
   description: string | null;
   niveauGravite: NiveauGravite;
   statut: StatutAlerte;
+  /** Soignant qui a pris l'alerte en charge. */
   professionnelNomComplet: string | null;
+  /** Soignant qui a résolu l'alerte (null si non résolue ou résolue avant l'enregistrement de cette information). */
+  resoluParNomComplet: string | null;
   notesPriseEnCharge: string | null;
   dateDeclaration: string;
   dateResolution: string | null;

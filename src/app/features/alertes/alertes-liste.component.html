@@ -133,7 +133,7 @@
           <ol class="steps" [attr.aria-label]="'Statut : ' + libelleStatutAlerte(alerte.statut)">
             <li [class.steps__done]="etape(alerte.statut) >= 1"><span aria-hidden="true"></span>Signalée</li>
             <li [class.steps__done]="etape(alerte.statut) >= 2"><span aria-hidden="true"></span>Prise en charge{{ alerte.professionnelNomComplet ? ' · ' + alerte.professionnelNomComplet : '' }}</li>
-            <li [class.steps__done]="etape(alerte.statut) >= 3"><span aria-hidden="true"></span>Résolue{{ alerte.dateResolution ? ' le ' + (alerte.dateResolution | date: 'd MMM') : '' }}</li>
+            <li [class.steps__done]="etape(alerte.statut) >= 3"><span aria-hidden="true"></span>Résolue{{ alerte.resoluParNomComplet ? ' · ' + alerte.resoluParNomComplet : '' }}{{ alerte.dateResolution ? ' le ' + (alerte.dateResolution | date: 'd MMM') : '' }}</li>
           </ol>
 
           @if (alerte.notesPriseEnCharge) {

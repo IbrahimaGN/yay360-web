@@ -20,7 +20,7 @@ function alerte(partiel: Partial<AlerteDto>): AlerteDto {
     description: null,
     niveauGravite: 'MODERE',
     statut: 'NOUVELLE',
-    professionnelNomComplet: null,
+    professionnelNomComplet: null, resoluParNomComplet: null,
     notesPriseEnCharge: null,
     dateDeclaration: '2026-11-06T08:00:00',
     dateResolution: null,
@@ -89,6 +89,17 @@ describe('AlertesListeComponent (alertes)', () => {
     expect(pourquoi.getAttribute('aria-expanded')).toBe('true');
     const regles = Array.from(el.querySelectorAll('.alert__rules li')).map((li) => li.textContent!.trim());
     expect(regles).toEqual(['Règle fictive n° 1 appliquée', 'Règle fictive n° 2 appliquée']);
+  });
+
+  it('distingue le soignant qui a pris en charge de celui qui a résolu', () => {
+    afficher('MEDECIN', () => of([alerte({
+      id: 7, statut: 'RESOLUE', professionnelNomComplet: 'Soignante Fictive', resoluParNomComplet: 'Médecin Fictif',
+      dateResolution: '2026-11-06T12:00:00', notesPriseEnCharge: 'Observations fictives.',
+    })]));
+
+    const etapes = Array.from(el.querySelectorAll('.steps li')).map((li) => li.textContent!.trim());
+    expect(etapes[1]).toContain('Prise en charge · Soignante Fictive');
+    expect(etapes[2]).toContain('Résolue · Médecin Fictif');
   });
 
   it('rappelle sur chaque alerte que le classement n’est pas un diagnostic', () => {
