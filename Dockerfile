@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Installation reproductible, à partir du lockfile
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 COPY . .
 RUN npm run build -- --configuration production
