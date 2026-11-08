@@ -18,3 +18,9 @@ if (typeof window.matchMedia !== 'function') {
 if (typeof window.scrollTo !== 'function' || /not implemented/i.test(String(window.scrollTo))) {
   window.scrollTo = () => undefined;
 }
+
+// Chaque test démarre sans session ni préférence enregistrée, quel que soit l'ordre des fichiers
+// (les fichiers peuvent partager le même environnement selon la machine qui lance les tests).
+beforeEach(() => {
+  try { localStorage.clear(); } catch { /* stockage indisponible */ }
+});

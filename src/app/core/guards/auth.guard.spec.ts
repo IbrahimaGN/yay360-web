@@ -24,6 +24,8 @@ describe('Guards', () => {
   const url = (resultat: boolean | UrlTree) =>
     resultat instanceof UrlTree ? TestBed.inject(Router).serializeUrl(resultat) : resultat;
 
+  // Avant chaque test aussi : une session laissée par un autre fichier ne doit pas fausser le résultat.
+  beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
 
   it('authGuard redirige vers la connexion en mémorisant la page demandée', () => {
