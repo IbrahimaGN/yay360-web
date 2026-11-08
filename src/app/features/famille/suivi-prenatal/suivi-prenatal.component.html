@@ -185,7 +185,7 @@
                   <span class="list__icon" [attr.data-g]="a.niveauGravite" aria-hidden="true"><yay360-icon name="alert-triangle" [size]="16" /></span>
                   <span class="list__body">
                     <strong>{{ libelleSymptome(a.typeSymptome) }}</strong>
-                    <small>{{ a.dateDeclaration | date: 'd MMM y, HH:mm' }}{{ a.professionnelNomComplet ? ' · suivi par ' + a.professionnelNomComplet : '' }}</small>
+                    <small>{{ a.dateDeclaration | date: 'd MMM y, HH:mm' }}{{ a.resoluParNomComplet ? ' · résolue par ' + a.resoluParNomComplet : (a.professionnelNomComplet ? ' · suivi par ' + a.professionnelNomComplet : '') }}</small>
                   </span>
                   <span class="status" [attr.data-statut]="a.statut">{{ a.statut | statut }}</span>
                 </li>

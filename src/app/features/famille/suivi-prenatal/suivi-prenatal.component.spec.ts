@@ -27,7 +27,7 @@ function reponseTriage(niveau: AlerteDto['niveauGravite']): AlerteDto {
   return {
     id: 50, grossesseId: 3, femmeEnceinteId: 10, femmeEnceinteNomComplet: 'Awa Démo', femmeEnceinteTelephone: null,
     typeSymptome: 'SAIGNEMENTS', description: null, niveauGravite: niveau, statut: 'NOUVELLE',
-    professionnelNomComplet: null, notesPriseEnCharge: null, dateDeclaration: '2026-11-06T10:00:00', dateResolution: null,
+    professionnelNomComplet: null, resoluParNomComplet: null, notesPriseEnCharge: null, dateDeclaration: '2026-11-06T10:00:00', dateResolution: null,
     recommandation: 'Consigne fictive renvoyée par les règles.',
     avertissement: 'Ce classement ne remplace pas l’avis d’un professionnel de santé.',
     origine: 'PATIENTE', justificationTriage: ['Règle fictive appliquée'],
