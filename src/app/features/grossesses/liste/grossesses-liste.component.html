@@ -164,7 +164,7 @@
             </div>
 
             <dl class="pcard__meta">
-              <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+              <div><dt>Terme estimé</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
               <div><dt>Jours restants</dt><dd>{{ g.joursRestants }}</dd></div>
             </dl>
 
@@ -195,7 +195,7 @@
           <tr>
             <th scope="col">Patiente</th>
             <th scope="col">Avancement</th>
-            <th scope="col">Terme prévu</th>
+            <th scope="col">Terme estimé</th>
             <th scope="col">Établissement</th>
             <th scope="col">Vigilance</th>
             <th scope="col" class="cell-end"><span class="sr-only">Action</span></th>
@@ -211,7 +211,7 @@
                 </div>
               </td>
               <td data-label="Avancement">Semaine {{ g.semaineActuelle }} · {{ g.trimestre }}<small class="muted-line">{{ g.joursRestants }} jours restants</small></td>
-              <td data-label="Terme prévu">{{ g.datePrevueAccouchement | date: 'd MMM y' }}</td>
+              <td data-label="Terme estimé">{{ g.datePrevueAccouchement | date: 'd MMM y' }}</td>
               <td data-label="Établissement">{{ g.etablissementSuiviNom || '—' }}</td>
               <td data-label="Vigilance">
                 @if (g.grossesseARisque) {

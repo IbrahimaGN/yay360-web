@@ -31,7 +31,7 @@
           <p class="hero__sub">
             Dossier #{{ g.id }} ·
             @if (g.statut !== 'EN_COURS') {
-              {{ g.statut === 'TERMINEE' ? 'Accouchement' : 'Interruption' }} le {{ g.dateFin ? (g.dateFin | date: 'd MMMM y') : '—' }}
+              {{ libelleIssue(g.issue) ?? (g.statut === 'TERMINEE' ? 'Accouchement' : 'Interruption') }} le {{ g.dateFin ? (g.dateFin | date: 'd MMMM y') : '—' }}
             } @else {
               ouvert le {{ g.dateCreation | date: 'd MMMM y' }}
             }
@@ -46,7 +46,10 @@
                              [centerValue]="g.semaineActuelle" [centerLabel]="'sur ' + dureeGrossesseSemaines + ' sem.'" />
           <dl class="hero__metrics">
             <div><dt>Trimestre</dt><dd>{{ g.trimestre }}</dd></div>
-            <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+            <div><dt>Terme estimé</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}
+              @if (g.debutPeriodeTerme && g.finPeriodeTerme) {
+                <small class="terme-plage" title="Période à terme : de 37 SA à 41 SA + 6 jours">À terme : {{ g.debutPeriodeTerme | date: 'd MMM' }} – {{ g.finPeriodeTerme | date: 'd MMM y' }}<span class="sr-only"> (de 37 semaines à 41 semaines et 6 jours d'aménorrhée)</span></small>
+              }</dd></div>
             <div><dt>Jours restants</dt><dd>{{ g.joursRestants }}</dd></div>
             <div><dt>Dernières règles</dt><dd>{{ g.dateDernieresRegles | date: 'd MMM y' }}</dd></div>
           </dl>
@@ -129,19 +132,22 @@
           <div class="inline-form">
             <div class="field-row">
               <div class="field">
-                <label for="statutFinal">Issue de la grossesse</label>
-                <select id="statutFinal" [value]="statutFinal()" (change)="statutFinal.set($any($event.target).value)">
-                  <option value="TERMINEE">Accouchement</option>
-                  <option value="INTERROMPUE">Interruption médicale ou spontanée</option>
+                <label for="issueFinale">Issue de la grossesse</label>
+                <select id="issueFinale" [value]="issueFinale()" (change)="issueFinale.set($any($event.target).value)">
+                  @for (groupe of issuesGrossesse; track groupe.groupe) {
+                    <optgroup [label]="groupe.groupe">
+                      @for (i of groupe.issues; track i.valeur) { <option [value]="i.valeur">{{ i.libelle }}</option> }
+                    </optgroup>
+                  }
                 </select>
               </div>
               <div class="field">
-                <label for="dateFin">{{ statutFinal() === 'TERMINEE' ? 'Date de l’accouchement' : 'Date de l’interruption' }}</label>
+                <label for="dateFin">{{ estAccouchement() ? 'Date de l’accouchement' : 'Date de fin de grossesse' }}</label>
                 <input id="dateFin" type="date" [max]="aujourdhui" [min]="g.dateDernieresRegles"
                        [value]="dateFin()" (input)="dateFin.set($any($event.target).value)" />
               </div>
             </div>
-            <p class="field-hint">Les rendez-vous encore prévus seront annulés automatiquement.</p>
+            <p class="field-hint">Les rendez-vous encore prévus seront annulés automatiquement. L’issue est visible par la patiente et l’équipe soignante, pas par le conjoint.</p>
             <div class="inline-form__buttons">
               <button type="button" class="pro-btn pro-btn--accent" [disabled]="actionEnCours()" (click)="confirmerTerminer()">Valider la clôture</button>
               <button type="button" class="pro-btn pro-btn--ghost" (click)="formulaireTerminerOuvert.set(false)">Annuler</button>

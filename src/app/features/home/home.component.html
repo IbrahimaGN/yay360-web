@@ -233,7 +233,10 @@
             <yay360-ring-chart [data]="anneauGrossesse()" [size]="132" [epaisseur]="18" [centerValue]="g.semaineActuelle" centerLabel="semaines" />
             <dl class="fam__facts">
               <div><dt>Trimestre</dt><dd>{{ g.trimestre }}</dd></div>
-              <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+              <div><dt>Terme estimé</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}
+                @if (g.debutPeriodeTerme && g.finPeriodeTerme) {
+                  <small class="terme-plage">À terme entre le {{ g.debutPeriodeTerme | date: 'd MMM' }} et le {{ g.finPeriodeTerme | date: 'd MMM' }}</small>
+                }</dd></div>
               <div><dt>Encore</dt><dd>{{ g.joursRestants }} jours</dd></div>
               <div><dt>Suivie à</dt><dd class="fam__place">{{ g.etablissementSuiviNom || 'À choisir' }}</dd></div>
             </dl>

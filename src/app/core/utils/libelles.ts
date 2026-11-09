@@ -50,6 +50,39 @@ export function libelleBandelette(valeur: string | null | undefined): string | n
   return valeur ? RESULTATS_BANDELETTE.find((r) => r.valeur === valeur)?.libelle ?? valeur : null;
 }
 
+/** Issues de grossesse proposées à la clôture, groupées comme dans le formulaire. */
+export const ISSUES_GROSSESSE: { groupe: string; issues: { valeur: string; libelle: string }[] }[] = [
+  {
+    groupe: 'Accouchement',
+    issues: [
+      { valeur: 'NAISSANCE_VIVANTE', libelle: 'Enfant né vivant' },
+      { valeur: 'MORT_NE', libelle: 'Enfant mort-né (à partir de 22 SA)' },
+    ],
+  },
+  {
+    groupe: 'Interruption',
+    issues: [
+      { valeur: 'FAUSSE_COUCHE', libelle: 'Fausse couche ou avortement incomplet (avant 22 SA)' },
+      { valeur: 'GROSSESSE_EXTRA_UTERINE', libelle: 'Grossesse extra-utérine' },
+      { valeur: 'MORT_FOETALE_IN_UTERO', libelle: 'Mort fœtale in utero (à partir de 22 SA)' },
+      { valeur: 'INTERRUPTION_THERAPEUTIQUE', libelle: 'Interruption thérapeutique (vie de la mère en danger)' },
+    ],
+  },
+];
+
+/** Libellé court de l'issue, pour l'en-tête du dossier. */
+export function libelleIssue(issue: string | null | undefined): string | null {
+  const courts: Record<string, string> = {
+    NAISSANCE_VIVANTE: 'Accouchement',
+    MORT_NE: 'Accouchement (enfant mort-né)',
+    FAUSSE_COUCHE: 'Fausse couche',
+    GROSSESSE_EXTRA_UTERINE: 'Grossesse extra-utérine',
+    MORT_FOETALE_IN_UTERO: 'Mort fœtale in utero',
+    INTERRUPTION_THERAPEUTIQUE: 'Interruption thérapeutique',
+  };
+  return issue ? courts[issue] ?? issue : null;
+}
+
 /** Types de rendez-vous acceptés par l'API. */
 export const TYPES_RENDEZ_VOUS: { valeur: string; libelle: string }[] = [
   { valeur: 'CONSULTATION_PRENATALE', libelle: 'Consultation prénatale (CPN)' },
