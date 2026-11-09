@@ -60,6 +60,7 @@ describe('SuiviPrenatalComponent (patiente et conjoint)', () => {
             obtenirMonCalendrier: vi.fn(() => EMPTY),
             monPlanCpn: vi.fn(() => EMPTY),
             obtenirMonSuivi: vi.fn(() => EMPTY),
+            exporterMonDossierPdf: vi.fn(() => of(new Blob(['%PDF-fictif'], { type: 'application/pdf' }))),
           },
         },
         { provide: RendezVousService, useValue: { mesRendezVous: vi.fn(() => of([])) } },
@@ -181,5 +182,14 @@ describe('SuiviPrenatalComponent (patiente et conjoint)', () => {
 
     expect(el.querySelector('#modal-title-alerte')?.textContent).toContain('Signaler un symptôme');
     expect(el.querySelector('.sp__urg')?.textContent).toContain('En cas d’urgence');
+  });
+
+  it('la patiente peut télécharger son dossier PDF, pas le conjoint', () => {
+    afficher('FEMME_ENCEINTE');
+    expect(el.textContent).toContain('Télécharger mon dossier (PDF)');
+
+    TestBed.resetTestingModule();
+    afficher('CONJOINT');
+    expect(el.textContent).not.toContain('Télécharger mon dossier (PDF)');
   });
 });

@@ -82,6 +82,9 @@
               <button type="button" class="pro-btn pro-btn--secondary" (click)="formulairePlanifierOuvert.set(true)">
                 <yay360-icon name="calendar" [size]="18" aria-hidden="true" /> Planifier un rendez-vous
               </button>
+              <button type="button" class="pro-btn pro-btn--ghost" (click)="exporterPdf()" [disabled]="actionEnCours()">
+                <yay360-icon name="download" [size]="18" aria-hidden="true" /> Exporter en PDF
+              </button>
               @if (estMedecin()) {
                 @if (!g.grossesseARisque) {
                   <button type="button" class="pro-btn pro-btn--ghost" (click)="ouvrirFormulaireRisque()">
