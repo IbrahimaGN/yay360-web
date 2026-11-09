@@ -23,6 +23,7 @@ import { PlanCpnComponent } from '../../../shared/components/plan-cpn/plan-cpn.c
 import { PlanifierRendezVousComponent } from '../../rendez-vous/planifier-rendez-vous/planifier-rendez-vous.component';
 import { DUREE_GROSSESSE_SEMAINES } from '../../../core/models/etape-grossesse.model';
 import { messageErreur } from '../../../core/utils/message-erreur';
+import { nomDossierPdf, telechargerFichier } from '../../../core/utils/telechargement';
 import { ISSUES_GROSSESSE, libelleIssue, libelleTypeRendezVous } from '../../../core/utils/libelles';
 
 @Component({
@@ -159,6 +160,20 @@ export class GrossesseDetailComponent implements OnInit {
 
   private erreurBloc(bloc: string, err: unknown): void {
     this.erreursBlocs.update((e) => ({ ...e, [bloc]: messageErreur(err, 'Données indisponibles.') }));
+  }
+
+  /** Télécharge le dossier complet au format PDF (remplace le carnet papier). */
+  exporterPdf(): void {
+    const g = this.grossesse();
+    if (!g) return;
+    this.debutAction();
+    this.grossesseService.exporterDossierPdf(g.id).subscribe({
+      next: (pdf) => {
+        telechargerFichier(pdf, nomDossierPdf(String(g.id)));
+        this.finAction('Dossier PDF téléchargé.');
+      },
+      error: (err) => this.finAction(null, err),
+    });
   }
 
   private debutAction(): void {

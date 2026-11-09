@@ -40,6 +40,7 @@
 }
 .hero__text { display: flex; flex-direction: column; gap: var(--s-2); h3 { margin: 0; font-size: var(--fs-2xl); font-weight: 600; } }
 .hero__badges { display: flex; flex-wrap: wrap; gap: var(--s-2); .badge { display: inline-flex; align-items: center; gap: 4px; } }
+.hero__export { align-self: flex-start; margin-top: var(--s-2); }
 .hero__facts { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin: 0; dt { font-size: var(--fs-xs); color: var(--t-muted); } dd { margin: 2px 0 0; font-weight: 600; } }
 
 .etab { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-5) var(--s-6); @include bp.down(sm) { padding: var(--s-4); } }

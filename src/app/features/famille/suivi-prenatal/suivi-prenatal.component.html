@@ -74,6 +74,11 @@
                 }</dd></div>
               <div><dt>Jours restants</dt><dd>{{ grossesse.joursRestants }}</dd></div>
             </dl>
+            @if (estFemme()) {
+              <button type="button" class="pro-btn pro-btn--secondary hero__export" (click)="exporterPdf()" [disabled]="exportEnCours()">
+                <yay360-icon name="download" [size]="16" aria-hidden="true" /> {{ exportEnCours() ? 'Préparation…' : 'Télécharger mon dossier (PDF)' }}
+              </button>
+            }
           </div>
         </section>
 

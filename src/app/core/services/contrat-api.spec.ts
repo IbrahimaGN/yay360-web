@@ -31,7 +31,8 @@ describe('Contrat d’API (web ↔ backend)', () => {
     if (corps !== undefined) {
       expect(req.request.body).toEqual(corps);
     }
-    req.flush({});
+    // Réponses de type fichier (dossier PDF) : un Blob, et non du JSON
+    req.flush(req.request.responseType === 'blob' ? new Blob(['%PDF-']) : {});
   }
 
   it('création d’un professionnel par l’admin (et non /auth/register)', () => {
@@ -56,6 +57,10 @@ describe('Contrat d’API (web ↔ backend)', () => {
     attendre('GET', `${api}/grossesses/5/evaluation-risque`);
     s.terminer(5, { issue: 'NAISSANCE_VIVANTE', dateFin: '2026-11-01' }).subscribe();
     attendre('PUT', `${api}/grossesses/5/terminer`, { issue: 'NAISSANCE_VIVANTE', dateFin: '2026-11-01' });
+    s.exporterDossierPdf(5).subscribe();
+    expect(http.expectOne(`${api}/grossesses/5/export-pdf`).request.responseType).toBe('blob');
+    s.exporterMonDossierPdf().subscribe();
+    expect(http.expectOne(`${api}/grossesses/ma-grossesse/export-pdf`).request.responseType).toBe('blob');
   });
 
   it('rendez-vous : planification par le soignant, report, statut', () => {

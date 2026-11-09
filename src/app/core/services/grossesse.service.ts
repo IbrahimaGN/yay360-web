@@ -98,4 +98,14 @@ export class GrossesseService {
   evaluationRisque(id: number): Observable<EvaluationRisqueDto> {
     return this.http.get<EvaluationRisqueDto>(`${this.baseUrl}/${id}/evaluation-risque`);
   }
+
+  /** Dossier PDF de la grossesse en cours (patiente). */
+  exporterMonDossierPdf(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/ma-grossesse/export-pdf`, { responseType: 'blob' });
+  }
+
+  /** Dossier PDF d'une grossesse (soignant qui suit la patiente). */
+  exporterDossierPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${id}/export-pdf`, { responseType: 'blob' });
+  }
 }

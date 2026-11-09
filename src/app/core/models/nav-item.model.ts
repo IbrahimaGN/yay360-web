@@ -5,6 +5,7 @@ export type IconName =
   | 'ring'
   | 'calendar'
   | 'clipboard'
+  | 'download'
   | 'bell'
   | 'building'
   | 'book'

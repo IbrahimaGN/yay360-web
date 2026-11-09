@@ -63,6 +63,7 @@ describe('GrossesseDetailComponent (droits par rôle)', () => {
       declarerARisque: vi.fn((_id: number, req: { motif: string }) => of({ ...g, grossesseARisque: true, motifRisque: req.motif })),
       retirerRisque: vi.fn(() => of({ ...g, grossesseARisque: false })),
       terminer: vi.fn(() => of({ ...g, statut: 'TERMINEE' })),
+      exporterDossierPdf: vi.fn(() => of(new Blob(['%PDF-fictif'], { type: 'application/pdf' }))),
     };
     consultationService = { parGrossesse: vi.fn(() => of([])) };
 
@@ -183,6 +184,24 @@ describe('GrossesseDetailComponent (droits par rôle)', () => {
     afficher('MEDECIN', { statut: 'INTERROMPUE', issue: 'GROSSESSE_EXTRA_UTERINE', dateFin: '2026-08-01' });
 
     expect(el.querySelector('.hero__sub')?.textContent).toMatch(/Grossesse extra-utérine le 1 \S+ 2026/);
+  });
+
+  it('le soignant télécharge le dossier PDF de la patiente', () => {
+    afficher('SAGE_FEMME');
+    const creer = vi.fn(() => 'blob:fictif');
+    const revoquer = vi.fn();
+    Object.assign(URL, { createObjectURL: creer, revokeObjectURL: revoquer });
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.actions__buttons button'))
+      .find((b) => b.textContent!.includes('Exporter en PDF'))!.click();
+    fixture.detectChanges();
+
+    expect(grossesseService['exporterDossierPdf']).toHaveBeenCalledWith(3);
+    expect(clic).toHaveBeenCalled();
+    expect(revoquer).toHaveBeenCalledWith('blob:fictif');
+    expect(el.querySelector('[role="status"]')?.textContent).toContain('Dossier PDF téléchargé');
+    clic.mockRestore();
   });
 
   it('affiche un état d’erreur si la grossesse ne peut pas être chargée', () => {

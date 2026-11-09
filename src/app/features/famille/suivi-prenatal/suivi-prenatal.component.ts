@@ -1,5 +1,6 @@
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { StatutPipe } from '../../../shared/pipes/statut.pipe';
+import { nomDossierPdf, telechargerFichier } from '../../../core/utils/telechargement';
 import { Component, computed, HostListener, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AlerteDto } from '../../../core/models/alerte.model';
@@ -66,6 +67,7 @@ export class SuiviPrenatalComponent implements OnInit {
   readonly envoiRendezVous = signal(false);
   readonly envoiAlerte = signal(false);
   readonly erreur = signal<string | null>(null);
+  readonly exportEnCours = signal(false);
   readonly message = signal<string | null>(null);
   readonly grossesses = signal<GrossesseDto[]>([]);
   readonly calendrier = signal<CalendrierGrossesseDto | null>(null);
@@ -383,6 +385,23 @@ export class SuiviPrenatalComponent implements OnInit {
     this.alerteService.mesAlertes().subscribe({
       next: (alertes) => this.alertes.set(alertes),
       error: () => this.erreur.set('Impossible de charger les alertes du dossier familial.'),
+    });
+  }
+
+  /** Télécharge le dossier de la grossesse en cours au format PDF (à montrer au soignant, remplace le carnet égaré). */
+  exporterPdf(): void {
+    this.exportEnCours.set(true);
+    this.erreur.set(null);
+    this.grossesseService.exporterMonDossierPdf().subscribe({
+      next: (pdf) => {
+        telechargerFichier(pdf, nomDossierPdf('en-cours'));
+        this.exportEnCours.set(false);
+        this.message.set('Dossier PDF téléchargé.');
+      },
+      error: (err) => {
+        this.exportEnCours.set(false);
+        this.erreur.set(messageErreur(err, 'Le dossier n’a pas pu être exporté.'));
+      },
     });
   }
 }
