@@ -46,7 +46,10 @@
                              [centerValue]="g.semaineActuelle" [centerLabel]="'sur ' + dureeGrossesseSemaines + ' sem.'" />
           <dl class="hero__metrics">
             <div><dt>Trimestre</dt><dd>{{ g.trimestre }}</dd></div>
-            <div><dt>Terme prévu</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}</dd></div>
+            <div><dt>Terme estimé</dt><dd>{{ g.datePrevueAccouchement | date: 'd MMM y' }}
+              @if (g.debutPeriodeTerme && g.finPeriodeTerme) {
+                <small class="terme-plage" title="Période à terme : de 37 SA à 41 SA + 6 jours">À terme : {{ g.debutPeriodeTerme | date: 'd MMM' }} – {{ g.finPeriodeTerme | date: 'd MMM y' }}<span class="sr-only"> (de 37 semaines à 41 semaines et 6 jours d'aménorrhée)</span></small>
+              }</dd></div>
             <div><dt>Jours restants</dt><dd>{{ g.joursRestants }}</dd></div>
             <div><dt>Dernières règles</dt><dd>{{ g.dateDernieresRegles | date: 'd MMM y' }}</dd></div>
           </dl>

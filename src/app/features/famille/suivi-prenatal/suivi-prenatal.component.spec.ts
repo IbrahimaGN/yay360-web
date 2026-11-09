@@ -17,7 +17,7 @@ import { TYPES_SYMPTOME } from '../../../core/utils/libelles';
 /** Données entièrement fictives. */
 const GROSSESSE = {
   id: 3, femmeEnceinteId: 10, femmeEnceinteNomComplet: 'Awa Démo',
-  dateDernieresRegles: '2026-05-20', datePrevueAccouchement: '2027-02-24', ageGestationnelJours: 168,
+  dateDernieresRegles: '2026-05-20', datePrevueAccouchement: '2027-02-24', debutPeriodeTerme: '2027-02-03', finPeriodeTerme: '2027-03-09', ageGestationnelJours: 168,
   semaineActuelle: 24, trimestre: 'DEUXIEME', joursRestants: 112, statut: 'EN_COURS', grossesseARisque: false,
   motifRisque: null, nombreGrossessesPrecedentes: 0, antecedents: null,
   etablissementSuiviId: 1, etablissementSuiviNom: 'Centre de santé Démo', dateFin: null, dateCreation: '2026-06-01T09:00:00',

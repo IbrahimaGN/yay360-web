@@ -68,7 +68,10 @@
             }
             <h3 id="titre-grossesse">{{ grossesse.trimestre === 'T1' ? '1er' : grossesse.trimestre === 'T2' ? '2e' : '3e' }} trimestre</h3>
             <dl class="hero__facts">
-              <div><dt>Terme prévu</dt><dd>{{ grossesse.datePrevueAccouchement | date: 'd MMMM y' }}</dd></div>
+              <div><dt>Terme estimé</dt><dd>{{ grossesse.datePrevueAccouchement | date: 'd MMMM y' }}
+                @if (grossesse.debutPeriodeTerme && grossesse.finPeriodeTerme) {
+                  <small class="terme-plage">À terme entre le {{ grossesse.debutPeriodeTerme | date: 'd MMM' }} et le {{ grossesse.finPeriodeTerme | date: 'd MMM y' }}</small>
+                }</dd></div>
               <div><dt>Jours restants</dt><dd>{{ grossesse.joursRestants }}</dd></div>
             </dl>
           </div>

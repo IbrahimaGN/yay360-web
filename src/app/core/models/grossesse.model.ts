@@ -3,7 +3,11 @@ export interface GrossesseDto {
   femmeEnceinteId: number;
   femmeEnceinteNomComplet: string;
   dateDernieresRegles: string;
+  /** Estimation (règle de Naegele : dernières règles + 280 jours), pas une date certaine. */
   datePrevueAccouchement: string;
+  /** Période d'accouchement à terme : 37 SA + 0 j à 41 SA + 6 j. */
+  debutPeriodeTerme: string | null;
+  finPeriodeTerme: string | null;
   ageGestationnelJours: number;
   semaineActuelle: number;
   trimestre: string;
