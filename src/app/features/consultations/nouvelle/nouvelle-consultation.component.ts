@@ -8,6 +8,7 @@ import { GrossesseService } from '../../../core/services/grossesse.service';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { GrossesseDto } from '../../../core/models/grossesse.model';
 import { EtablissementDto } from '../../../core/models/etablissement.model';
+import { RESULTATS_BANDELETTE } from '../../../core/utils/libelles';
 import { champsInvalides, messageErreur } from '../../../core/utils/message-erreur';
 import { validateurTension } from '../../../core/validators/validateurs';
 
@@ -35,6 +36,8 @@ export class NouvelleConsultationComponent {
   readonly erreur = signal<string | null>(null);
   readonly erreursServeur = signal<Record<string, string>>({});
 
+  readonly resultatsBandelette = RESULTATS_BANDELETTE;
+
   // Bornes identiques au DTO du backend (EnregistrerConsultationRequest)
   readonly form = this.fb.group({
     grossesseId: [null as number | null, [Validators.required]],
@@ -44,6 +47,9 @@ export class NouvelleConsultationComponent {
     temperatureC: [null as number | null, [Validators.min(25), Validators.max(45)]],
     hauteurUterineCm: [null as number | null, [Validators.min(0), Validators.max(50)]],
     battementsCoeurFoetal: [null as number | null, [Validators.min(0), Validators.max(300)]],
+    frequenceCardiaqueMaternelle: [null as number | null, [Validators.min(30), Validators.max(250)]],
+    proteinurie: [null as string | null],
+    glycosurie: [null as string | null],
     observations: [''],
     diagnostic: [''],
     traitement: [''],
@@ -58,7 +64,7 @@ export class NouvelleConsultationComponent {
     return id ? this.patientes().find((g) => g.id === id) ?? null : null;
   });
 
-  /** Constantes renseignées (sur 5), pour le récapitulatif. */
+  /** Constantes renseignées (sur 8), pour le récapitulatif. */
   readonly constantes = computed(() => {
     const v = this.valeurs();
     return [
@@ -67,6 +73,9 @@ export class NouvelleConsultationComponent {
       { libelle: 'Température', ok: v.temperatureC !== null && v.temperatureC !== undefined && `${v.temperatureC}` !== '' },
       { libelle: 'Hauteur utérine', ok: v.hauteurUterineCm !== null && v.hauteurUterineCm !== undefined && `${v.hauteurUterineCm}` !== '' },
       { libelle: 'BCF', ok: v.battementsCoeurFoetal !== null && v.battementsCoeurFoetal !== undefined && `${v.battementsCoeurFoetal}` !== '' },
+      { libelle: 'FC maternelle', ok: v.frequenceCardiaqueMaternelle !== null && v.frequenceCardiaqueMaternelle !== undefined && `${v.frequenceCardiaqueMaternelle}` !== '' },
+      { libelle: 'Protéinurie', ok: !!v.proteinurie },
+      { libelle: 'Glycosurie', ok: !!v.glycosurie },
     ];
   });
   readonly nombreConstantes = computed(() => this.constantes().filter((c) => c.ok).length);
@@ -118,6 +127,9 @@ export class NouvelleConsultationComponent {
         temperatureC: v.temperatureC,
         hauteurUterineCm: v.hauteurUterineCm,
         battementsCoeurFoetal: v.battementsCoeurFoetal,
+        frequenceCardiaqueMaternelle: v.frequenceCardiaqueMaternelle,
+        proteinurie: v.proteinurie || null,
+        glycosurie: v.glycosurie || null,
         observations: v.observations?.trim() || null,
         diagnostic: v.diagnostic?.trim() || null,
         traitement: v.traitement?.trim() || null,

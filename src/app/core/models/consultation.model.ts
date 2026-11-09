@@ -14,6 +14,10 @@ export interface ConsultationDto {
   temperatureC: number | null;
   hauteurUterineCm: number | null;
   battementsCoeurFoetal: number | null;
+  frequenceCardiaqueMaternelle: number | null;
+  /** Bandelette urinaire : NEGATIVE, TRACES, UNE_CROIX, DEUX_CROIX ou TROIS_CROIX. */
+  proteinurie: string | null;
+  glycosurie: string | null;
 
   observations: string | null;
   diagnostic: string | null;
@@ -33,6 +37,9 @@ export interface EnregistrerConsultationRequest {
   temperatureC?: number | null;
   hauteurUterineCm?: number | null;
   battementsCoeurFoetal?: number | null;
+  frequenceCardiaqueMaternelle?: number | null;
+  proteinurie?: string | null;
+  glycosurie?: string | null;
   observations?: string | null;
   diagnostic?: string | null;
   traitement?: string | null;

@@ -7,6 +7,7 @@ import { ConsultationService } from '../../../core/services/consultation.service
 import { ConsultationDto } from '../../../core/models/consultation.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { IconName } from '../../../core/models/nav-item.model';
+import { libelleBandelette } from '../../../core/utils/libelles';
 
 @Component({
   selector: 'yay360-consultation-detail',
@@ -36,6 +37,9 @@ export class ConsultationDetailComponent implements OnInit {
       { libelle: 'Température', valeur: c.temperatureC !== null ? `${c.temperatureC}` : null, unite: '°C', icone: 'sun' },
       { libelle: 'Hauteur utérine', valeur: c.hauteurUterineCm !== null ? `${c.hauteurUterineCm}` : null, unite: 'cm', icone: 'heart' },
       { libelle: 'Bruits du cœur fœtal', valeur: c.battementsCoeurFoetal !== null ? `${c.battementsCoeurFoetal}` : null, unite: '/min', icone: 'heart' },
+      { libelle: 'Fréquence cardiaque maternelle', valeur: c.frequenceCardiaqueMaternelle != null ? `${c.frequenceCardiaqueMaternelle}` : null, unite: '/min', icone: 'heart' },
+      { libelle: 'Protéinurie', valeur: libelleBandelette(c.proteinurie), unite: '', icone: 'activity' },
+      { libelle: 'Glycosurie', valeur: libelleBandelette(c.glycosurie), unite: '', icone: 'activity' },
     ];
   }
 
