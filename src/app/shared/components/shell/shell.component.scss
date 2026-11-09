@@ -240,6 +240,9 @@
 .topbar__burger {
   display: none;
   flex-direction: column;
+  // inline-flex remplace la grille centrée de .icon-btn : on recentre les 3 barres explicitement
+  align-items: center;
+  justify-content: center;
   gap: 4px;
   span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--c-teal-ink); }
   @include bp.down(lg) { display: inline-flex; }
