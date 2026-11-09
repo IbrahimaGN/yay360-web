@@ -1,0 +1,96 @@
+# Livraison continue du portail web YAY360 sur Vercel (production).
+#
+# Déclenchement : uniquement après une exécution RÉUSSIE de « CI web » sur main.
+# Validation humaine : environnement GitHub « production » avec validateur obligatoire.
+# Le déploiement automatique de Vercel par Git est désactivé (vercel.json) : seule cette CD publie.
+# Retour arrière : dans Vercel, « Promote to Production » sur un déploiement précédent (instantané),
+# ou lancer ce workflow à la main sur un commit plus ancien.
+#
+# Secrets (Settings → Environments → production) :
+#   VERCEL_TOKEN       jeton personnel Vercel
+#   VERCEL_ORG_ID      identifiant du compte ou de l'équipe Vercel
+#   VERCEL_PROJECT_ID  identifiant du projet Vercel
+# Variable :
+#   WEB_URL            URL publique du portail, ex. https://yay360.vercel.app
+
+name: CD web
+
+on:
+  workflow_run:
+    workflows: ["CI web"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-production-web
+  cancel-in-progress: false
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TELEMETRY_DISABLED: '1'
+
+jobs:
+  deployer-production:
+    name: Déployer en production (Vercel)
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.WEB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Version de la CLI figée : pas de mise à jour silencieuse de l'outil de déploiement.
+      - run: npm install --global --ignore-scripts vercel@64.7.0
+
+      - name: Récupérer la configuration du projet Vercel
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      # Build sur le runner GitHub (même commande que la CI), puis envoi du résultat déjà construit.
+      - name: Construire
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Publier en production
+        id: publier
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "Déploiement : $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Tests après déploiement
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+        run: |
+          set -e
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$WEB_URL/")
+          echo "Page d'accueil : HTTP $code"; test "$code" = "200"
+          # Route Angular profonde : doit renvoyer index.html, pas une 404
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$WEB_URL/connexion")
+          echo "Route /connexion : HTTP $code"; test "$code" = "200"
+          # En-têtes de sécurité présents
+          curl -sI "$WEB_URL/" | grep -qi "^content-security-policy:" && echo "CSP présente"
+          curl -sI "$WEB_URL/" | grep -qi "^x-frame-options: *DENY" && echo "X-Frame-Options présent"
+          # Relais /api vers Render (l'API peut être en veille : jusqu'à 3 minutes de réveil)
+          for i in $(seq 1 18); do
+            if curl -fsS --max-time 20 "$WEB_URL/api/actuator/health" | grep -q '"UP"'; then
+              echo "Relais /api → API : UP"; exit 0
+            fi
+            echo "API en cours de réveil ($i)…"; sleep 10
+          done
+          echo "::error::Le relais /api ne joint pas l'API."
+          exit 1
