@@ -70,10 +70,29 @@
             <div class="unit"><input id="battementsCoeurFoetal" type="number" min="0" max="300" formControlName="battementsCoeurFoetal" placeholder="140" [attr.aria-invalid]="invalide('battementsCoeurFoetal')" /><span>/min</span></div>
             @if (invalide('battementsCoeurFoetal')) { <span class="field-error">Entre 0 et 300 /min.</span> }
           </div>
+          <div class="field">
+            <label for="frequenceCardiaqueMaternelle"><abbr title="Fréquence cardiaque">FC</abbr> maternelle</label>
+            <div class="unit"><input id="frequenceCardiaqueMaternelle" type="number" min="30" max="250" formControlName="frequenceCardiaqueMaternelle" placeholder="80" [attr.aria-invalid]="invalide('frequenceCardiaqueMaternelle')" /><span>/min</span></div>
+            @if (invalide('frequenceCardiaqueMaternelle')) { <span class="field-error">Entre 30 et 250 /min.</span> }
+          </div>
+          <div class="field">
+            <label for="proteinurie">Protéinurie (bandelette)</label>
+            <select id="proteinurie" formControlName="proteinurie">
+              <option [ngValue]="null">Non recherchée</option>
+              @for (r of resultatsBandelette; track r.valeur) { <option [ngValue]="r.valeur">{{ r.libelle }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label for="glycosurie">Glycosurie (bandelette)</label>
+            <select id="glycosurie" formControlName="glycosurie">
+              <option [ngValue]="null">Non recherchée</option>
+              @for (r of resultatsBandelette; track r.valeur) { <option [ngValue]="r.valeur">{{ r.libelle }}</option> }
+            </select>
+          </div>
         </div>
         <p class="block__note">
           <yay360-icon name="activity" [size]="16" aria-hidden="true" />
-          <span>À l’enregistrement, les constantes sont comparées aux règles de vigilance (tension, fièvre, rythme cardiaque fœtal, hauteur utérine, poids). Une valeur hors seuil crée une alerte tracée ; ce n’est pas un diagnostic.</span>
+          <span>À l’enregistrement, les constantes sont comparées aux règles de vigilance (tension, fièvre, rythme cardiaque fœtal, hauteur utérine, poids ; fréquence cardiaque maternelle et bandelette urinaire une fois leurs seuils validés). Une valeur hors seuil crée une alerte tracée ; ce n’est pas un diagnostic.</span>
         </p>
       </section>
 
@@ -125,7 +144,7 @@
         }
 
         <div class="recap__vitals">
-          <p>Constantes saisies <strong>{{ nombreConstantes() }} / 5</strong></p>
+          <p>Constantes saisies <strong>{{ nombreConstantes() }} / {{ constantes().length }}</strong></p>
           <ul>
             @for (c of constantes(); track c.libelle) {
               <li [class.ok]="c.ok"><span aria-hidden="true">@if (c.ok) { <yay360-icon name="check" [size]="12" /> }</span>{{ c.libelle }}<span class="sr-only">{{ c.ok ? ' : saisie' : ' : non saisie' }}</span></li>

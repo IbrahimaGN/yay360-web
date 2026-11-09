@@ -22,6 +22,7 @@ export const TYPES_SYMPTOME: { valeur: string; libelle: string }[] = [
   { valeur: 'DIMINUTION_MOUVEMENTS_BEBE', libelle: 'Le bébé bouge moins' },
   { valeur: 'FIEVRE_ELEVEE', libelle: 'Fièvre élevée' },
   { valeur: 'CONVULSIONS', libelle: 'Convulsions' },
+  { valeur: 'DIFFICULTES_RESPIRATOIRES', libelle: 'Difficultés à respirer' },
   { valeur: 'MAUX_DE_TETE_INTENSES', libelle: 'Maux de tête intenses' },
   { valeur: 'TROUBLES_VISUELS', libelle: 'Troubles de la vue' },
   { valeur: 'OEDEMES_SOUDAINS', libelle: 'Gonflement soudain (visage, mains)' },
@@ -34,6 +35,19 @@ export function libelleSymptome(type: string | null | undefined): string {
     return 'Constantes anormales (consultation)';
   }
   return TYPES_SYMPTOME.find((t) => t.valeur === type)?.libelle ?? type ?? '';
+}
+
+/** Résultats de bandelette urinaire acceptés par l'API (ResultatBandelette). */
+export const RESULTATS_BANDELETTE: { valeur: string; libelle: string }[] = [
+  { valeur: 'NEGATIVE', libelle: 'Négative' },
+  { valeur: 'TRACES', libelle: 'Traces' },
+  { valeur: 'UNE_CROIX', libelle: '+' },
+  { valeur: 'DEUX_CROIX', libelle: '++' },
+  { valeur: 'TROIS_CROIX', libelle: '+++' },
+];
+
+export function libelleBandelette(valeur: string | null | undefined): string | null {
+  return valeur ? RESULTATS_BANDELETTE.find((r) => r.valeur === valeur)?.libelle ?? valeur : null;
 }
 
 /** Types de rendez-vous acceptés par l'API. */
