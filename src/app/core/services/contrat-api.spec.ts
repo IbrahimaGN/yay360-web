@@ -54,8 +54,8 @@ describe('Contrat d’API (web ↔ backend)', () => {
     attendre('GET', `${api}/grossesses/5/plan-cpn`);
     s.evaluationRisque(5).subscribe();
     attendre('GET', `${api}/grossesses/5/evaluation-risque`);
-    s.terminer(5, { statut: 'TERMINEE', dateFin: '2026-11-01' }).subscribe();
-    attendre('PUT', `${api}/grossesses/5/terminer`, { statut: 'TERMINEE', dateFin: '2026-11-01' });
+    s.terminer(5, { issue: 'NAISSANCE_VIVANTE', dateFin: '2026-11-01' }).subscribe();
+    attendre('PUT', `${api}/grossesses/5/terminer`, { issue: 'NAISSANCE_VIVANTE', dateFin: '2026-11-01' });
   });
 
   it('rendez-vous : planification par le soignant, report, statut', () => {

@@ -30,6 +30,7 @@ const GROSSESSE: GrossesseDto = {
   etablissementSuiviId: 1,
   etablissementSuiviNom: 'Centre de santé Démo',
   dateFin: null,
+  issue: null,
   dateCreation: '2026-06-01T09:00:00',
 };
 
@@ -152,6 +153,36 @@ describe('GrossesseDetailComponent (droits par rôle)', () => {
     expect(grossesseService['declarerARisque']).toHaveBeenCalledWith(3, { motif: 'Facteur fictif A ; Facteur fictif B' });
     expect(el.querySelector('[role="status"]')?.textContent).toContain('Grossesse déclarée à risque');
     expect(contientBouton('Retirer le statut à risque')).toBe(true);
+  });
+
+  it('le médecin clôture en choisissant une issue précise, sans option « avortement provoqué »', () => {
+    afficher('MEDECIN');
+
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.actions__buttons button'))
+      .find((b) => b.textContent!.includes('Clôturer la grossesse'))!.click();
+    fixture.detectChanges();
+
+    const select = el.querySelector<HTMLSelectElement>('#issueFinale')!;
+    const options = Array.from(select.options).map((o) => o.value);
+    expect(options).toEqual(['NAISSANCE_VIVANTE', 'MORT_NE', 'FAUSSE_COUCHE', 'GROSSESSE_EXTRA_UTERINE',
+      'MORT_FOETALE_IN_UTERO', 'INTERRUPTION_THERAPEUTIQUE']);
+    expect(el.querySelector('.inline-form')?.textContent).toContain('pas par le conjoint');
+
+    select.value = 'FAUSSE_COUCHE';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(el.querySelector('label[for="dateFin"]')?.textContent).toContain('Date de fin de grossesse');
+
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.inline-form button'))
+      .find((b) => b.textContent!.includes('Valider la clôture'))!.click();
+
+    expect(grossesseService['terminer']).toHaveBeenCalledWith(3, expect.objectContaining({ issue: 'FAUSSE_COUCHE' }));
+  });
+
+  it('affiche l’issue d’une grossesse close dans l’en-tête', () => {
+    afficher('MEDECIN', { statut: 'INTERROMPUE', issue: 'GROSSESSE_EXTRA_UTERINE', dateFin: '2026-08-01' });
+
+    expect(el.querySelector('.hero__sub')?.textContent).toMatch(/Grossesse extra-utérine le 1 \S+ 2026/);
   });
 
   it('affiche un état d’erreur si la grossesse ne peut pas être chargée', () => {

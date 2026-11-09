@@ -22,6 +22,8 @@ export interface GrossesseDto {
   etablissementSuiviNom: string | null;
   /** Date de l'accouchement ou de l'interruption. */
   dateFin: string | null;
+  /** Issue de la grossesse close ; null pour le conjoint (secret médical) ou si non renseignée. */
+  issue: IssueGrossesse | null;
   dateCreation: string;
 }
 
@@ -81,8 +83,18 @@ export interface DeclarerRisqueRequest {
   motif: string;
 }
 
+/** Issue saisie par le médecin à la clôture (miroir de IssueGrossesse côté Java). */
+export type IssueGrossesse =
+  | 'NAISSANCE_VIVANTE'
+  | 'MORT_NE'
+  | 'FAUSSE_COUCHE'
+  | 'GROSSESSE_EXTRA_UTERINE'
+  | 'MORT_FOETALE_IN_UTERO'
+  | 'INTERRUPTION_THERAPEUTIQUE';
+
 export interface TerminerGrossesseRequest {
-  statut: 'TERMINEE' | 'INTERROMPUE';
+  /** Le statut final (TERMINEE ou INTERROMPUE) est déduit de l'issue par l'API. */
+  issue: IssueGrossesse;
   dateFin?: string;
 }
 

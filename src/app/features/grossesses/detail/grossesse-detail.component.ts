@@ -14,6 +14,7 @@ import {
   GrossesseDto,
   PlanCpnDto,
   SuiviHebdomadaireDto,
+  IssueGrossesse,
 } from '../../../core/models/grossesse.model';
 import { ConsultationDto } from '../../../core/models/consultation.model';
 import { RendezVousDto } from '../../../core/models/rendez-vous.model';
@@ -22,7 +23,7 @@ import { PlanCpnComponent } from '../../../shared/components/plan-cpn/plan-cpn.c
 import { PlanifierRendezVousComponent } from '../../rendez-vous/planifier-rendez-vous/planifier-rendez-vous.component';
 import { DUREE_GROSSESSE_SEMAINES } from '../../../core/models/etape-grossesse.model';
 import { messageErreur } from '../../../core/utils/message-erreur';
-import { libelleTypeRendezVous } from '../../../core/utils/libelles';
+import { ISSUES_GROSSESSE, libelleIssue, libelleTypeRendezVous } from '../../../core/utils/libelles';
 
 @Component({
   selector: 'yay360-grossesse-detail',
@@ -64,7 +65,10 @@ export class GrossesseDetailComponent implements OnInit {
   readonly formulaireTerminerOuvert = signal(false);
   readonly formulairePlanifierOuvert = signal(false);
   readonly motifRisque = signal('');
-  readonly statutFinal = signal<'TERMINEE' | 'INTERROMPUE'>('TERMINEE');
+  readonly issuesGrossesse = ISSUES_GROSSESSE;
+  readonly libelleIssue = libelleIssue;
+  readonly issueFinale = signal<IssueGrossesse>('NAISSANCE_VIVANTE');
+  readonly estAccouchement = computed(() => ['NAISSANCE_VIVANTE', 'MORT_NE'].includes(this.issueFinale()));
   readonly dateFin = signal<string>(new Date().toISOString().slice(0, 10));
   readonly succesAction = signal<string | null>(null);
   readonly erreurAction = signal<string | null>(null);
@@ -215,7 +219,7 @@ export class GrossesseDetailComponent implements OnInit {
     const g = this.grossesse();
     if (!g) return;
     this.debutAction();
-    this.grossesseService.terminer(g.id, { statut: this.statutFinal(), dateFin: this.dateFin() }).subscribe({
+    this.grossesseService.terminer(g.id, { issue: this.issueFinale(), dateFin: this.dateFin() }).subscribe({
       next: () => {
         this.formulaireTerminerOuvert.set(false);
         this.finAction('Grossesse clôturée. Les rendez-vous encore prévus ont été annulés.');
