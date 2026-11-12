@@ -26,7 +26,7 @@ export class ConsultationDetailComponent implements OnInit {
   readonly consultation = signal<ConsultationDto | null>(null);
 
   initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
+    return nom.replace(/\([^)]*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
   }
 
   /** Constantes affichées en tuiles (valeur brute, sans interprétation côté interface). */

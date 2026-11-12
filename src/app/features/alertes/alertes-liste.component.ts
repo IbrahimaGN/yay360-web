@@ -76,7 +76,7 @@ export class AlertesListeComponent {
   }
 
   initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
+    return nom.replace(/\([^)]*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
   }
 
   /** Durée écoulée depuis la déclaration, lisible. */
