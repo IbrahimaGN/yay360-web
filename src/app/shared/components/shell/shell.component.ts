@@ -118,7 +118,7 @@ export class ShellComponent {
 
   deconnexion(): void {
     this.authService.logout();
-    void this.router.navigate(['/connexion']);
+    this.router.navigate(['/connexion']);
   }
 
   private lireTitre(): string {

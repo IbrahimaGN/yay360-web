@@ -64,12 +64,12 @@ export class LoginComponent {
       next: (reponse) => {
         this.chargement.set(false);
         if (reponse.motDePasseTemporaire) {
-          void this.router.navigate(['/changer-mot-de-passe']);
+          this.router.navigate(['/changer-mot-de-passe']);
           return;
         }
         // Retour à la page demandée, uniquement si c'est un chemin interne
         const retour = this.route.snapshot.queryParamMap.get('returnUrl');
-        void this.router.navigateByUrl(retour && retour.startsWith('/') && !retour.startsWith('//') ? retour : '/accueil');
+        this.router.navigateByUrl(retour && retour.startsWith('/') && !retour.startsWith('//') ? retour : '/accueil');
       },
       error: (err: HttpErrorResponse) => {
         this.chargement.set(false);
