@@ -10,6 +10,7 @@ import { GrossesseDto } from '../../../core/models/grossesse.model';
 import { messageErreur } from '../../../core/utils/message-erreur';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { PlanifierRendezVousComponent } from '../../rendez-vous/planifier-rendez-vous/planifier-rendez-vous.component';
+import { initiales } from '../../../core/utils/affichage';
 
 type Onglet = 'TOUTES' | 'A_RISQUE';
 type Trimestre = 'TOUS' | 'T1' | 'T2' | 'T3';
@@ -153,9 +154,7 @@ export class GrossessesListeComponent {
     this.trimestre.set('TOUS');
   }
 
-  initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   /** Avancement sur 40 semaines, borné à 100 %. */
   progression(g: GrossesseDto): number {

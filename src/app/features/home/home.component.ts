@@ -20,6 +20,7 @@ import { GrossesseDto, PlanCpnDto, SuiviHebdomadaireDto } from '../../core/model
 import { libelleSymptome, libelleTypeRendezVous } from '../../core/utils/libelles';
 import { NiveauGraviteComponent } from '../../shared/components/niveau-gravite/niveau-gravite.component';
 import { RingChartComponent, RingSegment } from '../../shared/components/ring-chart/ring-chart.component';
+import { dureeEcoulee, initiales } from '../../core/utils/affichage';
 
 interface QuickLink {
   label: string;
@@ -147,17 +148,10 @@ export class HomeComponent {
     });
   }
 
-  initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   depuis(date: string): string {
-    const min = Math.max(0, Math.round((Date.now() - +new Date(date)) / 60000));
-    if (min < 60) return `il y a ${min} min`;
-    const h = Math.round(min / 60);
-    if (h < 24) return `il y a ${h} h`;
-    const j = Math.round(h / 24);
-    return `il y a ${j} j`;
+    return dureeEcoulee(date, true);
   }
 
   // ─── Espace patiente / conjoint ──────────────────────────────────────

@@ -11,6 +11,7 @@ import { EtablissementDto } from '../../../core/models/etablissement.model';
 import { RESULTATS_BANDELETTE } from '../../../core/utils/libelles';
 import { champsInvalides, messageErreur } from '../../../core/utils/message-erreur';
 import { validateurTension } from '../../../core/validators/validateurs';
+import { initiales } from '../../../core/utils/affichage';
 
 @Component({
   selector: 'yay360-nouvelle-consultation',
@@ -80,9 +81,7 @@ export class NouvelleConsultationComponent {
   });
   readonly nombreConstantes = computed(() => this.constantes().filter((c) => c.ok).length);
 
-  initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   constructor() {
     // Patientes suivies par le soignant connecté (cloisonnement côté serveur)
@@ -138,7 +137,7 @@ export class NouvelleConsultationComponent {
       .subscribe({
         next: (consultation) => {
           this.enregistrement.set(false);
-          this.router.navigate(['/consultations', consultation.id]);
+          void this.router.navigate(['/consultations', consultation.id]);
         },
         error: (err) => {
           this.enregistrement.set(false);

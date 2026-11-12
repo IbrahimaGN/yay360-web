@@ -213,7 +213,10 @@ export class UtilisateursListeComponent {
   copierMotDePasse(): void {
     const mdp = this.compteCree()?.motDePasseTemporaire;
     if (mdp) {
-      navigator.clipboard?.writeText(mdp).then(() => this.copie.set(true));
+      navigator.clipboard
+        ?.writeText(mdp)
+        .then(() => this.copie.set(true))
+        .catch(() => this.copie.set(false));
     }
   }
 

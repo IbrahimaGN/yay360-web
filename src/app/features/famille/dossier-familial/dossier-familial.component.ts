@@ -68,6 +68,9 @@ export class DossierFamilialComponent {
   }
 
   copierLien(): void {
-    navigator.clipboard?.writeText(this.lienAcceptation()).then(() => this.copie.set(true));
+    navigator.clipboard
+      ?.writeText(this.lienAcceptation())
+      .then(() => this.copie.set(true))
+      .catch(() => this.copie.set(false));
   }
 }

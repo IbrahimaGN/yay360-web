@@ -13,6 +13,7 @@ import { NiveauGraviteComponent } from '../../shared/components/niveau-gravite/n
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { IconName } from '../../core/models/nav-item.model';
 import { NiveauGravite } from '../../core/models/alerte.model';
+import { dureeEcoulee, initiales } from '../../core/utils/affichage';
 
 type CleOnglet = 'URGENTES' | StatutAlerte;
 
@@ -75,18 +76,11 @@ export class AlertesListeComponent {
     this.filtreOrigine.set('');
   }
 
-  initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   /** Durée écoulée depuis la déclaration, lisible. */
   depuis(date: string): string {
-    const min = Math.max(0, Math.round((Date.now() - +new Date(date)) / 60000));
-    if (min < 60) return `il y a ${min} min`;
-    const h = Math.round(min / 60);
-    if (h < 24) return `il y a ${h} h`;
-    const j = Math.round(h / 24);
-    return `il y a ${j} jour${j > 1 ? 's' : ''}`;
+    return dureeEcoulee(date);
   }
 
   etape(statut: StatutAlerte): number {

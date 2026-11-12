@@ -13,6 +13,7 @@ import {
 import { Utilisateur } from '../../core/models/utilisateur.model';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { libelleRole } from '../../core/utils/libelles';
+import { initiales } from '../../core/utils/affichage';
 
 type FiltreStatut = 'TOUS' | 'ACTIFS' | 'INACTIFS';
 
@@ -105,9 +106,7 @@ export class EtablissementsListeComponent {
     return c.invalid && c.touched;
   }
 
-  initiales(nom: string): string {
-    return nom.replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   reinitialiserFiltres(): void {
     this.recherche.set('');
