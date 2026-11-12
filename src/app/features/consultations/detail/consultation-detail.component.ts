@@ -8,6 +8,7 @@ import { ConsultationDto } from '../../../core/models/consultation.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { IconName } from '../../../core/models/nav-item.model';
 import { libelleBandelette } from '../../../core/utils/libelles';
+import { initiales } from '../../../core/utils/affichage';
 
 @Component({
   selector: 'yay360-consultation-detail',
@@ -25,9 +26,7 @@ export class ConsultationDetailComponent implements OnInit {
   readonly erreur = signal<string | null>(null);
   readonly consultation = signal<ConsultationDto | null>(null);
 
-  initiales(nom: string): string {
-    return nom.replace(/\([^)]*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   /** Constantes affichées en tuiles (valeur brute, sans interprétation côté interface). */
   constantes(c: ConsultationDto): { libelle: string; valeur: string | null; unite: string; icone: IconName }[] {

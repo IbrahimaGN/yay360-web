@@ -25,6 +25,7 @@ import { DUREE_GROSSESSE_SEMAINES } from '../../../core/models/etape-grossesse.m
 import { messageErreur } from '../../../core/utils/message-erreur';
 import { nomDossierPdf, telechargerFichier } from '../../../core/utils/telechargement';
 import { ISSUES_GROSSESSE, libelleIssue, libelleTypeRendezVous } from '../../../core/utils/libelles';
+import { initiales } from '../../../core/utils/affichage';
 
 @Component({
   selector: 'yay360-grossesse-detail',
@@ -93,9 +94,7 @@ export class GrossesseDetailComponent implements OnInit {
     return [...futurs, ...passes];
   });
 
-  initiales(nom: string): string {
-    return nom.replace(/\([^)]*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   estPasse(dateHeure: string): boolean {
     return new Date(dateHeure).getTime() < Date.now();

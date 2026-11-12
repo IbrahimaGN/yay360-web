@@ -6,6 +6,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ConsultationService } from '../../../core/services/consultation.service';
 import { ConsultationDto } from '../../../core/models/consultation.model';
+import { initiales } from '../../../core/utils/affichage';
 
 @Component({
   selector: 'yay360-consultations-liste',
@@ -63,9 +64,7 @@ export class ConsultationsListeComponent {
     this.avecSignaux.set(false);
   }
 
-  initiales(nom: string): string {
-    return nom.replace(/\([^)]*\)/, '').trim().split(/\s+/).slice(0, 2).map((m) => m.charAt(0).toUpperCase()).join('');
-  }
+  readonly initiales = initiales;
 
   constructor() {
     this.charger();
