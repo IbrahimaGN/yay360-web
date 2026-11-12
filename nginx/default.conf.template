@@ -1,6 +1,6 @@
 # YAY360 Web — Nginx (image officielle : les variables ${...} sont substituées au démarrage)
 server {
-    listen 80;
+    listen 8080;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
