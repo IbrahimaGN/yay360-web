@@ -2,13 +2,19 @@
 
 /** Initiales d'un nom (deux premiers mots), sans ce qui est entre parenthèses : « Awa Diop (patiente) » → « AD ». */
 export function initiales(nom: string): string {
-  return nom
-    .replace(/\([^)]*\)/, '')
+  return sansParentheses(nom)
     .trim()
     .split(/\s+/)
     .slice(0, 2)
     .map((m) => m.charAt(0).toUpperCase())
     .join('');
+}
+
+/** Retire la première partie entre parenthèses, sans expression régulière (temps linéaire garanti). */
+function sansParentheses(texte: string): string {
+  const debut = texte.indexOf('(');
+  const fin = debut >= 0 ? texte.indexOf(')', debut) : -1;
+  return fin > debut ? texte.slice(0, debut) + texte.slice(fin + 1) : texte;
 }
 
 /** Durée écoulée depuis une date, lisible : « il y a 5 min », « il y a 2 h », « il y a 3 jours » (ou « 3 j » en court). */

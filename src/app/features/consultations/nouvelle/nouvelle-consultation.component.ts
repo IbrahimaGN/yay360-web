@@ -137,7 +137,7 @@ export class NouvelleConsultationComponent {
       .subscribe({
         next: (consultation) => {
           this.enregistrement.set(false);
-          this.router.navigate(['/consultations', consultation.id]);
+          void this.router.navigate(['/consultations', consultation.id]);
         },
         error: (err) => {
           this.enregistrement.set(false);

@@ -5,6 +5,7 @@ describe('affichage', () => {
     expect(initiales('Awa Diop (patiente)')).toBe('AD');
     expect(initiales('  fatou  ndiaye sarr ')).toBe('FN');
     expect(initiales('Moussa')).toBe('M');
+    expect(initiales('Khady (Ba')).toBe('K(');
   });
 
   it('dureeEcoulee : minutes, heures puis jours', () => {
