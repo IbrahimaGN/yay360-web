@@ -85,7 +85,7 @@ export class RegisterComponent {
     }).subscribe({
       next: () => {
         this.chargement.set(false);
-        this.router.navigate(['/accueil']);
+        void this.router.navigate(['/accueil']);
       },
       error: (err: HttpErrorResponse) => {
         this.chargement.set(false);

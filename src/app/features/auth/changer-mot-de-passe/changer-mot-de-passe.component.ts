@@ -75,7 +75,7 @@ export class ChangerMotDePasseComponent {
     this.authService.changerMotDePasse(ancienMotDePasse, nouveauMotDePasse).subscribe({
       next: () => {
         this.chargement.set(false);
-        this.router.navigate(['/accueil']);
+        void this.router.navigate(['/accueil']);
       },
       error: (err) => {
         this.chargement.set(false);
@@ -86,6 +86,6 @@ export class ChangerMotDePasseComponent {
 
   seDeconnecter(): void {
     this.authService.logout();
-    this.router.navigate(['/connexion']);
+    void this.router.navigate(['/connexion']);
   }
 }

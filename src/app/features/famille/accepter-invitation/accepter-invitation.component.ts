@@ -88,7 +88,7 @@ export class AccepterInvitationComponent {
     }).subscribe({
       next: () => {
         this.chargement.set(false);
-        this.router.navigate(['/accueil']);
+        void this.router.navigate(['/accueil']);
       },
       error: (err) => {
         this.chargement.set(false);

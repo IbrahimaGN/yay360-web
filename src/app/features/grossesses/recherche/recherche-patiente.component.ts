@@ -101,7 +101,7 @@ export class RecherchePatienteComponent {
 
   choisir(p: PatienteRechercheDto): void {
     if (p.dejaSuivie) {
-      this.router.navigate(['/grossesses', p.grossesseId]);
+      void this.router.navigate(['/grossesses', p.grossesseId]);
       return;
     }
     this.selection.set(p);
@@ -124,7 +124,7 @@ export class RecherchePatienteComponent {
       .subscribe({
         next: (g) => {
           this.rattachement.set(false);
-          this.router.navigate(['/grossesses', g.id]);
+          void this.router.navigate(['/grossesses', g.id]);
         },
         error: (err) => {
           this.rattachement.set(false);
