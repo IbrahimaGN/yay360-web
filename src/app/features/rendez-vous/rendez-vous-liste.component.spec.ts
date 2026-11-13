@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { RendezVousListeComponent } from './rendez-vous-liste.component';
 import { RendezVousService } from '../../core/services/rendez-vous.service';
@@ -161,5 +161,15 @@ describe('RendezVousListeComponent (planning et filtres)', () => {
     afficher('MEDECIN', () => throwError(() => new HttpErrorResponse({ status: 403, error: { message: 'Accès refusé.' } })));
 
     expect(el.querySelector('[role="alert"]')?.textContent).toContain('Accès refusé.');
+  });
+  it('ouvre la saisie de consultation pour le rendez-vous choisi', () => {
+    afficher('SAGE_FEMME');
+    const navigation = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    fixture.componentInstance.enregistrerConsultation(RENDEZ_VOUS[0]);
+
+    expect(navigation).toHaveBeenCalledWith(['/consultations/nouvelle'], {
+      queryParams: { grossesseId: RENDEZ_VOUS[0].grossesseId, rendezVousId: RENDEZ_VOUS[0].id },
+    });
   });
 });

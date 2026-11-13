@@ -29,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         redirectionEnCours = true;
         const retour = router.url.startsWith('/connexion') ? undefined : router.url;
         authService.logout();
-        router
+        void router
           .navigate(['/connexion'], { queryParams: retour ? { returnUrl: retour, expiree: 1 } : {} })
           .finally(() => (redirectionEnCours = false));
       }
@@ -37,7 +37,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // Compte créé par l'admin dont le mot de passe temporaire n'a pas été changé
       if (erreur.status === 403 && erreur.error?.erreur === 'Mot de passe temporaire') {
         authService.marquerMotDePasseTemporaire();
-        router.navigate(['/changer-mot-de-passe']);
+        void router.navigate(['/changer-mot-de-passe']);
       }
       return throwError(() => erreur);
     })

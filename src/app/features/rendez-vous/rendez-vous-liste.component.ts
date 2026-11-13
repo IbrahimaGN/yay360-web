@@ -247,7 +247,7 @@ export class RendezVousListeComponent {
   }
 
   enregistrerConsultation(rdv: RendezVousDto): void {
-    this.router.navigate(['/consultations/nouvelle'], {
+    void this.router.navigate(['/consultations/nouvelle'], {
       queryParams: { grossesseId: rdv.grossesseId, rendezVousId: rdv.id },
     });
   }

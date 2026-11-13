@@ -33,3 +33,6 @@ Thumbs.db
 
 #canva
 _CANVA MEMOIRE_221.docx.pdf
+
+# Build web de l'application mobile, assemblé par la CD sous /app
+/pwa

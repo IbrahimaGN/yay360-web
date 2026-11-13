@@ -33,6 +33,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   VERCEL_TELEMETRY_DISABLED: '1'
+  # Même version que la CI de yay360-mobile
+  FLUTTER_VERSION: '3.47.9'
 
 jobs:
   deployer-production:
@@ -61,16 +63,44 @@ jobs:
       - run: npm install --global --ignore-scripts vercel@64.7.0
 
       - name: Récupérer la configuration du projet Vercel
-        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      # PWA : build web de l'application mobile (dépôt yay360-mobile, branche main), servie sous /app.
+      # Elle appelle l'API par le relais /api du portail (même origine, pas de CORS supplémentaire).
+      - uses: actions/checkout@v4
+        with:
+          repository: IbrahimaGN/yay360-mobile
+          ref: main
+          path: pwa-source
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Construire la PWA
+        working-directory: pwa-source
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build web --release --base-href /app/ --no-web-resources-cdn --dart-define=API_BASE_URL=/api
+          mv build/web ../pwa
 
       # Build sur le runner GitHub (même commande que la CI), puis envoi du résultat déjà construit.
       - name: Construire
-        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
 
       - name: Publier en production
         id: publier
+        # Secret transmis par variable d'environnement, jamais développé dans la commande.
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          url=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}")
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "Déploiement : $url"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -87,6 +117,10 @@ jobs:
           # En-têtes de sécurité présents
           curl -sI "$WEB_URL/" | grep -qi "^content-security-policy:" && echo "CSP présente"
           curl -sI "$WEB_URL/" | grep -qi "^x-frame-options: *DENY" && echo "X-Frame-Options présent"
+          # PWA servie sous /app avec son manifeste
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$WEB_URL/app/")
+          echo "PWA /app/ : HTTP $code"; test "$code" = "200"
+          curl -fsS "$WEB_URL/app/manifest.json" | grep -q '"start_url"' && echo "Manifeste PWA présent"
           # Relais /api vers Render (l'API peut être en veille : jusqu'à 3 minutes de réveil)
           for i in $(seq 1 18); do
             if curl -fsS --max-time 20 "$WEB_URL/api/actuator/health" | grep -q '"UP"'; then
