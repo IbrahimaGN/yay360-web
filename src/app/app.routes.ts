@@ -91,7 +91,7 @@ export const routes: Routes = [
       {
         path: 'grossesses',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Suivi des grossesses', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Suivi des grossesses', roles: ['MEDECIN', 'SAGE_FEMME'] },
         children: [
           {
             path: '',
@@ -123,7 +123,7 @@ export const routes: Routes = [
       {
         path: 'rendez-vous',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Rendez-vous', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Rendez-vous', roles: ['MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/rendez-vous/rendez-vous-liste.component').then(
             (m) => m.RendezVousListeComponent
@@ -162,14 +162,14 @@ export const routes: Routes = [
       {
         path: 'alertes',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Alertes', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Alertes', roles: ['MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/alertes/alertes-liste.component').then((m) => m.AlertesListeComponent),
       },
       {
         path: 'etablissements',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Établissements', roles: ['ADMIN'] },
+        data: { pageTitle: 'Établissements', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
         loadComponent: () =>
           import('./features/etablissements/etablissements-liste.component').then(
             (m) => m.EtablissementsListeComponent
@@ -187,7 +187,7 @@ export const routes: Routes = [
       {
         path: 'utilisateurs',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Utilisateurs', roles: ['ADMIN'] },
+        data: { pageTitle: 'Utilisateurs', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
         loadComponent: () =>
           import('./features/utilisateurs/utilisateurs-liste.component').then(
             (m) => m.UtilisateursListeComponent

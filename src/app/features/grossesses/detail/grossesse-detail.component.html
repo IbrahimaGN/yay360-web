@@ -57,13 +57,6 @@
       }
     </header>
 
-    @if (estAdmin()) {
-      <p class="pro-notice pro-notice--info gd__notice">
-        <yay360-icon name="shield" [size]="18" aria-hidden="true" />
-        <span>Vue de supervision. Le contenu médical (consultations, antécédents, évaluation du risque) est réservé aux soignants qui suivent la patiente.</span>
-      </p>
-    }
-
     <!-- ═══════════ Actions des soignants ═══════════ -->
     @if (estSoignant()) {
       <section class="card actions" aria-labelledby="titre-actions">
@@ -310,9 +303,7 @@
             <h2 id="titre-consult" class="panel-title">Consultations</h2>
             @if (estSoignant()) { <span class="badge badge--primary">{{ consultations().length }}</span> }
           </header>
-          @if (estAdmin()) {
-            <p class="panel__locked"><yay360-icon name="shield" [size]="16" aria-hidden="true" /> Réservé aux soignants qui suivent la patiente.</p>
-          } @else if (erreursBlocs()['consultations']) {
+          @if (erreursBlocs()['consultations']) {
             <yay360-state type="erreur" [compact]="true" [message]="erreursBlocs()['consultations']" (reessayer)="charger()" />
           } @else if (consultations().length === 0) {
             <p class="panel__muted">Aucune consultation enregistrée.</p>

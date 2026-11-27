@@ -65,6 +65,8 @@
 .avatar[data-role='MEDECIN'] { background: var(--c-lilac-soft); color: var(--c-lilac-ink); }
 .avatar[data-role='SAGE_FEMME'], .avatar[data-role='FEMME_ENCEINTE'] { background: var(--c-orange-soft); color: var(--c-orange-ink); }
 .avatar[data-role='ADMIN'] { background: var(--c-teal-dark); color: var(--t-on-strong); }
+.avatar[data-role='ADMIN_ETABLISSEMENT'] { background: var(--c-teal-soft); color: var(--c-teal-ink); }
+.us__etab { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--t-muted); }
 
 .role {
   display: inline-flex;
