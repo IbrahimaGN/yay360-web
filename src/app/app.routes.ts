@@ -85,7 +85,7 @@ export const routes: Routes = [
       {
         path: 'tableau-de-bord',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Tableau de bord', roles: ['ADMIN'] },
+        data: { pageTitle: 'Tableau de bord', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
         loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
@@ -178,7 +178,7 @@ export const routes: Routes = [
       {
         path: 'conseils',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Conseils & étapes', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Conseils & étapes', roles: ['ADMIN_ETABLISSEMENT', 'MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/conseils/conseils-etapes.component').then(
             (m) => m.ConseilsEtapesComponent

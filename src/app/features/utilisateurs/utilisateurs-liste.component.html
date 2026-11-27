@@ -7,7 +7,7 @@
       <div>
         @if (adminPlateforme()) {
           <h2 class="section-title">Comptes de la plateforme</h2>
-          <p>Les patientes s’inscrivent elles-mêmes et invitent leur conjoint. Les comptes des professionnels et des administrateurs d’établissement sont créés ici.</p>
+          <p>Les patientes s’inscrivent elles-mêmes et invitent leur conjoint. Vous créez les administrateurs (de la plateforme ou d’un établissement) ; chaque administrateur d’établissement crée ensuite les soignants de sa structure.</p>
         } @else {
           <h2 class="section-title">Soignants{{ monEtablissement() ? ' — ' + monEtablissement()!.nom : '' }}</h2>
           <p>Médecins et sages-femmes de votre établissement. Vous gérez leurs comptes, pas les dossiers des patientes.</p>
@@ -15,7 +15,7 @@
       </div>
     </div>
     <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreation()">
-      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouveau professionnel
+      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> {{ adminPlateforme() ? 'Nouvel administrateur' : 'Nouveau soignant' }}
     </button>
   </section>
 
@@ -139,7 +139,7 @@
       <header class="pro-modal__head">
         <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="user" [size]="22" /></span>
         <div class="us__modal-title">
-          <h2 id="titre-nouveau">Nouveau professionnel</h2>
+          <h2 id="titre-nouveau">{{ adminPlateforme() ? 'Nouvel administrateur' : 'Nouveau soignant' }}</h2>
           <p>Un mot de passe temporaire est généré ; il devra être changé à la première connexion.</p>
         </div>
         <button type="button" class="icon-btn" (click)="fermerFormulaire()" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
@@ -148,23 +148,25 @@
       <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="us__form">
         <fieldset class="role-pick">
           <legend>Profil *</legend>
-          <label class="role-pick__opt"><input type="radio" formControlName="role" value="MEDECIN" /><span><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Médecin</span></label>
-          <label class="role-pick__opt"><input type="radio" formControlName="role" value="SAGE_FEMME" /><span><yay360-icon name="activity" [size]="18" aria-hidden="true" /> Sage-femme</span></label>
           @if (adminPlateforme()) {
             <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN_ETABLISSEMENT" /><span><yay360-icon name="building" [size]="18" aria-hidden="true" /> Admin. d’établissement</span></label>
-            <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN" /><span><yay360-icon name="shield" [size]="18" aria-hidden="true" /> Administrateur</span></label>
+            <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN" /><span><yay360-icon name="shield" [size]="18" aria-hidden="true" /> Admin. de la plateforme</span></label>
+          } @else {
+            <label class="role-pick__opt"><input type="radio" formControlName="role" value="MEDECIN" /><span><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Médecin</span></label>
+            <label class="role-pick__opt"><input type="radio" formControlName="role" value="SAGE_FEMME" /><span><yay360-icon name="activity" [size]="18" aria-hidden="true" /> Sage-femme</span></label>
           }
         </fieldset>
 
         @if (choixEtablissement()) {
           <div class="field">
-            <label for="etablissementId">Établissement{{ roleChoisi() === 'ADMIN_ETABLISSEMENT' ? ' *' : '' }}</label>
+            <label for="etablissementId">Établissement *</label>
             <select id="etablissementId" class="select" formControlName="etablissementId">
-              <option value="">{{ roleChoisi() === 'ADMIN_ETABLISSEMENT' ? 'Choisir l’établissement à gérer…' : 'Aucun pour l’instant' }}</option>
-              @for (e of etablissements(); track e.id) { <option [value]="e.id">{{ e.nom }}</option> }
+              <option value="">Choisir l’établissement à gérer…</option>
+              @for (e of etablissementsLibres(); track e.id) { <option [value]="e.id">{{ e.nom }}</option> }
             </select>
             <span class="field-hint">
-              {{ roleChoisi() === 'ADMIN_ETABLISSEMENT' ? 'Il gérera les soignants de cet établissement, sans accès aux dossiers.' : 'Le soignant y sera affecté dès la création.' }}
+              @if (etablissementsLibres().length) { Un seul administrateur par établissement. Il gérera ses soignants, sans accès aux dossiers. }
+              @else { Tous les établissements actifs ont déjà leur administrateur. }
             </span>
           </div>
         } @else if (!adminPlateforme() && monEtablissement()) {

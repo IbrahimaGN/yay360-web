@@ -11,7 +11,7 @@ import { IconComponent } from '../icon/icon.component';
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Accueil', court: 'Accueil', path: '/accueil', icon: 'home', section: 'general', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT', 'MEDECIN', 'SAGE_FEMME', 'FEMME_ENCEINTE', 'CONJOINT'] },
-  { label: 'Tableau de bord', court: 'Tableau', path: '/tableau-de-bord', icon: 'grid', section: 'general', roles: ['ADMIN'] },
+  { label: 'Tableau de bord', court: 'Tableau', path: '/tableau-de-bord', icon: 'grid', section: 'general', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
   { label: 'Suivi prénatal', court: 'Suivi', path: '/suivi-prenatal', icon: 'heart', section: 'suivi', roles: ['FEMME_ENCEINTE', 'CONJOINT'] },
   { label: 'Dossier familial', court: 'Famille', path: '/dossier-familial', icon: 'users', section: 'suivi', roles: ['FEMME_ENCEINTE', 'CONJOINT'] },
   { label: 'Grossesses', court: 'Grossesses', path: '/grossesses', icon: 'heart', section: 'suivi', roles: ['MEDECIN', 'SAGE_FEMME'] },
@@ -20,7 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Alertes', court: 'Alertes', path: '/alertes', icon: 'alert-triangle', section: 'suivi', roles: ['MEDECIN', 'SAGE_FEMME'] },
   { label: 'Établissements', court: 'Structures', path: '/etablissements', icon: 'building', section: 'gestion', roles: ['ADMIN'] },
   { label: 'Mon établissement', court: 'Structure', path: '/etablissements', icon: 'building', section: 'gestion', roles: ['ADMIN_ETABLISSEMENT'] },
-  { label: 'Conseils & étapes', court: 'Conseils', path: '/conseils', icon: 'book', section: 'gestion', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+  { label: 'Conseils & étapes', court: 'Conseils', path: '/conseils', icon: 'book', section: 'gestion', roles: ['ADMIN_ETABLISSEMENT', 'MEDECIN', 'SAGE_FEMME'] },
   { label: 'Utilisateurs', court: 'Utilisateurs', path: '/utilisateurs', icon: 'user', section: 'gestion', roles: ['ADMIN'] },
   { label: 'Soignants', court: 'Soignants', path: '/utilisateurs', icon: 'user', section: 'gestion', roles: ['ADMIN_ETABLISSEMENT'] },
 ];

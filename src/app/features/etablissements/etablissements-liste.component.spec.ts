@@ -56,24 +56,15 @@ describe('EtablissementsListeComponent (deux niveaux d’administration)', () =>
 
   const boutons = () => Array.from(el.querySelectorAll('button')).map((b) => b.textContent!.trim());
 
-  it('l’administrateur de la plateforme gère tous les établissements', () => {
+  it('l’administrateur de la plateforme gère tous les établissements, sans affecter de soignant', () => {
     afficher('ADMIN');
 
     expect(etablissements['listerTous']).toHaveBeenCalled();
     expect(etablissements['monEtablissement']).not.toHaveBeenCalled();
-    expect(utilisateurs['listerTous']).toHaveBeenCalledWith('MEDECIN');
     expect(composant.etablissements().length).toBe(2);
     expect(boutons()).toContain('Nouvel établissement');
     expect(boutons()).toContain('Désactiver');
-  });
-
-  it('il affecte un soignant choisi dans la liste, par son identifiant', () => {
-    afficher('ADMIN');
-
-    composant.mettreAJourIdProfessionnel(2, '20');
-    composant.affecterProfessionnel(AUTRE);
-
-    expect(etablissements['affecterProfessionnel']).toHaveBeenCalledWith(2, { professionnelId: 20 });
+    expect(el.querySelector('.etab__add')).toBeNull();
   });
 
   it('l’administrateur d’établissement ne voit que le sien, sans création ni suppression', () => {
@@ -81,7 +72,7 @@ describe('EtablissementsListeComponent (deux niveaux d’administration)', () =>
 
     expect(etablissements['monEtablissement']).toHaveBeenCalled();
     expect(etablissements['listerTous']).not.toHaveBeenCalled();
-    expect(utilisateurs['listerTous']).not.toHaveBeenCalled();
+    expect(el.querySelector('.etab__add')).not.toBeNull();
     expect(el.querySelector('.section-title')?.textContent).toContain('Mon établissement');
     expect(composant.etablissements().map((e) => e.id)).toEqual([1]);
     expect(boutons()).not.toContain('Nouvel établissement');

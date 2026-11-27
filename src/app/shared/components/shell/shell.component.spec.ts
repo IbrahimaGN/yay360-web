@@ -36,16 +36,14 @@ describe('ShellComponent (menu latéral par rôle)', () => {
   it('l’administrateur de la plateforme voit la gestion, sans aucun écran de suivi des patientes', () => {
     afficher('ADMIN');
 
-    expect(entrees()).toEqual([
-      'Accueil', 'Tableau de bord', 'Établissements', 'Conseils & étapes', 'Utilisateurs',
-    ]);
+    expect(entrees()).toEqual(['Accueil', 'Tableau de bord', 'Établissements', 'Utilisateurs']);
     expect(sections()).toEqual(['Général', 'Administration']);
   });
 
-  it('l’administrateur d’établissement ne voit que son établissement et ses soignants', () => {
+  it('l’administrateur d’établissement voit son tableau de bord, son établissement, les conseils et ses soignants', () => {
     afficher('ADMIN_ETABLISSEMENT');
 
-    expect(entrees()).toEqual(['Accueil', 'Mon établissement', 'Soignants']);
+    expect(entrees()).toEqual(['Accueil', 'Tableau de bord', 'Mon établissement', 'Conseils & étapes', 'Soignants']);
     expect(sections()).toEqual(['Général', 'Administration']);
   });
 

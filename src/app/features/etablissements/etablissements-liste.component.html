@@ -105,7 +105,7 @@
           <div class="etab__team">
             <div class="etab__team-head">
               <span>Soignants <strong>{{ e.professionnels.length }}</strong></span>
-              @if (e.actif && affectationOuverte() !== e.id) {
+              @if (!adminPlateforme() && e.actif && affectationOuverte() !== e.id) {
                 <button type="button" class="etab__add" (click)="affectationOuverte.set(e.id)">
                   <yay360-icon name="plus" [size]="14" aria-hidden="true" /> Affecter
                 </button>
@@ -124,19 +124,9 @@
             @if (affectationOuverte() === e.id) {
               <div class="assign">
                 <label class="sr-only" [for]="'pro-' + e.id">Professionnel à affecter</label>
-                @if (adminPlateforme()) {
-                  <select class="select" [id]="'pro-' + e.id" [value]="idProfessionnelParEtablissement()[e.id] || ''"
-                          (change)="mettreAJourIdProfessionnel(e.id, $any($event.target).value)">
-                    <option value="">Choisir un médecin ou une sage-femme…</option>
-                    @for (p of professionnels(); track p.id) {
-                      <option [value]="p.id">{{ p.prenom }} {{ p.nom }} — {{ libelleRole(p.role) }}</option>
-                    }
-                  </select>
-                } @else {
-                  <input class="input" type="email" [id]="'pro-' + e.id" placeholder="E-mail d’un soignant déjà inscrit"
-                         [value]="idProfessionnelParEtablissement()[e.id] || ''"
-                         (input)="mettreAJourIdProfessionnel(e.id, $any($event.target).value)" />
-                }
+                <input class="input" type="email" [id]="'pro-' + e.id" placeholder="E-mail d’un soignant déjà inscrit"
+                       [value]="idProfessionnelParEtablissement()[e.id] || ''"
+                       (input)="mettreAJourIdProfessionnel(e.id, $any($event.target).value)" />
                 <div class="assign__buttons">
                   <button type="button" class="pro-btn pro-btn--accent pro-btn--sm" [disabled]="!idProfessionnelParEtablissement()[e.id]" (click)="affecterProfessionnel(e)">Affecter</button>
                   <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" (click)="affectationOuverte.set(null)">Annuler</button>

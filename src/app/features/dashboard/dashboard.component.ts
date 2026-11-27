@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { StateComponent } from '../../shared/components/state/state.component';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { DashboardService } from '../../core/services/dashboard.service';
+import { AuthService } from '../../core/services/auth.service';
 import { DashboardDto } from '../../core/models/dashboard.model';
 import { messageErreur } from '../../core/utils/message-erreur';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -17,12 +17,16 @@ interface Barre {
 @Component({
   selector: 'yay360-dashboard',
   standalone: true,
-  imports: [StateComponent, RingChartComponent, IconComponent, DatePipe, DecimalPipe, RouterLink],
+  imports: [StateComponent, RingChartComponent, IconComponent, DatePipe, DecimalPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly authService = inject(AuthService);
+
+  /** L'administrateur d'établissement voit le même tableau, limité à son établissement par l'API. */
+  readonly estAdminEtablissement = computed(() => this.authService.role() === 'ADMIN_ETABLISSEMENT');
 
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
