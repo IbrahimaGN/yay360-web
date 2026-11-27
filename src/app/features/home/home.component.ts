@@ -33,14 +33,14 @@ interface QuickLink {
 const QUICK_LINKS: QuickLink[] = [
   { label: 'Dossier familial', description: 'Partager et consulter le dossier maternel', icon: 'users', path: '/dossier-familial', roles: ['FEMME_ENCEINTE', 'CONJOINT'] },
   { label: 'Suivi prénatal', description: 'Étapes, rendez-vous et consultations', icon: 'calendar', path: '/suivi-prenatal', roles: ['FEMME_ENCEINTE', 'CONJOINT'] },
-  { label: 'Tableau de bord', description: 'Indicateurs de pilotage de la plateforme', icon: 'grid', path: '/tableau-de-bord', roles: ['ADMIN'] },
+  { label: 'Tableau de bord', description: 'Indicateurs de pilotage', icon: 'grid', path: '/tableau-de-bord', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
   { label: 'Grossesses', description: 'Suivi et évolution des grossesses', icon: 'heart', path: '/grossesses', roles: ['MEDECIN', 'SAGE_FEMME'] },
   { label: 'Rendez-vous', description: 'Planning et rendez-vous', icon: 'calendar', path: '/rendez-vous', roles: ['MEDECIN', 'SAGE_FEMME'] },
   { label: 'Consultations', description: 'Enregistrer et consulter les dossiers', icon: 'clipboard', path: '/consultations', roles: ['MEDECIN', 'SAGE_FEMME'] },
   { label: 'Alertes', description: 'Situations nécessitant une vigilance', icon: 'bell', path: '/alertes', roles: ['MEDECIN', 'SAGE_FEMME'] },
   { label: 'Établissements', description: 'Centres de santé partenaires', icon: 'building', path: '/etablissements', roles: ['ADMIN'] },
   { label: 'Mon établissement', description: 'Coordonnées et soignants affectés', icon: 'building', path: '/etablissements', roles: ['ADMIN_ETABLISSEMENT'] },
-  { label: 'Conseils & étapes', description: 'Contenu semaine par semaine', icon: 'book', path: '/conseils', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
+  { label: 'Conseils & étapes', description: 'Contenu semaine par semaine', icon: 'book', path: '/conseils', roles: ['ADMIN_ETABLISSEMENT', 'MEDECIN', 'SAGE_FEMME'] },
   { label: 'Utilisateurs', description: 'Comptes de la plateforme', icon: 'users', path: '/utilisateurs', roles: ['ADMIN'] },
   { label: 'Soignants', description: 'Comptes des médecins et sages-femmes', icon: 'users', path: '/utilisateurs', roles: ['ADMIN_ETABLISSEMENT'] },
 ];
@@ -59,6 +59,8 @@ export class HomeComponent {
   protected readonly aujourdhui = new Date();
   protected readonly estAdmin = computed(() => this.authService.role() === 'ADMIN');
   protected readonly estAdminEtablissement = computed(() => this.authService.role() === 'ADMIN_ETABLISSEMENT');
+  /** Les deux niveaux d'administration voient les indicateurs : la plateforme, ou leur seul établissement. */
+  protected readonly voitIndicateurs = computed(() => this.estAdmin() || this.estAdminEtablissement());
 
   /** Indicateurs de l'admin (même source que le tableau de bord). */
   protected readonly stats = signal<DashboardDto | null>(null);
@@ -208,7 +210,7 @@ export class HomeComponent {
   }
 
   constructor() {
-    if (this.estAdmin()) this.chargerStats();
+    if (this.voitIndicateurs()) this.chargerStats();
     if (this.estSoignant()) this.chargerSoignant();
     if (this.estFamille()) this.chargerFamille();
   }

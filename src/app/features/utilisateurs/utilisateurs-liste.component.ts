@@ -68,8 +68,13 @@ export class UtilisateursListeComponent {
 
   /** Établissement géré (administrateur d'établissement) : titre de la page et retrait d'un soignant. */
   readonly monEtablissement = signal<EtablissementDto | null>(null);
-  /** Établissements proposés à la création d'un compte (administrateur de la plateforme). */
+  /** Établissements actifs (administrateur de la plateforme). */
   readonly etablissements = signal<EtablissementDto[]>([]);
+  /** Établissements qui ont déjà leur administrateur : un seul par établissement. */
+  readonly etablissementsPris = signal<number[]>([]);
+  /** Établissements proposés à la création d'un administrateur : actifs et encore sans administrateur. */
+  readonly etablissementsLibres = computed(() =>
+    this.etablissements().filter((e) => !this.etablissementsPris().includes(e.id)));
 
   readonly ongletActif = signal<CleOnglet>('TOUS');
   readonly chargement = signal(true);
@@ -122,9 +127,13 @@ export class UtilisateursListeComponent {
     etablissementId: [''],
   });
 
-  /** Le choix d'un établissement n'a de sens que pour un compte créé par l'administrateur de la plateforme. */
+  /**
+   * L'administrateur de la plateforme crée des administrateurs : d'établissement (en choisissant
+   * l'établissement) ou de la plateforme (sans établissement). L'administrateur d'établissement crée
+   * les soignants, rattachés à sa structure.
+   */
   readonly roleChoisi = signal<RoleProfessionnel>('MEDECIN');
-  readonly choixEtablissement = computed(() => this.adminPlateforme() && this.roleChoisi() !== 'ADMIN');
+  readonly choixEtablissement = computed(() => this.adminPlateforme() && this.roleChoisi() === 'ADMIN_ETABLISSEMENT');
 
   /** Un seul chargement à la fois : la réponse d'un ancien onglet n'écrase jamais l'onglet actif. */
   private readonly rechargement$ = new Subject<CleOnglet>();
@@ -209,13 +218,23 @@ export class UtilisateursListeComponent {
   }
 
   ouvrirCreation(): void {
-    this.form.reset({ role: 'MEDECIN', etablissementId: '' });
+    this.form.reset({ role: this.adminPlateforme() ? 'ADMIN_ETABLISSEMENT' : 'MEDECIN', etablissementId: '' });
+    if (this.adminPlateforme()) {
+      this.chargerEtablissementsPris();
+    }
     this.erreurFormulaire.set(null);
     this.formulaireOuvert.set(true);
   }
 
   fermerFormulaire(): void {
     this.formulaireOuvert.set(false);
+  }
+
+  private chargerEtablissementsPris(): void {
+    this.utilisateurService.listerTous('ADMIN_ETABLISSEMENT').subscribe({
+      next: (admins) => this.etablissementsPris.set(
+        admins.map((a) => a.etablissementAdministreId).filter((id): id is number => id != null)),
+    });
   }
 
   soumettre(): void {

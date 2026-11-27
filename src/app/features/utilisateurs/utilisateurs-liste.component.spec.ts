@@ -114,12 +114,35 @@ describe('UtilisateursListeComponent (deux niveaux d’administration)', () => {
     expect(composant.compteCree()?.motDePasseTemporaire).toBe('Yay-temporaire-9');
   });
 
-  it('un administrateur de la plateforme n’est rattaché à aucun établissement', () => {
+  it('l’administrateur de la plateforme ne crée que des administrateurs, un seul par établissement', () => {
+    afficher('ADMIN');
+    utilisateurs['listerTous'].mockReturnValue(of([
+      compte({ id: 30, role: 'ADMIN_ETABLISSEMENT', etablissementAdministreId: 1 }),
+    ]));
+    etablissements['listerTous'].mockReturnValue(of([MON_ETABLISSEMENT, etablissement({ id: 3, nom: 'Centre libre' })]));
+    composant.etablissements.set([MON_ETABLISSEMENT, etablissement({ id: 3, nom: 'Centre libre' })]);
+
+    composant.ouvrirCreation();
+    fixture.detectChanges();
+
+    expect(composant.form.controls.role.value).toBe('ADMIN_ETABLISSEMENT');
+    expect(el.querySelector('input[value="MEDECIN"]')).toBeNull();
+    expect(el.querySelector('input[value="SAGE_FEMME"]')).toBeNull();
+    expect(el.querySelector('input[value="ADMIN"]')).not.toBeNull();
+    expect(el.querySelector('#etablissementId')).not.toBeNull();
+    expect(utilisateurs['listerTous']).toHaveBeenCalledWith('ADMIN_ETABLISSEMENT');
+    expect(composant.etablissementsLibres().map((e) => e.id)).toEqual([3]);
+    expect(el.querySelector('#titre-nouveau')?.textContent).toContain('Nouvel administrateur');
+  });
+
+  it('il crée un autre administrateur de la plateforme, sans établissement', () => {
     afficher('ADMIN');
     composant.ouvrirCreation();
     remplir('ADMIN', '1');
+    fixture.detectChanges();
 
     expect(composant.choixEtablissement()).toBe(false);
+    expect(el.querySelector('#etablissementId')).toBeNull();
     composant.soumettre();
 
     expect(utilisateurs['creerProfessionnel']).toHaveBeenCalledWith(

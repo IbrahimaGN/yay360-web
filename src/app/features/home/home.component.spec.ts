@@ -35,13 +35,14 @@ describe('HomeComponent (accueil des administrateurs)', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('l’administrateur d’établissement accède à son établissement et à ses soignants, sans écran de suivi', () => {
+  it('l’administrateur d’établissement voit les indicateurs de son établissement, sans écran de suivi', () => {
     const accueil = creer('ADMIN_ETABLISSEMENT');
     fixture.detectChanges();
 
-    expect(dashboard['obtenir']).not.toHaveBeenCalled();
-    expect(el.querySelector('.welcome__lead')?.textContent).toContain('Gérez les soignants');
-    expect(accueil.accesRapides().map((l) => l.label)).toEqual(['Mon établissement', 'Soignants']);
+    expect(dashboard['obtenir']).toHaveBeenCalled();
+    expect(el.querySelector('.welcome__lead')?.textContent).toContain('votre établissement');
+    expect(accueil.accesRapides().map((l) => l.label))
+      .toEqual(['Tableau de bord', 'Mon établissement', 'Conseils & étapes', 'Soignants']);
   });
 
   it('les indicateurs de l’administrateur de la plateforme renvoient au tableau de bord, jamais aux dossiers', () => {
@@ -51,6 +52,6 @@ describe('HomeComponent (accueil des administrateurs)', () => {
     expect(dashboard['obtenir']).toHaveBeenCalled();
     expect(accueil.aTraiter().map((t) => t.lien)).toEqual(['/tableau-de-bord', '/tableau-de-bord', '/tableau-de-bord']);
     expect(accueil.accesRapides().map((l) => l.label)).not.toContain('Grossesses');
-    expect(accueil.accesRapides().map((l) => l.label)).not.toContain('Alertes');
+    expect(accueil.accesRapides().map((l) => l.label)).toEqual(['Tableau de bord', 'Établissements', 'Utilisateurs']);
   });
 });
