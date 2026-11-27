@@ -4,11 +4,11 @@ import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
+    // Pas de page vitrine : l'application s'ouvre sur la connexion
+    // (un utilisateur déjà connecté est renvoyé vers son accueil par inviteGuard).
     path: '',
     pathMatch: 'full',
-    loadComponent: () =>
-      import('./features/public-home/public-home.component').then((m) => m.PublicHomeComponent),
-    title: 'YAY360 — Votre suivi maternel, à chaque étape',
+    redirectTo: 'connexion',
   },
   {
     path: 'inscription',
