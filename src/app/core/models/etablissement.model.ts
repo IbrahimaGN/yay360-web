@@ -23,8 +23,10 @@ export interface EtablissementRequest {
   longitude?: number | null;
 }
 
+/** Soignant désigné par son id (administrateur de la plateforme) ou par son email (administrateur d'établissement). */
 export interface AffecterProfessionnelRequest {
-  professionnelId: number;
+  professionnelId?: number;
+  email?: string;
 }
 
 export const TYPES_ETABLISSEMENT = [

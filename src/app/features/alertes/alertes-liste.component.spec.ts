@@ -189,11 +189,4 @@ describe('AlertesListeComponent (alertes)', () => {
 
     expect(service['prendreEnCharge']).toHaveBeenCalledWith(2);
   });
-
-  it('l’administrateur consulte les alertes sans pouvoir agir', () => {
-    afficher('ADMIN');
-
-    expect(el.textContent).toContain('Vue de supervision des signalements');
-    expect(el.querySelector('.alert__actions')).toBeNull();
-  });
 });

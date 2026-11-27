@@ -30,7 +30,7 @@ export class GrossessesListeComponent {
   private readonly grossesseService = inject(GrossesseService);
   private readonly authService = inject(AuthService);
 
-  /** Un soignant ne voit que les patientes qu'il suit ; l'admin a une vue d'ensemble. */
+  /** Page réservée aux soignants : chacun ne voit que les patientes qu'il suit. */
   readonly estSoignant = computed(() => this.authService.hasRole('MEDECIN', 'SAGE_FEMME'));
 
   readonly onglet = signal<Onglet>('TOUTES');

@@ -8,6 +8,8 @@
       <p class="welcome__lead">
         @if (estAdmin()) {
           Voici l’essentiel de la plateforme YAY360 aujourd’hui.
+        } @else if (estAdminEtablissement()) {
+          Gérez les soignants et les coordonnées de votre établissement.
         } @else if (estSoignant()) {
           Voici votre journée : rendez-vous, alertes et patientes suivies.
         } @else if (estFamille() && grossesse()) {

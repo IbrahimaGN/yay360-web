@@ -72,16 +72,6 @@ describe('RendezVousListeComponent (planning et filtres)', () => {
     expect(el.querySelectorAll('.day-btn').length).toBe(7);
   });
 
-  it('l’administrateur a une vue de supervision sans planning ni création', () => {
-    afficher('ADMIN');
-
-    expect(service['listerParStatut']).toHaveBeenCalledWith('PLANIFIE');
-    expect(onglets().some((o) => o.textContent!.includes('Mon planning'))).toBe(false);
-    expect(el.querySelector('.rdv__head .pro-btn')).toBeNull();
-    expect(el.querySelector('.filters__week')).toBeNull();
-    expect(el.textContent).toContain('Vue de supervision');
-  });
-
   it('regroupe les rendez-vous par jour, dans l’ordre chronologique', () => {
     afficher('MEDECIN');
 

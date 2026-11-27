@@ -3,7 +3,9 @@ import { MOTIF_TELEPHONE_ETABLISSEMENT } from '../../core/validators/validateurs
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { StateComponent } from '../../shared/components/state/state.component';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { map } from 'rxjs';
 import { EtablissementService } from '../../core/services/etablissement.service';
+import { AuthService } from '../../core/services/auth.service';
 import { UtilisateurService } from '../../core/services/utilisateur.service';
 import {
   AffecterProfessionnelRequest,
@@ -27,7 +29,14 @@ type FiltreStatut = 'TOUS' | 'ACTIFS' | 'INACTIFS';
 export class EtablissementsListeComponent {
   private readonly etablissementService = inject(EtablissementService);
   private readonly utilisateurService = inject(UtilisateurService);
+  private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+
+  /**
+   * Administrateur de la plateforme : tous les établissements. Administrateur d'établissement : le sien
+   * seulement, sans création, désactivation ni suppression ; il affecte un soignant par son email.
+   */
+  readonly adminPlateforme = computed(() => this.authService.role() === 'ADMIN');
 
   readonly types = TYPES_ETABLISSEMENT;
   readonly libelleRole = libelleRole;
@@ -88,7 +97,9 @@ export class EtablissementsListeComponent {
 
   constructor() {
     this.charger();
-    this.chargerProfessionnels();
+    if (this.adminPlateforme()) {
+      this.chargerProfessionnels();
+    }
   }
 
   @HostListener('document:keydown.escape')
@@ -130,7 +141,10 @@ export class EtablissementsListeComponent {
     this.chargement.set(true);
     this.erreur.set(null);
 
-    this.etablissementService.listerTous().subscribe({
+    const requete = this.adminPlateforme()
+      ? this.etablissementService.listerTous()
+      : this.etablissementService.monEtablissement().pipe(map((e) => [e]));
+    requete.subscribe({
       next: (liste) => {
         this.etablissements.set(liste);
         this.chargement.set(false);
@@ -239,11 +253,16 @@ export class EtablissementsListeComponent {
   }
 
   affecterProfessionnel(etablissement: EtablissementDto): void {
-    const idTexte = this.idProfessionnelParEtablissement()[etablissement.id];
-    const professionnelId = Number(idTexte);
-    if (!professionnelId) return;
-
-    const request: AffecterProfessionnelRequest = { professionnelId };
+    const saisie = (this.idProfessionnelParEtablissement()[etablissement.id] ?? '').trim();
+    if (!saisie) return;
+    let request: AffecterProfessionnelRequest;
+    if (this.adminPlateforme()) {
+      const professionnelId = Number(saisie);
+      if (!professionnelId) return;
+      request = { professionnelId };
+    } else {
+      request = { email: saisie };
+    }
     this.erreurAction.set(null);
     this.etablissementService.affecterProfessionnel(etablissement.id, request).subscribe({
       next: () => {
