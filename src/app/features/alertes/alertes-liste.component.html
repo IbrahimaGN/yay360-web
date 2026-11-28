@@ -7,7 +7,8 @@
       <div>
         <h2 class="section-title">Alertes et symptômes</h2>
         <p>
-          Signalements de vos patientes et signaux détectés en consultation, classés par les règles de triage.
+          @if (peutAgir()) { Signalements de vos patientes et signaux détectés en consultation, classés par les règles de triage. }
+          @else { Vue de supervision des signalements. La prise en charge est assurée par les soignants. }
         </p>
       </div>
     </div>

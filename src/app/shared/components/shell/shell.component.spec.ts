@@ -33,18 +33,14 @@ describe('ShellComponent (menu latéral par rôle)', () => {
   const entrees = () => Array.from(el.querySelectorAll('.side__label')).map((l) => l.textContent!.trim());
   const sections = () => Array.from(el.querySelectorAll('.side__section-title')).map((t) => t.textContent!.trim());
 
-  it('l’administrateur de la plateforme voit la gestion, sans aucun écran de suivi des patientes', () => {
+  it('l’administrateur voit la gestion de la plateforme, sans les consultations', () => {
     afficher('ADMIN');
 
-    expect(entrees()).toEqual(['Accueil', 'Tableau de bord', 'Établissements', 'Utilisateurs']);
-    expect(sections()).toEqual(['Général', 'Administration']);
-  });
-
-  it('l’administrateur d’établissement voit son tableau de bord, son établissement, les conseils et ses soignants', () => {
-    afficher('ADMIN_ETABLISSEMENT');
-
-    expect(entrees()).toEqual(['Accueil', 'Tableau de bord', 'Mon établissement', 'Conseils & étapes', 'Soignants']);
-    expect(sections()).toEqual(['Général', 'Administration']);
+    expect(entrees()).toEqual([
+      'Accueil', 'Tableau de bord', 'Grossesses', 'Rendez-vous', 'Alertes',
+      'Établissements', 'Conseils & étapes', 'Utilisateurs',
+    ]);
+    expect(sections()).toEqual(['Général', 'Suivi', 'Administration']);
   });
 
   it('le médecin voit le suivi clinique, sans les menus d’administration', () => {

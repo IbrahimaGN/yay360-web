@@ -19,11 +19,6 @@ export class UtilisateurService {
     return this.http.get<Utilisateur[]>(this.baseUrl, role ? { params: { role } } : {});
   }
 
-  /** Soignants de l'établissement que gère l'administrateur d'établissement connecté. */
-  soignantsDeMonEtablissement(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.baseUrl}/mon-etablissement`);
-  }
-
   obtenirParId(id: number): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.baseUrl}/${id}`);
   }
@@ -41,8 +36,7 @@ export class UtilisateurService {
   }
 
   /**
-   * Création d'un compte soignant ou administrateur. L'administrateur d'établissement ne crée que
-   * des soignants, rattachés à son établissement.
+   * Création d'un compte médecin, sage-femme ou administrateur (réservé à l'admin).
    * Le mot de passe temporaire n'est renvoyé que si aucun email n'a pu le transmettre.
    */
   creerProfessionnel(request: CreerProfessionnelRequest): Observable<CreationProfessionnelResponse> {

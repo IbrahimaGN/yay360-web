@@ -23,11 +23,6 @@ export class EtablissementService {
     return this.http.get<EtablissementDto[]>(`${this.baseUrl}/mes-etablissements`);
   }
 
-  /** Établissement que gère l'administrateur d'établissement connecté. */
-  monEtablissement(): Observable<EtablissementDto> {
-    return this.http.get<EtablissementDto>(`${this.baseUrl}/mon-etablissement`);
-  }
-
   listerTous(): Observable<EtablissementDto[]> {
     return this.http.get<EtablissementDto[]>(`${this.baseUrl}/tous`);
   }

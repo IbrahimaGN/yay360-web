@@ -4,11 +4,11 @@ import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
-    // Pas de page vitrine : l'application s'ouvre sur la connexion
-    // (un utilisateur déjà connecté est renvoyé vers son accueil par inviteGuard).
     path: '',
     pathMatch: 'full',
-    redirectTo: 'connexion',
+    loadComponent: () =>
+      import('./features/public-home/public-home.component').then((m) => m.PublicHomeComponent),
+    title: 'YAY360 — Votre suivi maternel, à chaque étape',
   },
   {
     path: 'inscription',
@@ -85,13 +85,13 @@ export const routes: Routes = [
       {
         path: 'tableau-de-bord',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Tableau de bord', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
+        data: { pageTitle: 'Tableau de bord', roles: ['ADMIN'] },
         loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'grossesses',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Suivi des grossesses', roles: ['MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Suivi des grossesses', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
         children: [
           {
             path: '',
@@ -123,7 +123,7 @@ export const routes: Routes = [
       {
         path: 'rendez-vous',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Rendez-vous', roles: ['MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Rendez-vous', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/rendez-vous/rendez-vous-liste.component').then(
             (m) => m.RendezVousListeComponent
@@ -162,14 +162,14 @@ export const routes: Routes = [
       {
         path: 'alertes',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Alertes', roles: ['MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Alertes', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/alertes/alertes-liste.component').then((m) => m.AlertesListeComponent),
       },
       {
         path: 'etablissements',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Établissements', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
+        data: { pageTitle: 'Établissements', roles: ['ADMIN'] },
         loadComponent: () =>
           import('./features/etablissements/etablissements-liste.component').then(
             (m) => m.EtablissementsListeComponent
@@ -178,7 +178,7 @@ export const routes: Routes = [
       {
         path: 'conseils',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Conseils & étapes', roles: ['ADMIN_ETABLISSEMENT', 'MEDECIN', 'SAGE_FEMME'] },
+        data: { pageTitle: 'Conseils & étapes', roles: ['ADMIN', 'MEDECIN', 'SAGE_FEMME'] },
         loadComponent: () =>
           import('./features/conseils/conseils-etapes.component').then(
             (m) => m.ConseilsEtapesComponent
@@ -187,7 +187,7 @@ export const routes: Routes = [
       {
         path: 'utilisateurs',
         canActivate: [roleGuard],
-        data: { pageTitle: 'Utilisateurs', roles: ['ADMIN', 'ADMIN_ETABLISSEMENT'] },
+        data: { pageTitle: 'Utilisateurs', roles: ['ADMIN'] },
         loadComponent: () =>
           import('./features/utilisateurs/utilisateurs-liste.component').then(
             (m) => m.UtilisateursListeComponent

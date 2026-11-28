@@ -116,6 +116,16 @@ describe('GrossesseDetailComponent (droits par rôle)', () => {
     expect(contientBouton('Déclarer à risque')).toBe(false);
   });
 
+  it('l’administrateur voit une vue de supervision, sans contenu médical', () => {
+    afficher('ADMIN');
+
+    expect(el.textContent).toContain('Vue de supervision');
+    expect(el.querySelector('#titre-actions')).toBeNull();
+    expect(el.querySelector('#titre-eval')).toBeNull();
+    expect(consultationService.parGrossesse).not.toHaveBeenCalled();
+    expect(grossesseService['evaluationRisque']).not.toHaveBeenCalled();
+  });
+
   it('l’évaluation affiche les facteurs, une suggestion (pas un diagnostic) et l’avertissement', () => {
     afficher('MEDECIN');
 

@@ -1,0 +1,272 @@
+<div class="landing">
+
+  <!-- ═══════════ En-tête ═══════════ -->
+  <header class="nav">
+    <div class="nav__inner">
+      <a routerLink="/" class="nav__brand" aria-label="YAY360 — accueil">
+        <img src="yay360-logo.png" alt="" width="44" height="44" />
+        <span>YaY°360</span>
+      </a>
+
+      <nav class="nav__links" [class.nav__links--open]="menuOuvert()" id="menu-public" aria-label="Sections de la page">
+        @for (s of sections; track s.id) {
+          <a [href]="'#' + s.id" class="nav__link" [class.nav__link--active]="sectionActive() === s.id"
+             [attr.aria-current]="sectionActive() === s.id ? 'true' : null" (click)="menuOuvert.set(false)">{{ s.libelle }}</a>
+        }
+        @if (!authService.estConnecte()) {
+          <div class="nav__menu-actions">
+            <a routerLink="/connexion" class="pro-btn pro-btn--secondary">Connexion</a>
+            <a routerLink="/inscription" class="pro-btn pro-btn--accent">Créer mon espace</a>
+          </div>
+        }
+      </nav>
+
+      <div class="nav__actions">
+        <yay360-theme-toggle />
+        @if (authService.estConnecte()) {
+          <a routerLink="/accueil" class="pro-btn pro-btn--accent">Mon espace <yay360-icon name="arrow-right" [size]="16" aria-hidden="true" /></a>
+        } @else {
+          <a routerLink="/connexion" class="pro-btn pro-btn--ghost nav__login">Connexion</a>
+          <a routerLink="/inscription" class="pro-btn pro-btn--accent nav__signup">Créer mon espace</a>
+        }
+        <button type="button" class="icon-btn icon-btn--white nav__burger" (click)="menuOuvert.set(!menuOuvert())"
+                aria-controls="menu-public" [attr.aria-expanded]="menuOuvert()" aria-label="Menu des sections">
+          <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ═══════════ Hero ═══════════ -->
+    <section class="hero">
+      <div class="hero__text">
+        <span class="pill"><span class="dot" aria-hidden="true"></span> Santé maternelle · Sénégal</span>
+        <h1>Votre grossesse,<br />suivie à <span class="hl">360°</span></h1>
+        <p class="hero__lead">
+          YAY360 relie la future maman, son conjoint et l’équipe de santé autour d’un même dossier :
+          rendez-vous, consultations prénatales, conseils de la semaine et signalement des symptômes.
+        </p>
+        <div class="hero__cta">
+          <a routerLink="/inscription" class="pro-btn pro-btn--accent hero__btn">Créer mon espace <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+          <a routerLink="/connexion" class="pro-btn pro-btn--secondary hero__btn">Espace professionnel</a>
+        </div>
+        <dl class="facts">
+          <div class="auth-stat">
+            <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="calendar" [size]="20" /></span>40</dt>
+            <dd>Semaines suivies</dd>
+          </div>
+          <div class="auth-stat auth-stat--orange">
+            <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="20" /></span>8</dt>
+            <dd>Consultations prénatales (OMS)</dd>
+          </div>
+          <div class="auth-stat auth-stat--lilac">
+            <dt><span class="auth-stat__icon" aria-hidden="true"><yay360-icon name="users" [size]="20" /></span>5</dt>
+            <dd>Profils connectés</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Aperçu façon tablette (illustratif) -->
+      <figure class="device" aria-label="Aperçu illustratif de l’espace patiente, données fictives">
+        <div class="device__rail" aria-hidden="true">
+          <img class="device__logo" src="yay360-logo.png" alt="" width="34" height="34" />
+          <span class="device__item device__item--active"><yay360-icon name="grid" [size]="16" /></span>
+          <span class="device__item"><yay360-icon name="calendar" [size]="16" /></span>
+          <span class="device__item"><yay360-icon name="users" [size]="16" /></span>
+          <span class="device__item"><yay360-icon name="bell" [size]="16" /></span>
+        </div>
+
+        <div class="device__col">
+          <div class="mini-profile">
+            <div class="mini-ring" style="--p: 60" aria-hidden="true"><strong>24</strong><small>sur 40 sem.</small></div>
+            <strong>Awa D.</strong>
+            <small>Exemple fictif</small>
+            <div class="mini-profile__stats">
+              <div><span>Semaine</span><b>24</b></div>
+              <div><span>Trimestre</span><b>T2</b></div>
+              <div><span>Terme</span><b>J-112</b></div>
+            </div>
+          </div>
+          <div class="mini-card">
+            <span class="mini-card__label"><span class="dot" aria-hidden="true"></span> Prochain rendez-vous</span>
+            <strong>Consultation prénatale</strong>
+            <small>Centre de santé · 10 h 00</small>
+          </div>
+        </div>
+
+        <div class="device__main">
+          <p class="device__title">Consultations prénatales</p>
+          <ol class="cpn" aria-hidden="true">
+            @for (n of [1, 2, 3, 4, 5, 6, 7, 8]; track n) {
+              <li [class.cpn--done]="n <= 2" [class.cpn--next]="n === 3">{{ n }}</li>
+            }
+          </ol>
+          <p class="device__title">Évolution de la grossesse</p>
+          <svg class="curve" viewBox="0 0 320 110" aria-hidden="true">
+            <path d="M0 95 C 50 92, 70 70, 110 72 S 170 40, 210 46 S 280 20, 320 14 L320 110 L0 110 Z" style="fill: var(--viz-track)" />
+            <path d="M0 95 C 50 92, 70 70, 110 72 S 170 40, 210 46 S 280 20, 320 14" fill="none" style="stroke: var(--c-teal)" stroke-width="3" stroke-linecap="round" />
+            <circle cx="210" cy="46" r="6" style="fill: var(--c-surface); stroke: var(--c-teal)" stroke-width="3" />
+          </svg>
+          <div class="device__legend"><span>T1</span><span>T2</span><span>T3</span></div>
+        </div>
+
+        <figcaption class="device__caption">Aperçu illustratif · données fictives</figcaption>
+      </figure>
+    </section>
+
+    <!-- ═══════════ Pour qui ? ═══════════ -->
+    <section class="section" id="profils" aria-labelledby="titre-profils">
+      <div class="section__head">
+        <span class="kicker">Pour qui ?</span>
+        <h2 id="titre-profils">Un espace adapté à chacun</h2>
+        <p>Chaque profil voit uniquement ce qui le concerne, selon ses droits.</p>
+      </div>
+
+      <div class="roles">
+        <div class="roles__tabs" role="group" aria-label="Choisir un profil">
+          @for (p of profils; track p.cle) {
+            <button type="button" class="role-tab" [class.role-tab--active]="profilActif() === p.cle"
+                    [attr.aria-pressed]="profilActif() === p.cle" aria-controls="profil-detail"
+                    (click)="choisirProfil(p.cle)">
+              <span class="role-tab__icon"><yay360-icon [name]="p.icone" [size]="20" aria-hidden="true" /></span>
+              <span>{{ p.titre }}</span>
+            </button>
+          }
+        </div>
+
+        <article class="role-detail" id="profil-detail" aria-live="polite">
+          <div class="role-detail__intro">
+            <span class="role-detail__icon"><yay360-icon [name]="profil().icone" [size]="30" aria-hidden="true" /></span>
+            <div>
+              <span class="badge badge--primary">{{ profil().support }}</span>
+              <h3>{{ profil().titre }}</h3>
+              <p>{{ profil().description }}</p>
+            </div>
+          </div>
+          <ul class="role-detail__points">
+            @for (pt of profil().points; track pt) {
+              <li><span aria-hidden="true"><yay360-icon name="check" [size]="14" /></span>{{ pt }}</li>
+            }
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══════════ Modules ═══════════ -->
+    <section class="section section--panel" id="modules" aria-labelledby="titre-modules">
+      <div class="section__head">
+        <span class="kicker">Fonctionnalités</span>
+        <h2 id="titre-modules">Tout le suivi prénatal, au même endroit</h2>
+      </div>
+      <div class="modules">
+        @for (m of modules; track m.titre; let i = $index) {
+          <article class="module">
+            <span class="module__icon" [class.module__icon--orange]="i % 3 === 1" [class.module__icon--lilac]="i % 3 === 2">
+              <yay360-icon [name]="m.icone" [size]="22" aria-hidden="true" />
+            </span>
+            <h3>{{ m.titre }}</h3>
+            <p>{{ m.texte }}</p>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- ═══════════ Parcours ═══════════ -->
+    <section class="section journey" id="parcours" aria-labelledby="titre-parcours">
+      <div class="journey__text">
+        <span class="kicker">Comment ça marche</span>
+        <h2 id="titre-parcours">Trois étapes pour commencer</h2>
+        <ol class="steps">
+          <li>
+            <span class="steps__num">1</span>
+            <div><h3>Créez votre espace</h3><p>Inscription en quelques minutes avec votre numéro sénégalais.</p></div>
+          </li>
+          <li>
+            <span class="steps__num">2</span>
+            <div><h3>Déclarez votre grossesse</h3><p>La date des dernières règles suffit pour calculer votre terme et votre calendrier.</p></div>
+          </li>
+          <li>
+            <span class="steps__num">3</span>
+            <div><h3>Choisissez votre structure</h3><p>Votre centre de santé suit votre dossier et vos rendez-vous.</p></div>
+          </li>
+        </ol>
+        <a routerLink="/inscription" class="pro-btn pro-btn--accent journey__btn">Commencer maintenant <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+      </div>
+
+      <div class="journey__visual" aria-hidden="true">
+        <div class="banner journey__banner"><span><strong>Bienvenue !</strong> Votre calendrier est prêt.</span><yay360-icon name="check" [size]="20" /></div>
+        <div class="journey__cards">
+          <div class="ring-card">
+            <p>Calendrier</p>
+            <div class="ring" style="--p: 60">
+              <strong>24</strong><small>sur 40 sem.</small>
+            </div>
+          </div>
+          <div class="week-card">
+            <p>Cette semaine</p>
+            <ul>
+              <li><span class="dot"></span> Développement du bébé</li>
+              <li><span class="dot dot--orange"></span> Conseils alimentation</li>
+              <li><span class="dot dot--muted"></span> Examens recommandés</li>
+            </ul>
+          </div>
+        </div>
+        <p class="device__caption">Illustration · données fictives</p>
+      </div>
+    </section>
+
+    <!-- ═══════════ Confiance ═══════════ -->
+    <section class="section" id="confiance" aria-labelledby="titre-confiance">
+      <div class="section__head">
+        <span class="kicker">Confiance</span>
+        <h2 id="titre-confiance">Un outil d’accompagnement, pas un médecin</h2>
+      </div>
+      <div class="trust">
+        <div class="trust__item">
+          <span class="trust__icon" aria-hidden="true"><yay360-icon name="shield" [size]="22" /></span>
+          <h3>Accès protégé</h3>
+          <p>Connexion sécurisée et droits limités à chaque profil.</p>
+        </div>
+        <div class="trust__item">
+          <span class="trust__icon" aria-hidden="true"><yay360-icon name="activity" [size]="22" /></span>
+          <h3>Règles explicables</h3>
+          <p>Chaque niveau d’alerte indique les règles qui l’ont déclenché.</p>
+        </div>
+        <div class="trust__item">
+          <span class="trust__icon" aria-hidden="true"><yay360-icon name="clipboard" [size]="22" /></span>
+          <h3>Décision médicale</h3>
+          <p>Le diagnostic et le classement à risque restent réservés aux soignants.</p>
+        </div>
+      </div>
+      <p class="pro-notice pro-notice--warning emergency">
+        <yay360-icon name="alert-triangle" [size]="18" aria-hidden="true" />
+        <span>En cas d’urgence (saignements, perte de liquide, convulsions…), rendez-vous immédiatement dans la structure de santé la plus proche.</span>
+      </p>
+    </section>
+
+    <!-- ═══════════ Appel à l'action ═══════════ -->
+    <section class="cta-band" aria-labelledby="titre-cta">
+      <div>
+        <h2 id="titre-cta">Prête à commencer votre suivi ?</h2>
+        <p>Créez votre espace et invitez votre conjoint à vous rejoindre.</p>
+      </div>
+      <a routerLink="/inscription" class="pro-btn pro-btn--accent cta-band__btn">Créer mon espace <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
+    </section>
+  </main>
+
+  <!-- ═══════════ Pied de page ═══════════ -->
+  <footer class="footer">
+    <yay360-feuillage class="footer__leaves" aria-hidden="true" />
+    <div class="footer__inner">
+      <a routerLink="/" class="nav__brand" aria-label="YAY360 — accueil">
+        <img src="yay360-logo.png" alt="" width="40" height="40" /><span>YaY°360</span>
+      </a>
+      <p>YAY360 ne remplace pas l’avis d’un professionnel de santé.</p>
+      <nav aria-label="Liens utiles">
+        <a routerLink="/connexion">Connexion</a>
+        <a routerLink="/inscription">Inscription</a>
+      </nav>
+    </div>
+  </footer>
+</div>
