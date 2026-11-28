@@ -4,7 +4,6 @@ import { Role } from '../models/utilisateur.model';
 
 export const LIBELLES_ROLE: Record<Role, string> = {
   ADMIN: 'Administrateur',
-  ADMIN_ETABLISSEMENT: 'Admin. d’établissement',
   MEDECIN: 'Médecin',
   SAGE_FEMME: 'Sage-femme',
   FEMME_ENCEINTE: 'Femme enceinte',

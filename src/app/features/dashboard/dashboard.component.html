@@ -3,7 +3,7 @@
   <!-- ═══════════ En-tête ═══════════ -->
   <section class="card dash__head">
     <div>
-      <h2 class="section-title">{{ estAdminEtablissement() ? 'Indicateurs de mon établissement' : 'Indicateurs de la plateforme' }}</h2>
+      <h2 class="section-title">Indicateurs de la plateforme</h2>
       <p>
         @if (data(); as d) { Données au {{ d.dateGeneration | date: 'd MMMM y à HH:mm' }} }
         @else { Activité, grossesses, rendez-vous et alertes. }
@@ -14,6 +14,7 @@
         @if (chargement()) { <span class="btn-spinner" aria-hidden="true"></span> } @else { <yay360-icon name="activity" [size]="18" aria-hidden="true" /> }
         Actualiser
       </button>
+      <a class="pro-btn pro-btn--secondary" routerLink="/grossesses">Suivi des grossesses <yay360-icon name="arrow-right" [size]="16" aria-hidden="true" /></a>
     </div>
   </section>
 
@@ -101,7 +102,7 @@
         <header class="panel__head">
           <h2 id="titre-issues" class="panel__title">Statut des grossesses</h2>
           @if (d.nombreGrossessesARisque) {
-            <span class="badge badge--orange">{{ d.nombreGrossessesARisque }} à risque</span>
+            <a routerLink="/grossesses" class="badge badge--orange">{{ d.nombreGrossessesARisque }} à risque</a>
           }
         </header>
         <ul class="bars">
@@ -119,6 +120,7 @@
       <section class="card panel" aria-labelledby="titre-rdv">
         <header class="panel__head">
           <h2 id="titre-rdv" class="panel__title">Rendez-vous par statut</h2>
+          <a routerLink="/rendez-vous" class="panel__link">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
         </header>
         <ul class="bars">
           @for (b of barresRendezVous(); track b.label) {
@@ -135,6 +137,7 @@
       <section class="card panel" aria-labelledby="titre-alertes">
         <header class="panel__head">
           <h2 id="titre-alertes" class="panel__title">Alertes</h2>
+          <a routerLink="/alertes" class="panel__link">Voir <yay360-icon name="chevron-right" [size]="16" aria-hidden="true" /></a>
         </header>
         <div class="statuses">
           @for (s of statutsAlertes(); track s.label) {

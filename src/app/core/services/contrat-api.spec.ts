@@ -41,15 +41,6 @@ describe('Contrat d’API (web ↔ backend)', () => {
     attendre('POST', `${api}/utilisateurs/professionnels`, requete);
   });
 
-  it('administrateur d’établissement : son établissement, ses soignants, affectation par e-mail', () => {
-    TestBed.inject(EtablissementService).monEtablissement().subscribe();
-    attendre('GET', `${api}/etablissements/mon-etablissement`);
-    TestBed.inject(UtilisateurService).soignantsDeMonEtablissement().subscribe();
-    attendre('GET', `${api}/utilisateurs/mon-etablissement`);
-    TestBed.inject(EtablissementService).affecterProfessionnel(1, { email: 'sf@exemple.sn' }).subscribe();
-    attendre('POST', `${api}/etablissements/1/professionnels`, { email: 'sf@exemple.sn' });
-  });
-
   it('grossesses : établissement, recherche, rattachement, plan CPN, évaluation, clôture', () => {
     const s = TestBed.inject(GrossesseService);
     s.choisirEtablissement({ etablissementId: 3 }).subscribe();

@@ -37,7 +37,7 @@ export class RendezVousListeComponent {
   private readonly router = inject(Router);
 
   readonly libelleType = libelleTypeRendezVous;
-  /** Page réservée aux soignants : les administrateurs n'accèdent pas aux rendez-vous des patientes. */
+  /** Les actions sont réservées aux soignants (l'admin a une vue de supervision). */
   readonly estProfessionnel = computed(() => this.authService.hasRole('MEDECIN', 'SAGE_FEMME'));
 
   readonly onglets = computed<Onglet[]>(() => [

@@ -5,6 +5,16 @@
 
 /* Mise en page partagée : src/styles/_auth.scss */
 
+.login__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: var(--s-4);
+  font-size: var(--fs-sm);
+  color: var(--t-muted);
+  &:hover { color: var(--c-teal-ink); }
+}
+
 .login__notice { margin-bottom: var(--s-4); }
 
 /* Le bouton œil reste à droite, l'icône de cadenas à gauche */

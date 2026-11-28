@@ -8,8 +8,6 @@
       <p class="welcome__lead">
         @if (estAdmin()) {
           Voici l’essentiel de la plateforme YAY360 aujourd’hui.
-        } @else if (estAdminEtablissement()) {
-          Voici l’essentiel de votre établissement aujourd’hui.
         } @else if (estSoignant()) {
           Voici votre journée : rendez-vous, alertes et patientes suivies.
         } @else if (estFamille() && grossesse()) {
@@ -20,7 +18,7 @@
       </p>
       <div class="welcome__actions">
         <span class="welcome__role"><yay360-icon name="shield" [size]="14" aria-hidden="true" /> {{ libelleRole() }}</span>
-        @if (voitIndicateurs()) {
+        @if (estAdmin()) {
           <a routerLink="/tableau-de-bord" class="pro-btn pro-btn--accent">Voir le tableau de bord <yay360-icon name="arrow-right" [size]="18" aria-hidden="true" /></a>
         }
         @if (estSoignant()) {
@@ -38,7 +36,7 @@
     </div>
   </section>
 
-  @if (voitIndicateurs()) {
+  @if (estAdmin()) {
     <!-- ═══════════ À traiter ═══════════ -->
     <section aria-labelledby="titre-a-traiter">
       <div class="section-head home__head">
@@ -68,7 +66,7 @@
         </div>
 
         <!-- ═══════════ Plateforme en chiffres ═══════════ -->
-        <div class="platform card" [attr.aria-label]="estAdmin() ? 'La plateforme en chiffres' : 'L’établissement en chiffres'">
+        <div class="platform card" aria-label="La plateforme en chiffres">
           <div class="platform__item">
             <span class="platform__icon"><yay360-icon name="heart" [size]="18" aria-hidden="true" /></span>
             <div><strong>{{ s.nombreFemmesEnceintes | number }}</strong><span>Patientes</span></div>

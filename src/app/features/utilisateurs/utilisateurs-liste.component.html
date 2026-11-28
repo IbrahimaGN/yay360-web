@@ -5,22 +5,17 @@
     <div class="us__intro">
       <span class="us__intro-icon" aria-hidden="true"><yay360-icon name="users" [size]="24" /></span>
       <div>
-        @if (adminPlateforme()) {
-          <h2 class="section-title">Comptes de la plateforme</h2>
-          <p>Les patientes s’inscrivent elles-mêmes et invitent leur conjoint. Vous créez les administrateurs (de la plateforme ou d’un établissement) ; chaque administrateur d’établissement crée ensuite les soignants de sa structure.</p>
-        } @else {
-          <h2 class="section-title">Soignants{{ monEtablissement() ? ' — ' + monEtablissement()!.nom : '' }}</h2>
-          <p>Médecins et sages-femmes de votre établissement. Vous gérez leurs comptes, pas les dossiers des patientes.</p>
-        }
+        <h2 class="section-title">Comptes de la plateforme</h2>
+        <p>Les patientes s’inscrivent elles-mêmes et invitent leur conjoint. Les comptes des professionnels sont créés ici.</p>
       </div>
     </div>
     <button type="button" class="pro-btn pro-btn--accent" (click)="ouvrirCreation()">
-      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> {{ adminPlateforme() ? 'Nouvel administrateur' : 'Nouveau soignant' }}
+      <yay360-icon name="plus" [size]="18" aria-hidden="true" /> Nouveau professionnel
     </button>
   </section>
 
   <div class="tabs" role="tablist" aria-label="Profil">
-    @for (o of onglets(); track o.cle) {
+    @for (o of onglets; track o.cle) {
       <button type="button" role="tab" class="tabs__btn" [class.tabs__btn--active]="ongletActif() === o.cle"
               [attr.aria-selected]="ongletActif() === o.cle" (click)="changerOnglet(o.cle)">
         <yay360-icon [name]="o.icone" [size]="16" aria-hidden="true" /> {{ o.label }}
@@ -90,10 +85,7 @@
                   </div>
                 </div>
               </td>
-              <td data-label="Profil">
-                <span class="role" [attr.data-role]="u.role">{{ libelleRole(u.role) }}</span>
-                @if (u.etablissementAdministreNom) { <small class="us__etab">{{ u.etablissementAdministreNom }}</small> }
-              </td>
+              <td data-label="Profil"><span class="role" [attr.data-role]="u.role">{{ libelleRole(u.role) }}</span></td>
               <td data-label="Téléphone">{{ u.telephone || '—' }}</td>
               <td data-label="Créé le">{{ u.dateCreation | date: 'd MMM y' }}</td>
               <td data-label="Statut">
@@ -110,15 +102,10 @@
                         @if (idEnAction() === u.id) { <span class="btn-spinner" aria-hidden="true"></span> } Activer
                       </button>
                     }
-                    @if (adminPlateforme()) {
-                      <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm row-actions__delete" [disabled]="idEnAction() === u.id"
-                              (click)="demanderConfirmation('supprimer', u)" [attr.aria-label]="'Supprimer le compte de ' + u.prenom + ' ' + u.nom" title="Supprimer">
-                        <yay360-icon name="trash" [size]="16" aria-hidden="true" />
-                      </button>
-                    } @else {
-                      <button type="button" class="pro-btn pro-btn--ghost pro-btn--sm" [disabled]="idEnAction() === u.id"
-                              (click)="demanderConfirmation('retirer', u)">Retirer</button>
-                    }
+                    <button type="button" class="pro-btn pro-btn--danger-ghost pro-btn--sm row-actions__delete" [disabled]="idEnAction() === u.id"
+                            (click)="demanderConfirmation('supprimer', u)" [attr.aria-label]="'Supprimer le compte de ' + u.prenom + ' ' + u.nom" title="Supprimer">
+                      <yay360-icon name="trash" [size]="16" aria-hidden="true" />
+                    </button>
                   } @else {
                     <span class="row-actions__self">Votre compte</span>
                   }
@@ -139,7 +126,7 @@
       <header class="pro-modal__head">
         <span class="pro-modal__icon" aria-hidden="true"><yay360-icon name="user" [size]="22" /></span>
         <div class="us__modal-title">
-          <h2 id="titre-nouveau">{{ adminPlateforme() ? 'Nouvel administrateur' : 'Nouveau soignant' }}</h2>
+          <h2 id="titre-nouveau">Nouveau professionnel</h2>
           <p>Un mot de passe temporaire est généré ; il devra être changé à la première connexion.</p>
         </div>
         <button type="button" class="icon-btn" (click)="fermerFormulaire()" aria-label="Fermer"><yay360-icon name="x" [size]="18" aria-hidden="true" /></button>
@@ -148,30 +135,10 @@
       <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="us__form">
         <fieldset class="role-pick">
           <legend>Profil *</legend>
-          @if (adminPlateforme()) {
-            <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN_ETABLISSEMENT" /><span><yay360-icon name="building" [size]="18" aria-hidden="true" /> Admin. d’établissement</span></label>
-            <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN" /><span><yay360-icon name="shield" [size]="18" aria-hidden="true" /> Admin. de la plateforme</span></label>
-          } @else {
-            <label class="role-pick__opt"><input type="radio" formControlName="role" value="MEDECIN" /><span><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Médecin</span></label>
-            <label class="role-pick__opt"><input type="radio" formControlName="role" value="SAGE_FEMME" /><span><yay360-icon name="activity" [size]="18" aria-hidden="true" /> Sage-femme</span></label>
-          }
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="MEDECIN" /><span><yay360-icon name="clipboard" [size]="18" aria-hidden="true" /> Médecin</span></label>
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="SAGE_FEMME" /><span><yay360-icon name="activity" [size]="18" aria-hidden="true" /> Sage-femme</span></label>
+          <label class="role-pick__opt"><input type="radio" formControlName="role" value="ADMIN" /><span><yay360-icon name="shield" [size]="18" aria-hidden="true" /> Administrateur</span></label>
         </fieldset>
-
-        @if (choixEtablissement()) {
-          <div class="field">
-            <label for="etablissementId">Établissement *</label>
-            <select id="etablissementId" class="select" formControlName="etablissementId">
-              <option value="">Choisir l’établissement à gérer…</option>
-              @for (e of etablissementsLibres(); track e.id) { <option [value]="e.id">{{ e.nom }}</option> }
-            </select>
-            <span class="field-hint">
-              @if (etablissementsLibres().length) { Un seul administrateur par établissement. Il gérera ses soignants, sans accès aux dossiers. }
-              @else { Tous les établissements actifs ont déjà leur administrateur. }
-            </span>
-          </div>
-        } @else if (!adminPlateforme() && monEtablissement()) {
-          <p class="field-hint">Le soignant sera rattaché à « {{ monEtablissement()!.nom }} ».</p>
-        }
 
         <div class="field-row">
           <div class="field">
@@ -260,16 +227,14 @@
   <div class="pro-modal-backdrop" (click)="confirmation.set(null)">
     <section class="pro-modal pro-modal--sm" role="alertdialog" aria-modal="true" aria-labelledby="titre-confirm-u" aria-describedby="texte-confirm-u" (click)="$event.stopPropagation()">
       <header class="pro-modal__head">
-        <span class="pro-modal__icon" [class.pro-modal__icon--danger]="c.mode === 'supprimer'" [class.pro-modal__icon--warning]="c.mode !== 'supprimer'" aria-hidden="true">
+        <span class="pro-modal__icon" [class.pro-modal__icon--danger]="c.mode === 'supprimer'" [class.pro-modal__icon--warning]="c.mode === 'desactiver'" aria-hidden="true">
           <yay360-icon [name]="c.mode === 'supprimer' ? 'trash' : 'alert-triangle'" [size]="22" />
         </span>
         <div class="us__modal-title">
-          <h2 id="titre-confirm-u">{{ c.mode === 'supprimer' ? 'Supprimer ce compte ?' : c.mode === 'retirer' ? 'Retirer ce soignant ?' : 'Désactiver ce compte ?' }}</h2>
+          <h2 id="titre-confirm-u">{{ c.mode === 'supprimer' ? 'Supprimer ce compte ?' : 'Désactiver ce compte ?' }}</h2>
           <p id="texte-confirm-u">
             @if (c.mode === 'supprimer') {
               Le compte de {{ c.utilisateur.prenom }} {{ c.utilisateur.nom }} sera supprimé définitivement. S’il contient déjà des données, préférez la désactivation.
-            } @else if (c.mode === 'retirer') {
-              {{ c.utilisateur.prenom }} {{ c.utilisateur.nom }} n’exercera plus dans votre établissement. Son compte reste actif s’il exerce ailleurs.
             } @else {
               {{ c.utilisateur.prenom }} {{ c.utilisateur.nom }} ne pourra plus se connecter. Ses données sont conservées et le compte pourra être réactivé.
             }
@@ -278,10 +243,10 @@
       </header>
       <div class="pro-modal__foot">
         <button type="button" class="pro-btn pro-btn--ghost" (click)="confirmation.set(null)">Annuler</button>
-        <button type="button" class="pro-btn" [class.pro-btn--danger]="c.mode === 'supprimer'" [class.pro-btn--accent]="c.mode !== 'supprimer'"
+        <button type="button" class="pro-btn" [class.pro-btn--danger]="c.mode === 'supprimer'" [class.pro-btn--accent]="c.mode === 'desactiver'"
                 [disabled]="idEnAction() === c.utilisateur.id" (click)="confirmerAction()">
           @if (idEnAction() === c.utilisateur.id) { <span class="btn-spinner" aria-hidden="true"></span> }
-          {{ c.mode === 'supprimer' ? 'Supprimer' : c.mode === 'retirer' ? 'Retirer' : 'Désactiver' }}
+          {{ c.mode === 'supprimer' ? 'Supprimer' : 'Désactiver' }}
         </button>
       </div>
     </section>

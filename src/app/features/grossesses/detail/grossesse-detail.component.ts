@@ -60,6 +60,7 @@ export class GrossesseDetailComponent implements OnInit {
   // Les droits reflètent ceux du serveur ; ils ne servent qu'à adapter l'interface
   readonly estSoignant = computed(() => this.authService.hasRole('MEDECIN', 'SAGE_FEMME'));
   readonly estMedecin = computed(() => this.authService.hasRole('MEDECIN'));
+  readonly estAdmin = computed(() => this.authService.hasRole('ADMIN'));
 
   readonly actionEnCours = signal(false);
   readonly formulaireRisqueOuvert = signal(false);
